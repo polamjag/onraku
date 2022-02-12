@@ -138,7 +138,7 @@ struct SongDetailView: View {
             NavigationLink {
                 QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.userGrouping, forProperty: MPMediaItemPropertyUserGrouping))
             } label: {
-                KeyValueView(key: "user grouping", value: song.userGrouping)
+                HorizontalKeyValueView(key: "user grouping", value: song.userGrouping)
             }.disabled(song.userGrouping?.isEmpty ?? true)
             
             NavigationLink {
