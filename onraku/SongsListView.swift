@@ -66,7 +66,7 @@ struct SongsListView: View {
                     Button(action: {
                         enqueueMediaItems(items: songs)
                     }) {
-                        Label("Delete", systemImage: "plus")
+                        Label("Enqueue All", systemImage: "plus")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
