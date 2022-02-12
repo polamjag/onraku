@@ -7,14 +7,19 @@
 
 import SwiftUI
 
+enum LoadingState {
+    case initial, loading, loaded
+}
+
 struct SongsListViewContainer: View {
     @State var playlists: [Playlist] = []
-    @State var isLoading: Bool = false
+    @State var loadState: LoadingState = .initial
+    @State var lastLoadedNavigationDestinationType: NavigationDestinationType?
     var type: NavigationDestinationType
     
     var body: some View {
         List {
-            if (isLoading) {
+            if (loadState == .loading) {
                 ProgressView()
             } else {
                 ForEach(playlists) { playlist in
@@ -30,14 +35,13 @@ struct SongsListViewContainer: View {
                 }
             }
         }.task {
-            Task {
-                do {
-                    isLoading = true
-                    playlists = await loadPlaylistsForType(type: type)
-                    isLoading = false
-                }
+            if (loadState != .loaded || lastLoadedNavigationDestinationType != type) {
+                loadState = .loading
+                playlists = await loadPlaylistsForType(type: type)
+                loadState = .loaded
             }
         }
+            
     }
 }
 
