@@ -31,6 +31,7 @@ class onrakuTests: XCTestCase {
         XCTAssertEqual("a (b), c (d) from x".intelligentlySplitIntoSubArtists(), ["a", "b", "c", "d", "x"])
         XCTAssertEqual("a・b・c from x".intelligentlySplitIntoSubArtists(), ["a", "b", "c", "x"])
         XCTAssertEqual("foo (a, b, c)".intelligentlySplitIntoSubArtists(), ["foo", "a", "b", "c"])
+        XCTAssertEqual("foo (a), bar (a)".intelligentlySplitIntoSubArtists(), ["foo", "a", "bar"])
         
         XCTAssertEqual("".intelligentlySplitIntoSubGenres(), [])
         XCTAssertEqual("a / b / c".intelligentlySplitIntoSubGenres(), ["a", "b", "c"])
