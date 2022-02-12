@@ -63,7 +63,7 @@ struct QueriedSongsListViewContainer: View {
                     }
                 }
             }
-        case MPMediaItemPropertyArtist:
+        case MPMediaItemPropertyArtist, MPMediaItemPropertyComposer:
             if let filterVal = filterPredicate.value as? String {
                 let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists()
                 if splittedFilterVal.count > 1 {
