@@ -62,21 +62,22 @@ func loadGroupings() -> [Playlist] {
 struct MyMPMediaPropertyPredicate {
     let value: Any?
     let forProperty: String
+    var comparisonType: MPMediaPredicateComparison = .equalTo
 }
 
 func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMediaItem] {
     let task = Task<[MPMediaItem], Error>.detached(priority: .high) {
         if (predicate.forProperty == MPMediaItemPropertyUserGrouping) {
             if let s = predicate.value as? String {
-                return getSongsByUserGrouping(userGrouping: s)
+                return getSongsByUserGrouping(userGrouping: s, comparisonType: predicate.comparisonType)
             } else {
                 return []
             }
         } else {
-            return MPMediaQuery(filterPredicates: Set([MPMediaPropertyPredicate(value: predicate.value, forProperty: predicate.forProperty)])).items ?? []
+            return MPMediaQuery(filterPredicates: Set([MPMediaPropertyPredicate(value: predicate.value, forProperty: predicate.forProperty, comparisonType: predicate.comparisonType)])).items ?? []
         }
     }
-
+    
     do {
         return try await task.result.get()
     } catch {
@@ -84,9 +85,18 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
     }
 }
 
-func getSongsByUserGrouping(userGrouping: String) -> [MPMediaItem] {
+func getSongsByUserGrouping(userGrouping: String, comparisonType: MPMediaPredicateComparison) -> [MPMediaItem] {
     let songs = MPMediaQuery.songs().items ?? []
-    return songs.filter{ $0.userGrouping?.contains(userGrouping) ?? false }
+    
+    switch (comparisonType) {
+    case .equalTo:
+        return songs.filter{ ($0.userGrouping ?? "") == userGrouping }
+    case .contains:
+        return songs.filter{ $0.userGrouping?.contains(userGrouping) ?? false }
+    @unknown default:
+        return songs.filter{ $0.userGrouping?.contains(userGrouping) ?? false }
+    }
+    
 }
 
 func getNowPlayingSong() -> MPMediaItem? {

@@ -31,7 +31,7 @@ struct SongAssortmentsView: View {
             } else {
                 List(playlists) { playlist in
                     NavigationLink {
-                        SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
+                        SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name, additionalMenuItems: {})
                     } label: {
                         HStack {
                             SongAssortmentItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)

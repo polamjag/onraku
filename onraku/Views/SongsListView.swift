@@ -26,11 +26,19 @@ enum SortSongsBy: String, Equatable, CaseIterable {
     case playCountAsc = "Least Played"
 }
 
-struct SongsListView: View {
+struct SongsListView<Content: View>: View {
     var songs: [MPMediaItem]
     var title: String
     @State var sort: SortSongsBy = .none
     
+    let additionalMenuItems: Content
+    
+    init(songs: [MPMediaItem], title: String, @ViewBuilder additionalMenuItems: () -> Content) {
+        self.songs = songs
+        self.title = title
+        self.additionalMenuItems = additionalMenuItems()
+    }
+
     private var sortedSongs: [MPMediaItem] {
         switch (sort) {
         case .addedAt:
@@ -73,6 +81,7 @@ struct SongsListView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
+                self.additionalMenuItems
                 Menu {
                     PlayableContentMenuView(target: sortedSongs)
                     Picker("sort by", selection: $sort) {
@@ -90,6 +99,6 @@ struct SongsListView: View {
 
 struct SongsListView_Previews: PreviewProvider {
     static var previews: some View {
-        SongsListView(songs: [], title: "Some Playlist")
+        SongsListView(songs: [], title: "Some Playlist", additionalMenuItems: {})
     }
 }

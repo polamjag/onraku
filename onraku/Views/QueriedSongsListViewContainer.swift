@@ -11,6 +11,7 @@ import MediaPlayer
 struct QueriedSongsListViewContainer: View {
     @State private var songs: [MPMediaItem] = []
     @State private var loadState: LoadingState = .initial
+    @State private var isExactMatch = true
     
     var filterPredicate: MyMPMediaPropertyPredicate
     var title: String?
@@ -25,17 +26,35 @@ struct QueriedSongsListViewContainer: View {
         }
     }
     
+    var computedPredicate: MyMPMediaPropertyPredicate {
+        return MyMPMediaPropertyPredicate(
+            value: filterPredicate.value,
+            forProperty: filterPredicate.forProperty,
+            comparisonType: isExactMatch ? .equalTo : .contains
+        )
+    }
+    
+    func update() async {
+        loadState = .loading
+        songs = await getSongsByPredicate(predicate: computedPredicate)
+        loadState = .loaded
+    }
+    
     var body: some View {
         Group {
             if (loadState != .loaded) {
                 ProgressView()
             }
-            SongsListView(songs: songs, title: computedTitle)
-        }
+            SongsListView(songs: songs, title: computedTitle, additionalMenuItems: {
+                Menu {
+                    Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+            })
+        }        
         .task {
-            loadState = .loading
-            songs = await getSongsByPredicate(predicate: filterPredicate)
-            loadState = .loaded
+            await update()
         }
     }
 }
