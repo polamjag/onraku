@@ -43,7 +43,7 @@ struct ContentView: View {
                 }
             }.tabItem {
                 Image(systemName: "music.quarternote.3")
-                Text("First")
+                Text("Library")
             }
             
             NavigationView {
