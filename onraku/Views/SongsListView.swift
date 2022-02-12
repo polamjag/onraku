@@ -32,22 +32,7 @@ struct SongsListView: View {
         }.navigationTitle(title).toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
-                    Button(action: {
-                        playMediaItems(items: songs)
-                    }) {
-                        Label("Play All Now", systemImage: "play")
-                    }
-                    Divider()
-                    Button(action: {
-                        prependMediaItems(items: songs)
-                    }) {
-                        Label("Prepend All to Queue", systemImage: "arrow.uturn.right")
-                    }
-                    Button(action: {
-                        appendMediaItems(items: songs)
-                    }) {
-                        Label("Append All to Queue", systemImage: "arrow.turn.down.right")
-                    }
+                    PlayableContentMenuView(target: songs)
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
