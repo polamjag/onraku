@@ -58,3 +58,7 @@ func loadGroupings() async -> [Playlist] {
         )
     }
 }
+
+func getNowPlayingSong() -> MPMediaItem? {
+    return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
+}
