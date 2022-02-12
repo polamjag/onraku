@@ -17,7 +17,7 @@ struct NavigationDestinationInfo {
     let songs: [MPMediaItem]
 }
 
-private struct Playlist: Identifiable {
+struct Playlist: Identifiable {
     let name: String
     let id: String
     let navigationDestinationInfo: NavigationDestinationInfo
@@ -27,54 +27,12 @@ struct ContentView: View {
     @State private var playlists: [Playlist] = []
     @State private var isLoading: Bool = false
     
-    func loadPlaylist() {
-        let dq = DispatchQueue(label: "songfinder", qos: .userInteractive)
-        isLoading = true
-        dq.async {
-            let playlistsQuery = MPMediaQuery.playlists().collections ?? []
-            let p: [Playlist] = playlistsQuery.map {
-                Playlist(
-                    name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
-                    id: String($0.representativeItem?.persistentID ?? 0),
-                    navigationDestinationInfo: NavigationDestinationInfo(
-                        type: .playlist, songs: $0.items
-                    )
-                )
-            }
-            
-            DispatchQueue.main.async {
+    func withAsyncPlaylistsLoader(loader: (@escaping () async -> [Playlist])) {
+        Task {
+            do {
+                isLoading = true
+                playlists = await loader()
                 isLoading = false
-                playlists = p
-            }
-        }
-    }
-    
-    func loadGroupings() {
-        let dq = DispatchQueue(label: "songfinder", qos: .userInteractive)
-        isLoading = true
-        dq.async {
-            let songs = MPMediaQuery.songs().items
-            let songsByGrouping = songs?.reduce([String:[MPMediaItem]](), {
-                var prev = $0
-                let gr = $1.userGrouping ?? ""
-                prev[gr] = (prev[gr] ?? []) + [$1]
-                return prev
-            })
-            if (songsByGrouping == nil) { return }
-            let p: [Playlist] = songsByGrouping!.keys.sorted().map {
-                return Playlist(
-                    name: $0,
-                    id: $0,
-                    navigationDestinationInfo: NavigationDestinationInfo(
-                        type: .userGrouping,
-                        songs: songsByGrouping?[$0] ?? []
-                    )
-                )
-            }
-            
-            DispatchQueue.main.async {
-                isLoading = false
-                playlists = p
             }
         }
     }
@@ -83,10 +41,10 @@ struct ContentView: View {
         List {
             Section {
                 Button("Load Playlists") {
-                    loadPlaylist()
+                    withAsyncPlaylistsLoader(loader: loadPlaylist)
                 }
                 Button("Load Groupings") {
-                    loadGroupings()
+                    withAsyncPlaylistsLoader(loader: loadGroupings)
                 }
             }
             
