@@ -43,7 +43,6 @@ struct SongAssortmentsView: View {
                 .listStyle(.insetGrouped)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle(title)
-                
             }
         }
         .task {
