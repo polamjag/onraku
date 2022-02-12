@@ -26,44 +26,19 @@ struct Playlist: Identifiable {
 struct ContentView: View {
     @State private var playlists: [Playlist] = []
     @State private var isLoading: Bool = false
-    
-    func withAsyncPlaylistsLoader(loader: (@escaping () async -> [Playlist])) {
-        Task {
-            do {
-                isLoading = true
-                playlists = await loader()
-                isLoading = false
-            }
-        }
-    }
-    
+
     var body: some View {
         List {
-            Section {
-                Button("Load Playlists") {
-                    withAsyncPlaylistsLoader(loader: loadPlaylist)
-                }
-                Button("Load Groupings") {
-                    withAsyncPlaylistsLoader(loader: loadGroupings)
-                }
+            NavigationLink {
+                SongsListViewContainer(type: .playlist)
+            } label: {
+                Text("Playlists")
             }
             
-            Section {
-                if (isLoading) {
-                    ProgressView()
-                } else {
-                    ForEach(playlists) { playlist in
-                        NavigationLink {
-                            SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
-                        } label: {
-                            HStack {
-                                SongGroupItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
-                            }.lineLimit(1).contextMenu{
-                                PlayableContentMenuView(target: playlist.navigationDestinationInfo.songs)
-                            }
-                        }
-                    }
-                }
+            NavigationLink {
+                SongsListViewContainer(type: .userGrouping)
+            } label: {
+                Text("User Groupings")
             }
         }.navigationTitle("onraku")
     }

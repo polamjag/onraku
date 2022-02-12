@@ -8,6 +8,15 @@
 import Foundation
 import MediaPlayer
 
+func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
+    switch (type) {
+    case .playlist:
+        return await loadPlaylist()
+    case .userGrouping:
+        return await loadGroupings()
+    }
+}
+
 func loadPlaylist() async -> [Playlist] {
     let playlistsQuery = MPMediaQuery.playlists().collections ?? []
     return playlistsQuery.map {
