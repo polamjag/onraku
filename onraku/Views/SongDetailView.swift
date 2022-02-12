@@ -114,6 +114,8 @@ struct SongDetailView: View {
             }
             KeyValueView(key: "album artist", value: song.albumArtist)
             
+            KeyValueView(key: "user grouping", value: song.userGrouping)
+            
             HorizontalKeyValueView(key: "genre", value: song.genre)
             
             Group {
@@ -128,7 +130,15 @@ struct SongDetailView: View {
                 HorizontalKeyValueView(key: "comments", value: song.comments)
                 HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
             }
-        }.navigationTitle("Song Detail")
+        }.navigationTitle("Song Detail").toolbar {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                    PlayableContentMenuView(target: [song as! MPMediaItem])
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
     }
 }
 
@@ -163,7 +173,7 @@ private struct HorizontalKeyValueView: View {
             } else {
                 Text(fallbackValue).foregroundColor(.secondary)
             }
-        }
+        }.lineLimit(1)
     }
 }
 
