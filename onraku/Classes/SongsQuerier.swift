@@ -9,7 +9,7 @@ import Foundation
 import MediaPlayer
 
 func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
-    let task = Task<[Playlist], Error>.detached(priority: .high) {
+    let task = Task.detached(priority: .high) { () -> [Playlist] in
         switch (type) {
         case .playlist:
             return loadPlaylist()
@@ -66,7 +66,7 @@ struct MyMPMediaPropertyPredicate {
 }
 
 func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMediaItem] {
-    let task = Task<[MPMediaItem], Error>.detached(priority: .high) {
+    let task = Task.detached(priority: .high) { () -> [MPMediaItem] in
         if (predicate.forProperty == MPMediaItemPropertyUserGrouping) {
             if let s = predicate.value as? String {
                 return getSongsByUserGrouping(userGrouping: s, comparisonType: predicate.comparisonType)
