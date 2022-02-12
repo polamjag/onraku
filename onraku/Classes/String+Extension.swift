@@ -11,7 +11,8 @@ public extension String {
     func intelligentlySplitIntoSubArtists() -> [String] {
         if self.isEmpty { return [] }
         return self
-            .split { s in s == "," || s == "&" || s == "/" }
+            .components(separatedBy: " from ")
+            .flatMap { $0.split { s in s == "," || s == "&" || s == "/" || s == "・" } }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
     }
