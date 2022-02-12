@@ -107,13 +107,10 @@
 			isa = PBXGroup;
 			children = (
 				6092533527B60B7A00E23931 /* onrakuApp.swift */,
-				6092536A27B78AFA00E23931 /* Player.swift */,
-				6092533727B60B7A00E23931 /* ContentView.swift */,
-				6092536427B6324300E23931 /* SongsListView.swift */,
-				6092536627B7810A00E23931 /* SongListItemView.swift */,
+				6092536C27B78C1B00E23931 /* Classes */,
+				6092536D27B78C2800E23931 /* Views */,
 				6092533927B60B7B00E23931 /* Assets.xcassets */,
 				6092533B27B60B7B00E23931 /* Preview Content */,
-				6092536827B788B300E23931 /* SongGroupItemView.swift */,
 			);
 			path = onraku;
 			sourceTree = "<group>";
@@ -149,6 +146,25 @@
 				6092536027B60C6800E23931 /* MediaPlayer.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6092536C27B78C1B00E23931 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				6092536A27B78AFA00E23931 /* Player.swift */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		6092536D27B78C2800E23931 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6092536427B6324300E23931 /* SongsListView.swift */,
+				6092533727B60B7A00E23931 /* ContentView.swift */,
+				6092536627B7810A00E23931 /* SongListItemView.swift */,
+				6092536827B788B300E23931 /* SongGroupItemView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
