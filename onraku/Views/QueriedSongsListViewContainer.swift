@@ -52,7 +52,7 @@ struct QueriedSongsListViewContainer: View {
                     Image(systemName: "magnifyingglass")
                 }
             })
-        }        
+        }
         .task {
             await update()
         }
