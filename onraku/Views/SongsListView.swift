@@ -28,6 +28,7 @@ enum SortSongsBy: String, Equatable, CaseIterable {
     case genre = "Genre"
     case userGrouping = "User Grouping"
     case addedAt = "Date Added"
+    case bpm = "BPM"
     case playCountDesc = "Most Played"
     case playCountAsc = "Least Played"
 }
@@ -61,6 +62,8 @@ struct SongsListView<Content: View>: View {
             return songs.sorted { $0.genre ?? "" < $1.genre ?? "" }
         case .userGrouping:
             return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
+        case .bpm:
+            return songs.sorted { ($0.beatsPerMinute == 0 ? Int.max : $0.beatsPerMinute) < ($1.beatsPerMinute == 0 ? Int.max : $1.beatsPerMinute) }
         case .playCountAsc:
             return songs.sorted { $0.playCount < $1.playCount }
         case .playCountDesc:
