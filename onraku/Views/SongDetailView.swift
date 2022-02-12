@@ -78,43 +78,62 @@ struct SongDetailView: View {
     var body: some View {
         List {
             KeyValueView(key: "title", value: song.title)
-            KeyValueView(key: "artist", value: song.artist)
             
-            HStack {
-                VStack(alignment: .leading) {
-                    KeyValueView(key: "album", value: song.albumTitle)
-                    
-                    Spacer()
-                    
-                    Divider()
-                    
+            NavigationLink {
+                QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.artist, forProperty: MPMediaItemPropertyArtist))
+            } label: {
+                KeyValueView(key: "artist", value: song.artist)
+            }
+            
+            NavigationLink {
+                QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle))
+            } label: {
+                HStack {
                     VStack(alignment: .leading) {
-                        Text("Track \(song.albumTrackNumber) of \(song.albumTrackCount)").font(.footnote)
-                        if (song.discCount > 1 || song.discNumber > 1) {
-                            Text("Disc \(song.discNumber) of \(song.discCount)").font(.footnote)
+                        KeyValueView(key: "album", value: song.albumTitle)
+                        
+                        Spacer()
+                        
+                        Divider()
+                        
+                        VStack(alignment: .leading) {
+                            Text("Track \(song.albumTrackNumber) of \(song.albumTrackCount)").font(.footnote)
+                            if (song.discCount > 1 || song.discNumber > 1) {
+                                Text("Disc \(song.discNumber) of \(song.discCount)").font(.footnote)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        if let releaseDate = song.releaseDate {
+                            KeyValueView(key: "released at", value: releaseDate.formatted(date: .abbreviated, time: .omitted))
+                        } else if let mpitem = song as? MPMediaItem, let year = getYear(item: mpitem) {
+                            KeyValueView(key: "released at", value: String(year))
                         }
                     }
-                    
                     Spacer()
                     
-                    if let releaseDate = song.releaseDate {
-                        KeyValueView(key: "released at", value: releaseDate.formatted(date: .abbreviated, time: .omitted))
-                    } else if let mpitem = song as? MPMediaItem, let year = getYear(item: mpitem) {
-                        KeyValueView(key: "released at", value: String(year))
+                    if let image = song.artwork?.image(at: CGSize(width: artworkSize, height: artworkSize)) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .frame(width: artworkSize, height: artworkSize)
+                            .cornerRadius(4)
                     }
                 }
-                Spacer()
-                
-                if let image = song.artwork?.image(at: CGSize(width: artworkSize, height: artworkSize)) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .frame(width: artworkSize, height: artworkSize)
-                        .cornerRadius(4)
-                }
             }
-            KeyValueView(key: "album artist", value: song.albumArtist)
             
-            KeyValueView(key: "user grouping", value: song.userGrouping)
+            NavigationLink {
+                QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumArtist, forProperty: MPMediaItemPropertyArtist))
+            } label: {
+                KeyValueView(key: "album artist", value: song.albumArtist)
+            }
+            
+            NavigationLink {
+                QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.userGrouping, forProperty: MPMediaItemPropertyUserGrouping))
+            } label: {
+                KeyValueView(key: "user grouping", value: song.userGrouping)
+            }
+            
             
             HorizontalKeyValueView(key: "genre", value: song.genre)
             
