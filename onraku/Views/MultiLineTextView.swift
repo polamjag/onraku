@@ -19,7 +19,6 @@ struct MultiLineTextView: View {
                 .multilineTextAlignment(.leading)
         }
         .frame(maxWidth: UIScreen.main.bounds.width, maxHeight: UIScreen.main.bounds.height)
-
     }
 }
 
