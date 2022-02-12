@@ -19,9 +19,10 @@ public extension String {
     func intelligentlySplitIntoSubArtists() -> [String] {
         if self.isEmpty { return [] }
         return self
-            .components(separatedBy: " from ")
+            .components(separatedBy: " x ")
+            .flatMap { $0.components(separatedBy: " from ") }
             .flatMap { $0.split { s in s == "(" || s == ")" } }
-            .flatMap { $0.split { s in s == "," || s == "&" || s == "/" || s == "・" } }
+            .flatMap { $0.split { s in s == "," || s == "&" || s == "/" || s == "・" || s == "×" } }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .unique()
