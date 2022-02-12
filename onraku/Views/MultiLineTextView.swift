@@ -12,7 +12,11 @@ struct MultiLineTextView: View {
 
     var body: some View {
         ScrollView {
-            Text(text).padding().textSelection(.enabled)
+            Text(text)
+                .padding()
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .multilineTextAlignment(.leading)
         }
         .frame(maxWidth: UIScreen.main.bounds.width, maxHeight: UIScreen.main.bounds.height)
 
