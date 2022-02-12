@@ -33,10 +33,14 @@ struct SongListItemView: View {
     
     var body: some View {
         HStack {
-            Image(
-                uiImage:
-                    song.artwork!.image(at: CGSize(width: artworkSize, height: artworkSize))!
-            ).resizable().frame(width: artworkSize, height: artworkSize).cornerRadius(4)
+            if let image = song.artwork?.image(at: CGSize(width: artworkSize, height: artworkSize)) {
+                Image(uiImage: image)
+                    .resizable()
+                    .frame(width: artworkSize, height: artworkSize)
+                    .cornerRadius(4)
+            } else {
+                Rectangle().opacity(0).frame(width: artworkSize, height: artworkSize)
+            }
             VStack(alignment: .leading) {
                 Text(song.title ?? "").lineLimit(1)
                 Text(song.artist ?? "").font(.footnote).foregroundColor(.secondary).lineLimit(1)

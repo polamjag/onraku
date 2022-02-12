@@ -160,8 +160,8 @@
 			isa = PBXGroup;
 			children = (
 				6092536427B6324300E23931 /* SongsListView.swift */,
-				6092533727B60B7A00E23931 /* ContentView.swift */,
 				6092536627B7810A00E23931 /* SongListItemView.swift */,
+				6092533727B60B7A00E23931 /* ContentView.swift */,
 				6092536827B788B300E23931 /* SongGroupItemView.swift */,
 			);
 			path = Views;

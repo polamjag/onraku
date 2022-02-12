@@ -14,7 +14,7 @@ extension MPMediaItem: Identifiable {
     }
 }
 
-let artworkSize: CGFloat = 48
+let artworkSize: CGFloat = 42
 
 struct SongsListView: View {
     var songs: [MPMediaItem]
@@ -48,7 +48,6 @@ struct SongsListView: View {
                     }) {
                         Label("Append All to Queue", systemImage: "arrow.turn.down.right")
                     }
-
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
