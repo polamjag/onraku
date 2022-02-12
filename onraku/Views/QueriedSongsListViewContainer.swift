@@ -13,9 +13,12 @@ struct QueriedSongsListViewContainer: View {
     @State private var loadState: LoadingState = .initial
     
     var filterPredicate: MyMPMediaPropertyPredicate
+    var title: String?
     
-    var title: String {
-        if let s = filterPredicate.value as? String {
+    var computedTitle: String {
+        if let title = title {
+            return title
+        } else if let s = filterPredicate.value as? String {
             return s
         } else {
             return ""
@@ -27,7 +30,7 @@ struct QueriedSongsListViewContainer: View {
             if (loadState != .loaded) {
                 ProgressView()
             }
-            SongsListView(songs: songs, title: title)
+            SongsListView(songs: songs, title: computedTitle)
         }
         .task {
             loadState = .loading

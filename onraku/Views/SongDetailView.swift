@@ -90,9 +90,9 @@ struct SongDetailView: View {
             
             NavigationLink {
                 if let song = song as? MPMediaItem {
-                    QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumPersistentID, forProperty: MPMediaItemPropertyAlbumPersistentID))
+                    QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumPersistentID, forProperty: MPMediaItemPropertyAlbumPersistentID), title: song.albumTitle)
                 } else {
-                    QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle))
+                    QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle), title: song.albumTitle)
                 }
             } label: {
                 HStack {
