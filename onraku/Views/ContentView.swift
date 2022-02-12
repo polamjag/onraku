@@ -24,23 +24,35 @@ struct Playlist: Identifiable {
 }
 
 struct ContentView: View {
-    @State private var playlists: [Playlist] = []
-    @State private var isLoading: Bool = false
-
+    @State private var activeTab: String?
     var body: some View {
-        List {
-            NavigationLink {
-                SongsListViewContainer(type: .playlist)
-            } label: {
-                Text("Playlists")
+        TabView {
+            NavigationView {
+                List {
+                    NavigationLink {
+                        SongsListViewContainer(type: .playlist)
+                    } label: {
+                        Text("Playlists")
+                    }
+                    
+                    NavigationLink {
+                        SongsListViewContainer(type: .userGrouping)
+                    } label: {
+                        Text("User Groupings")
+                    }
+                }
+            }.tabItem {
+                Image(systemName: "music.quarternote.3")
+                Text("First")
             }
             
-            NavigationLink {
-                SongsListViewContainer(type: .userGrouping)
-            } label: {
-                Text("User Groupings")
+            NavigationView {
+                NowPlayingViewContainer().navigationBarTitleDisplayMode(.inline)
+            }.tabItem {
+                Image(systemName: "play")
+                Text("Now Playing")
             }
-        }.navigationTitle("onraku")
+        }
     }
 }
 
