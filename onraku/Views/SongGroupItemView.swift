@@ -13,7 +13,9 @@ struct SongGroupItemView: View {
     
     var body: some View {
         HStack {
-            Text(title)
+            title.isEmpty ?
+                Text("(no value)").foregroundColor(.secondary) :
+                Text(title)
             Spacer()
             Text("\(itemsCount)").monospacedDigit().font(.footnote).foregroundColor(.secondary)
         }

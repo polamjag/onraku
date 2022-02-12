@@ -28,6 +28,8 @@ class DummySong: SongLike {
     }
 }
 
+private let artworkSize: CGFloat = 42
+
 struct SongListItemView: View {
     var song: SongLike
     

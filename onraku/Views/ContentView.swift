@@ -43,7 +43,7 @@ struct ContentView: View {
         let songs = MPMediaQuery.songs().items
         let songsByGrouping = songs?.reduce([String:[MPMediaItem]](), {
             var prev = $0
-            let gr = $1.userGrouping ?? "__no__grouping__"
+            let gr = $1.userGrouping ?? ""
             prev[gr] = (prev[gr] ?? []) + [$1]
             return prev
         })
@@ -78,6 +78,8 @@ struct ContentView: View {
                     } label: {
                         HStack {
                             SongGroupItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
+                        }.contextMenu{
+                            PlayableContentMenuView(target: playlist.navigationDestinationInfo.songs)
                         }
                     }
                 }

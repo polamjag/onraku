@@ -14,8 +14,6 @@ extension MPMediaItem: Identifiable {
     }
 }
 
-let artworkSize: CGFloat = 42
-
 struct SongsListView: View {
     var songs: [MPMediaItem]
     var title: String
@@ -24,10 +22,12 @@ struct SongsListView: View {
         List {
             Section(footer: Text("\(songs.count) songs")) {
                 ForEach(songs) { song in
-                    SongListItemView(song: song).onTapGesture {
-                        playMediaItems(items: [song])
-                    }.contextMenu {
-                        PlayableContentMenuView(target: [song])
+                    NavigationLink {
+                        SongDetailView(song: song)
+                    } label: {
+                        SongListItemView(song: song).contextMenu {
+                            PlayableContentMenuView(target: [song])
+                        }
                     }
                 }
             }
