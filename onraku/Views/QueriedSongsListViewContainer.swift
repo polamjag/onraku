@@ -40,12 +40,46 @@ struct QueriedSongsListViewContainer: View {
         loadState = .loaded
     }
     
+    var searchHints: [MyMPMediaPropertyPredicate] {
+        switch (filterPredicate.forProperty) {
+        case MPMediaItemPropertyGenre:
+            if let filterVal = filterPredicate.value as? String {
+                let splittedFilterVal = filterVal.intelligentlySplitIntoSubGenres()
+                if splittedFilterVal.count > 1 {
+                    return splittedFilterVal.map {
+                        MyMPMediaPropertyPredicate(
+                            value: $0,
+                            forProperty: filterPredicate.forProperty,
+                            comparisonType: .contains
+                        )
+                    }
+                }
+            }
+        case MPMediaItemPropertyArtist:
+            if let filterVal = filterPredicate.value as? String {
+                let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists()
+                if splittedFilterVal.count > 1 {
+                    return splittedFilterVal.map {
+                        MyMPMediaPropertyPredicate(
+                            value: $0,
+                            forProperty: filterPredicate.forProperty,
+                            comparisonType: .contains
+                        )
+                    }
+                }
+            }
+        default:
+            return []
+        }
+        return []
+    }
+    
     var body: some View {
         Group {
             if (loadState != .loaded) {
                 ProgressView()
             }
-            SongsListView(songs: songs, title: computedTitle, additionalMenuItems: {
+            SongsListView(songs: songs, title: computedTitle, searchHints: searchHints, additionalMenuItems: {
                 Menu {
                     Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
                 } label: {
@@ -54,6 +88,7 @@ struct QueriedSongsListViewContainer: View {
             })
         }
         .task {
+            isExactMatch = filterPredicate.comparisonType == .equalTo
             await update()
         }
     }

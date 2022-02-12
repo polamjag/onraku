@@ -9,8 +9,14 @@ import SwiftUI
 import MediaPlayer
 
 extension MPMediaItem: Identifiable {
-    func id() -> String {
+    public var id: String {
         return String(self.persistentID)
+    }
+}
+
+extension MyMPMediaPropertyPredicate: Identifiable {
+    var id: String {
+        return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
     }
 }
 
@@ -32,10 +38,12 @@ struct SongsListView<Content: View>: View {
     @State var sort: SortSongsBy = .none
     
     let additionalMenuItems: Content
+    let searchHints: [MyMPMediaPropertyPredicate]
     
-    init(songs: [MPMediaItem], title: String, @ViewBuilder additionalMenuItems: () -> Content) {
+    init(songs: [MPMediaItem], title: String, searchHints: [MyMPMediaPropertyPredicate], @ViewBuilder additionalMenuItems: () -> Content) {
         self.songs = songs
         self.title = title
+        self.searchHints = searchHints
         self.additionalMenuItems = additionalMenuItems()
     }
 
@@ -64,6 +72,19 @@ struct SongsListView<Content: View>: View {
     
     var body: some View {
         List {
+            if (!searchHints.isEmpty) {
+                Section{
+                    ForEach(searchHints) { searchHint in
+                        NavigationLink {
+                            QueriedSongsListViewContainer(
+                                filterPredicate: searchHint
+                            )
+                        } label: {
+                            Text(searchHint.value as! String)
+                        }
+                    }
+                } header: { Text("Search") }
+            }
             Section(footer: Text("\(songs.count) songs")) {
                 ForEach(sortedSongs) { song in
                     NavigationLink {
@@ -99,6 +120,6 @@ struct SongsListView<Content: View>: View {
 
 struct SongsListView_Previews: PreviewProvider {
     static var previews: some View {
-        SongsListView(songs: [], title: "Some Playlist", additionalMenuItems: {})
+        SongsListView(songs: [], title: "Some Playlist", searchHints: [], additionalMenuItems: {})
     }
 }

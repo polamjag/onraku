@@ -18,19 +18,29 @@ class onrakuTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
+    func testSplit() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         // Any test you write for XCTest can be annotated as throws and async.
         // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
         // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+        XCTAssertEqual("".intelligentlySplitIntoSubArtists(), [])
+        XCTAssertEqual("hoge (aa)".intelligentlySplitIntoSubArtists(), ["hoge (aa)"])
+        XCTAssertEqual("a (b), c (d)".intelligentlySplitIntoSubArtists(), ["a (b)", "c (d)"])
+        XCTAssertEqual("a & b".intelligentlySplitIntoSubArtists(), ["a", "b"])
+        XCTAssertEqual("a (b), c (d) from x".intelligentlySplitIntoSubArtists(), ["a (b)", "c (d)", "x"])
+        
+        XCTAssertEqual("".intelligentlySplitIntoSubGenres(), [])
+        XCTAssertEqual("a / b / c".intelligentlySplitIntoSubGenres(), ["a", "b", "c"])
+        XCTAssertEqual("hoge (fuga)".intelligentlySplitIntoSubGenres(), ["hoge", "fuga"])
+        XCTAssertEqual("hoge (fuga / piyo)".intelligentlySplitIntoSubGenres(), ["hoge", "fuga", "piyo"])
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
+//    func testPerformanceExample() throws {
+//        // This is an example of a performance test case.
+//        self.measure {
+//            // Put the code you want to measure the time of here.
+//        }
+//    }
 
 }
