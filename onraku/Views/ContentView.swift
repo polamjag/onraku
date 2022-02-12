@@ -40,7 +40,7 @@ struct ContentView: View {
                     } label: {
                         Text("User Groupings")
                     }
-                }
+                }.navigationTitle("Library")
             }.tabItem {
                 Image(systemName: "music.quarternote.3")
                 Text("Library")

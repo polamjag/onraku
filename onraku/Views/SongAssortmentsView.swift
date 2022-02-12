@@ -37,7 +37,7 @@ struct SongAssortmentsView: View {
                 }
             }
         }
-        .listStyle(.plain)
+        .listStyle(.insetGrouped)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(title)
         .task {

@@ -172,12 +172,12 @@
 		6092536D27B78C2800E23931 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6092533727B60B7A00E23931 /* ContentView.swift */,
 				6092537427B7B54E00E23931 /* SongAssortmentsView.swift */,
 				6092536827B788B300E23931 /* SongAssortmentItemView.swift */,
-				6092536427B6324300E23931 /* SongsListView.swift */,
 				6032AC6D27B7D18000686A99 /* QueriedSongsListViewContainer.swift */,
+				6092536427B6324300E23931 /* SongsListView.swift */,
 				6092536627B7810A00E23931 /* SongListItemView.swift */,
-				6092533727B60B7A00E23931 /* ContentView.swift */,
 				6092536E27B78F8800E23931 /* PlayableContentMenuView.swift */,
 				6092537027B791A300E23931 /* SongDetailView.swift */,
 				6032AC6B27B7C89300686A99 /* NowPlayingViewContainer.swift */,
