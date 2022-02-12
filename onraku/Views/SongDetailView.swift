@@ -125,7 +125,7 @@ struct SongDetailView: View {
                 HorizontalKeyValueView(key: "play count", value: String(song.playCount))
                 HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
                 
-                HorizontalKeyValueView(key: "date added", value: song.dateAdded.formatted())
+                HorizontalKeyValueView(key: "added at", value: song.dateAdded.formatted())
                 
                 HorizontalKeyValueView(key: "comments", value: song.comments)
                 HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
