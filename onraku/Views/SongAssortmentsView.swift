@@ -15,7 +15,9 @@ struct SongAssortmentsView: View {
     @State var playlists: [Playlist] = []
     @State var loadState: LoadingState = .initial
     @State var lastLoadedNavigationDestinationType: NavigationDestinationType?
+
     var type: NavigationDestinationType
+    var title: String
     
     var body: some View {
         List {
@@ -37,6 +39,7 @@ struct SongAssortmentsView: View {
         }
         .listStyle(.plain)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(title)
         .task {
             if (loadState != .loaded || lastLoadedNavigationDestinationType != type) {
                 loadState = .loading

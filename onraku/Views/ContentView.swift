@@ -30,13 +30,13 @@ struct ContentView: View {
             NavigationView {
                 List {
                     NavigationLink {
-                        SongAssortmentsView(type: .playlist)
+                        SongAssortmentsView(type: .playlist, title: "Playlists")
                     } label: {
                         Text("Playlists")
                     }
                     
                     NavigationLink {
-                        SongAssortmentsView(type: .userGrouping)
+                        SongAssortmentsView(type: .userGrouping, title: "User Groupings")
                     } label: {
                         Text("User Groupings")
                     }
