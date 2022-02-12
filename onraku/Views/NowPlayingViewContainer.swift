@@ -23,6 +23,8 @@ struct NowPlayingViewContainer: View {
             }
         }.task {
             nowPlayingItem = getNowPlayingSong()
+        }.refreshable {
+            nowPlayingItem = getNowPlayingSong()
         }
     }
 }
