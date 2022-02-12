@@ -86,7 +86,7 @@ struct SongDetailView: View {
                 QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.artist, forProperty: MPMediaItemPropertyArtist))
             } label: {
                 KeyValueView(key: "artist", value: song.artist)
-            }
+            }.disabled(song.artist?.isEmpty ?? true)
             
             NavigationLink {
                 if let song = song as? MPMediaItem {
@@ -127,25 +127,25 @@ struct SongDetailView: View {
                             .cornerRadius(4)
                     }
                 }
-            }
+            }.disabled(song.albumTitle?.isEmpty ?? true)
             
             NavigationLink {
                 QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.albumArtist, forProperty: MPMediaItemPropertyArtist))
             } label: {
                 KeyValueView(key: "album artist", value: song.albumArtist)
-            }
+            }.disabled(song.albumArtist?.isEmpty ?? true)
             
             NavigationLink {
                 QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.userGrouping, forProperty: MPMediaItemPropertyUserGrouping))
             } label: {
                 KeyValueView(key: "user grouping", value: song.userGrouping)
-            }
+            }.disabled(song.userGrouping?.isEmpty ?? true)
             
             NavigationLink {
                 QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.genre, forProperty: MPMediaItemPropertyGenre))
             } label: {
                 HorizontalKeyValueView(key: "genre", value: song.genre)
-            }
+            }.disabled(song.genre?.isEmpty ?? true)
             
             Group {
                 HorizontalKeyValueView(key: "bpm", value: String(song.beatsPerMinute))
@@ -165,13 +165,13 @@ struct SongDetailView: View {
                     MultiLineTextView(text: song.comments ?? "")
                 } label: {
                     HorizontalKeyValueView(key: "comments", value: song.comments)
-                }
+                }.disabled(song.comments?.isEmpty ?? true)
                 
                 NavigationLink {
                     MultiLineTextView(text: song.lyrics ?? "")
                 } label: {
                     HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
-                }
+                }.disabled(song.lyrics?.isEmpty ?? true)
             }
         }.navigationTitle(song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
