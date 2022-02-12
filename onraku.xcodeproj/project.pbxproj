@@ -18,6 +18,7 @@
 		6092536527B6324300E23931 /* SongsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536427B6324300E23931 /* SongsListView.swift */; };
 		6092536727B7810A00E23931 /* SongListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536627B7810A00E23931 /* SongListItemView.swift */; };
 		6092536927B788B300E23931 /* SongGroupItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536827B788B300E23931 /* SongGroupItemView.swift */; };
+		6092536B27B78AFA00E23931 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536A27B78AFA00E23931 /* Player.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,7 @@
 		6092536427B6324300E23931 /* SongsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsListView.swift; sourceTree = "<group>"; };
 		6092536627B7810A00E23931 /* SongListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongListItemView.swift; sourceTree = "<group>"; };
 		6092536827B788B300E23931 /* SongGroupItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongGroupItemView.swift; sourceTree = "<group>"; };
+		6092536A27B78AFA00E23931 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +107,7 @@
 			isa = PBXGroup;
 			children = (
 				6092533527B60B7A00E23931 /* onrakuApp.swift */,
+				6092536A27B78AFA00E23931 /* Player.swift */,
 				6092533727B60B7A00E23931 /* ContentView.swift */,
 				6092536427B6324300E23931 /* SongsListView.swift */,
 				6092536627B7810A00E23931 /* SongListItemView.swift */,
@@ -282,6 +285,7 @@
 				6092536527B6324300E23931 /* SongsListView.swift in Sources */,
 				6092533827B60B7A00E23931 /* ContentView.swift in Sources */,
 				6092536727B7810A00E23931 /* SongListItemView.swift in Sources */,
+				6092536B27B78AFA00E23931 /* Player.swift in Sources */,
 				6092533627B60B7A00E23931 /* onrakuApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
