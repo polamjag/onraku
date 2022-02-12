@@ -8,9 +8,10 @@
 import SwiftUI
 import MediaPlayer
 
-struct IdentifiableMediaItem: Identifiable {
-    let id: String
-    var item: MPMediaItem
+extension MPMediaItem: Identifiable {
+    func id() -> String {
+        return String(self.persistentID)
+    }
 }
 
 let artworkSize: CGFloat = 48
@@ -19,18 +20,12 @@ struct SongsListView: View {
     var songs: [MPMediaItem]
     var title: String
     
-    func getSongs() -> [IdentifiableMediaItem] {
-        return self.songs.map {
-            IdentifiableMediaItem(id: String($0.persistentID), item: $0)
-        }
-    }
-    
     var body: some View {
         List {
             Section(footer: Text("\(songs.count) songs")) {
-                ForEach(getSongs()) { song in
-                    SongListItemView(song: song.item).onTapGesture {
-                        playMediaItems(items: [song.item])
+                ForEach(songs) { song in
+                    SongListItemView(song: song).onTapGesture {
+                        playMediaItems(items: [song])
                     }
                 }
             }
