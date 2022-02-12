@@ -166,7 +166,7 @@ struct SongDetailView: View {
                     filterPredicate: MyMPMediaPropertyPredicate(
                         value: song.userGrouping, forProperty: MPMediaItemPropertyUserGrouping))
             } label: {
-                HorizontalKeyValueView(key: "user grouping", value: song.userGrouping)
+                KeyValueView(key: "user grouping", value: song.userGrouping)
             }.disabled(song.userGrouping?.isEmpty ?? true)
 
             NavigationLink {
@@ -174,7 +174,7 @@ struct SongDetailView: View {
                     filterPredicate: MyMPMediaPropertyPredicate(
                         value: song.genre, forProperty: MPMediaItemPropertyGenre))
             } label: {
-                HorizontalKeyValueView(key: "genre", value: song.genre)
+                KeyValueView(key: "genre", value: song.genre)
             }.disabled(song.genre?.isEmpty ?? true)
 
             Group {
