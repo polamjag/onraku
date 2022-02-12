@@ -159,11 +159,19 @@ struct SongDetailView: View {
             }
             
             Group {
-                
                 HorizontalKeyValueView(key: "added at", value: song.dateAdded.formatted())
                 
-                HorizontalKeyValueView(key: "comments", value: song.comments)
-                HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
+                NavigationLink {
+                    MultiLineTextView(text: song.comments ?? "")
+                } label: {
+                    HorizontalKeyValueView(key: "comments", value: song.comments)
+                }
+                
+                NavigationLink {
+                    MultiLineTextView(text: song.lyrics ?? "")
+                } label: {
+                    HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
+                }
             }
         }.navigationTitle("Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
