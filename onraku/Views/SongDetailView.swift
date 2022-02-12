@@ -150,8 +150,16 @@ struct SongDetailView: View {
             Group {
                 HorizontalKeyValueView(key: "bpm", value: String(song.beatsPerMinute))
                 HorizontalKeyValueView(key: "playback time", value: formatter.string(from: song.playbackDuration))
-
-                HorizontalKeyValueView(key: "rating", value: song.rating == 0 ? "-" : String(song.rating))
+                
+                HStack() {
+                    Text("rating").font(.footnote).foregroundColor(.secondary)
+                    Spacer()
+                    if 0 < song.rating && song.rating <= 5 {
+                        FiveStarsImageView(rating: song.rating)
+                    } else {
+                        Text("-").foregroundColor(.secondary)
+                    }
+                }.lineLimit(1)
                 
                 HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
                 HorizontalKeyValueView(key: "play count", value: String(song.playCount))
@@ -182,6 +190,26 @@ struct SongDetailView: View {
                 }
             }
         }
+    }
+}
+
+struct FiveStarsImageView: View {
+    var rating: Int
+    var body: some View {
+        HStack {
+            if 0 < rating && rating <= 5 {
+                Group {
+                    ForEach(1...rating, id: \.self) { _ in
+                        Image(systemName: "star.fill")
+                    }
+                    if (rating < 5) {
+                        ForEach(1...(5-rating), id: \.self) { _ in
+                            Image(systemName: "star")
+                        }
+                    }
+                }
+            }
+        }.accessibilityLabel("\(rating) stars")
     }
 }
 
