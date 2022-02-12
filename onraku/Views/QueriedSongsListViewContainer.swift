@@ -10,8 +10,8 @@ import MediaPlayer
 
 struct QueriedSongsListViewContainer: View {
     @State @MainActor private var songs: [MPMediaItem] = []
-    @State private var loadState: LoadingState = .initial
-    @State private var isExactMatch = true
+    @State @MainActor private var loadState: LoadingState = .initial
+    @State @MainActor private var isExactMatch = true
     
     var filterPredicate: MyMPMediaPropertyPredicate
     var title: String?
@@ -26,7 +26,7 @@ struct QueriedSongsListViewContainer: View {
         }
     }
     
-    var computedPredicate: MyMPMediaPropertyPredicate {
+    @MainActor var computedPredicate: MyMPMediaPropertyPredicate {
         return MyMPMediaPropertyPredicate(
             value: filterPredicate.value,
             forProperty: filterPredicate.forProperty,
@@ -35,12 +35,17 @@ struct QueriedSongsListViewContainer: View {
     }
     
     func update() async {
-        loadState = .loading
-        let gotSongs = await getSongsByPredicate(predicate: filterPredicate)
+        await MainActor.run {
+            loadState = .loading
+        }
+        let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
+            return computedPredicate
+        }
+        let gotSongs = await getSongsByPredicate(predicate: predicate)
         await MainActor.run {
             songs = gotSongs
+            loadState = .loaded
         }
-        loadState = .loaded
     }
     
     var searchHints: [MyMPMediaPropertyPredicate] {
@@ -99,9 +104,12 @@ struct QueriedSongsListViewContainer: View {
                     Image(systemName: isExactMatch ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
                 }
             })
-        }
-        .task {
-            isExactMatch = filterPredicate.comparisonType == .equalTo
+        }.refreshable {
+            await update()
+        }.task {
+            await MainActor.run {
+                isExactMatch = filterPredicate.comparisonType == .equalTo
+            }
             if (songs.isEmpty || loadState == .initial) {
                 await update()
             }
