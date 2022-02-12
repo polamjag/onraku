@@ -30,6 +30,7 @@ protocol SongDetailLike {
     var skipCount: Int { get }
     var title: String? { get }
     var userGrouping: String? { get }
+    var playbackDuration: TimeInterval { get }
 }
 
 private struct DummySongDetail: SongDetailLike {
@@ -54,6 +55,7 @@ private struct DummySongDetail: SongDetailLike {
     var skipCount: Int
     var title: String?
     var userGrouping: String?
+    var playbackDuration: TimeInterval
 }
 
 extension MPMediaItem: SongDetailLike {}
@@ -71,6 +73,7 @@ func getYear(item: MPMediaItem) -> Int? {
 }
 
 private let artworkSize: CGFloat = 128
+private let formatter = DateComponentsFormatter()
 
 struct SongDetailView: View {
     var song: SongDetailLike
@@ -145,11 +148,17 @@ struct SongDetailView: View {
             }
             
             Group {
-                HorizontalKeyValueView(key: "rating", value: song.rating == 0 ? "-" : String(song.rating))
                 HorizontalKeyValueView(key: "bpm", value: String(song.beatsPerMinute))
+                HorizontalKeyValueView(key: "playback time", value: formatter.string(from: song.playbackDuration))
+
+                HorizontalKeyValueView(key: "rating", value: song.rating == 0 ? "-" : String(song.rating))
                 
-                HorizontalKeyValueView(key: "play count", value: String(song.playCount))
                 HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
+                HorizontalKeyValueView(key: "play count", value: String(song.playCount))
+                HorizontalKeyValueView(key: "total playback time", value: formatter.string(from: song.playbackDuration * Double(song.playCount)))
+            }
+            
+            Group {
                 
                 HorizontalKeyValueView(key: "added at", value: song.dateAdded.formatted())
                 
@@ -226,7 +235,8 @@ struct SongDetailView_Previews: PreviewProvider {
             releaseDate: Date(timeIntervalSince1970: 1644649595),
             skipCount: 12,
             title: "Super Song",
-            userGrouping: "Ultra Grouping"
+            userGrouping: "Ultra Grouping",
+            playbackDuration: TimeInterval(120)
         ))
     }
 }
