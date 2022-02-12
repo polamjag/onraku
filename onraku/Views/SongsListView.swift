@@ -22,6 +22,8 @@ enum SortSongsBy: String, Equatable, CaseIterable {
     case genre = "Genre"
     case userGrouping = "User Grouping"
     case addedAt = "Date Added"
+    case playCountDesc = "Most Played"
+    case playCountAsc = "Least Played"
 }
 
 struct SongsListView: View {
@@ -43,6 +45,10 @@ struct SongsListView: View {
             return songs.sorted { $0.genre ?? "" < $1.genre ?? "" }
         case .userGrouping:
             return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
+        case .playCountAsc:
+            return songs.sorted { $0.playCount < $1.playCount }
+        case .playCountDesc:
+            return songs.sorted { $0.playCount > $1.playCount }
         default:
             return songs
         }
@@ -61,7 +67,11 @@ struct SongsListView: View {
                     }
                 }
             }
-        }.navigationTitle(title).toolbar {
+        }
+        .listStyle(.plain)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
                     PlayableContentMenuView(target: songs)

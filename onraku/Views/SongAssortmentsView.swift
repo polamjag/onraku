@@ -34,14 +34,17 @@ struct SongAssortmentsView: View {
                     }
                 }
             }
-        }.task {
+        }
+        .listStyle(.plain)
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
             if (loadState != .loaded || lastLoadedNavigationDestinationType != type) {
                 loadState = .loading
                 playlists = await loadPlaylistsForType(type: type)
                 loadState = .loaded
             }
         }
-            
+        
     }
 }
 
