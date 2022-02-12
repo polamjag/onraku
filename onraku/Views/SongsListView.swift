@@ -31,7 +31,7 @@ struct SongsListView: View {
     var title: String
     @State var sort: SortSongsBy = .none
     
-    func getSortedSongs() -> [MPMediaItem] {
+    private var sortedSongs: [MPMediaItem] {
         switch (sort) {
         case .addedAt:
             return songs.sorted { $0.dateAdded < $1.dateAdded }
@@ -57,7 +57,7 @@ struct SongsListView: View {
     var body: some View {
         List {
             Section(footer: Text("\(songs.count) songs")) {
-                ForEach(getSortedSongs()) { song in
+                ForEach(sortedSongs) { song in
                     NavigationLink {
                         SongDetailView(song: song)
                     } label: {
@@ -74,7 +74,7 @@ struct SongsListView: View {
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
-                    PlayableContentMenuView(target: songs)
+                    PlayableContentMenuView(target: sortedSongs)
                     Picker("sort by", selection: $sort) {
                         ForEach(SortSongsBy.allCases, id: \.self) { value in
                             Text(value.rawValue).tag(value)
