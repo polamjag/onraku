@@ -20,12 +20,12 @@ struct PlayableContentMenuView: View {
         Button(action: {
             prependMediaItems(items: target)
         }) {
-            Label(target.count > 1 ? "Prepend All to Queue" : "Prepend to Queue", systemImage: "arrow.turn.up.right")
+            Label(target.count > 1 ? "Prepend All to Queue" : "Prepend to Queue", systemImage: "text.insert")
         }
         Button(action: {
             appendMediaItems(items: target)
         }) {
-            Label(target.count > 1 ? "Append All to Queue" : "Append to Queue", systemImage: "arrow.turn.down.right")
+            Label(target.count > 1 ? "Append All to Queue" : "Append to Queue", systemImage: "text.append")
         }
     }
 }
