@@ -9,7 +9,7 @@ import SwiftUI
 import MediaPlayer
 
 struct QueriedSongsListViewContainer: View {
-    @State private var songs: [MPMediaItem] = []
+    @State @MainActor private var songs: [MPMediaItem] = []
     @State private var loadState: LoadingState = .initial
     @State private var isExactMatch = true
     
@@ -36,7 +36,10 @@ struct QueriedSongsListViewContainer: View {
     
     func update() async {
         loadState = .loading
-        songs = await getSongsByPredicate(predicate: computedPredicate)
+        let gotSongs = await getSongsByPredicate(predicate: filterPredicate)
+        await MainActor.run {
+            songs = gotSongs
+        }
         loadState = .loaded
     }
     

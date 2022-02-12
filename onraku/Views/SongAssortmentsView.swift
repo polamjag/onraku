@@ -12,7 +12,7 @@ enum LoadingState {
 }
 
 struct SongAssortmentsView: View {
-    @State var playlists: [Playlist] = []
+    @State @MainActor var playlists: [Playlist] = []
     @State var loadState: LoadingState = .initial
 
     var type: NavigationDestinationType
@@ -20,7 +20,10 @@ struct SongAssortmentsView: View {
     
     func loadPlaylists() async {
         loadState = .loading
-        playlists = await loadPlaylistsForType(type: type)
+        let gotPlaylists = await loadPlaylistsForType(type: type)
+        await MainActor.run {
+            playlists = gotPlaylists
+        }
         loadState = .loaded
     }
     
