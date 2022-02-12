@@ -25,11 +25,12 @@ class onrakuTests: XCTestCase {
         // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
         // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
         XCTAssertEqual("".intelligentlySplitIntoSubArtists(), [])
-        XCTAssertEqual("hoge (aa)".intelligentlySplitIntoSubArtists(), ["hoge (aa)"])
-        XCTAssertEqual("a (b), c (d)".intelligentlySplitIntoSubArtists(), ["a (b)", "c (d)"])
+        XCTAssertEqual("hoge (aa)".intelligentlySplitIntoSubArtists(), ["hoge", "aa"])
+        XCTAssertEqual("a (b), c (d)".intelligentlySplitIntoSubArtists(), ["a", "b", "c", "d"])
         XCTAssertEqual("a & b".intelligentlySplitIntoSubArtists(), ["a", "b"])
-        XCTAssertEqual("a (b), c (d) from x".intelligentlySplitIntoSubArtists(), ["a (b)", "c (d)", "x"])
+        XCTAssertEqual("a (b), c (d) from x".intelligentlySplitIntoSubArtists(), ["a", "b", "c", "d", "x"])
         XCTAssertEqual("a・b・c from x".intelligentlySplitIntoSubArtists(), ["a", "b", "c", "x"])
+        XCTAssertEqual("foo (a, b, c)".intelligentlySplitIntoSubArtists(), ["foo", "a", "b", "c"])
         
         XCTAssertEqual("".intelligentlySplitIntoSubGenres(), [])
         XCTAssertEqual("a / b / c".intelligentlySplitIntoSubGenres(), ["a", "b", "c"])

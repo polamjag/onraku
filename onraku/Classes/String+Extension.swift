@@ -12,6 +12,7 @@ public extension String {
         if self.isEmpty { return [] }
         return self
             .components(separatedBy: " from ")
+            .flatMap { $0.split { s in s == "(" || s == ")" } }
             .flatMap { $0.split { s in s == "," || s == "&" || s == "/" || s == "・" } }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
