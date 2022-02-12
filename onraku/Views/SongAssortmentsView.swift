@@ -11,7 +11,7 @@ enum LoadingState {
     case initial, loading, loaded
 }
 
-struct SongsListViewContainer: View {
+struct SongAssortmentsView: View {
     @State var playlists: [Playlist] = []
     @State var loadState: LoadingState = .initial
     @State var lastLoadedNavigationDestinationType: NavigationDestinationType?
@@ -27,7 +27,7 @@ struct SongsListViewContainer: View {
                         SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
                     } label: {
                         HStack {
-                            SongGroupItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
+                            SongAssortmentItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
                         }.lineLimit(1).contextMenu{
                             PlayableContentMenuView(target: playlist.navigationDestinationInfo.songs)
                         }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SongGroupItemView: View {
+struct SongAssortmentItemView: View {
     var title: String
     var itemsCount: Int
     
@@ -24,6 +24,6 @@ struct SongGroupItemView: View {
 
 struct SongGroupItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongGroupItemView(title: "Gorgeous Label", itemsCount: 42)
+        SongAssortmentItemView(title: "Gorgeous Label", itemsCount: 42)
     }
 }
