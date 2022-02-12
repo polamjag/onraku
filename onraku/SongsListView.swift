@@ -20,10 +20,16 @@ func playMediaItems(items: [MPMediaItem]) {
     MPMusicPlayerController.systemMusicPlayer.setQueue(with: collection)
     MPMusicPlayerController.systemMusicPlayer.play()
 }
-func enqueueMediaItems(items: [MPMediaItem]) {
+func appendMediaItems(items: [MPMediaItem]) {
     let collection = MPMediaItemCollection.init(items: items)
     let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
     MPMusicPlayerController.systemMusicPlayer.append(qd)
+    MPMusicPlayerController.systemMusicPlayer.play()
+}
+func prependMediaItems(items: [MPMediaItem]) {
+    let collection = MPMediaItemCollection.init(items: items)
+    let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
+    MPMusicPlayerController.systemMusicPlayer.prepend(qd)
     MPMusicPlayerController.systemMusicPlayer.play()
 }
 
@@ -61,13 +67,20 @@ struct SongsListView: View {
                     Button(action: {
                         playMediaItems(items: songs)
                     }) {
-                        Label("Play All", systemImage: "play")
+                        Label("Play All Now", systemImage: "play")
+                    }
+                    Divider()
+                    Button(action: {
+                        prependMediaItems(items: songs)
+                    }) {
+                        Label("Prepend All to Queue", systemImage: "arrow.uturn.right")
                     }
                     Button(action: {
-                        enqueueMediaItems(items: songs)
+                        appendMediaItems(items: songs)
                     }) {
-                        Label("Enqueue All", systemImage: "plus")
+                        Label("Append All to Queue", systemImage: "arrow.turn.down.right")
                     }
+
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
