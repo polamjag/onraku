@@ -15,10 +15,11 @@ extension Sequence where Iterator.Element: Hashable {
     }
 }
 
-public extension String {
-    func intelligentlySplitIntoSubArtists() -> [String] {
+extension String {
+    public func intelligentlySplitIntoSubArtists() -> [String] {
         if self.isEmpty { return [] }
-        return self
+        return
+            self
             .components(separatedBy: " x ")
             .flatMap { $0.components(separatedBy: " from ") }
             .flatMap { $0.split { s in s == "(" || s == ")" } }
@@ -27,10 +28,11 @@ public extension String {
             .filter { !$0.isEmpty }
             .unique()
     }
-    
-    func intelligentlySplitIntoSubGenres() -> [String] {
+
+    public func intelligentlySplitIntoSubGenres() -> [String] {
         if self.isEmpty { return [] }
-        return self
+        return
+            self
             .split { s in s == "(" || s == ")" }
             .flatMap { s in s.split(separator: "/") }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }

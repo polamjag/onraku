@@ -5,17 +5,17 @@
 //  Created by Satoru Abe on 2022/02/12.
 //
 
-import SwiftUI
 import MediaPlayer
+import SwiftUI
 
 struct QueriedSongsListViewContainer: View {
     @State @MainActor private var songs: [MPMediaItem] = []
     @State @MainActor private var loadState: LoadingState = .initial
     @State @MainActor private var isExactMatch = true
-    
+
     var filterPredicate: MyMPMediaPropertyPredicate
     var title: String?
-    
+
     var computedTitle: String {
         if let title = title {
             return title
@@ -25,7 +25,7 @@ struct QueriedSongsListViewContainer: View {
             return ""
         }
     }
-    
+
     @MainActor var computedPredicate: MyMPMediaPropertyPredicate {
         return MyMPMediaPropertyPredicate(
             value: filterPredicate.value,
@@ -33,7 +33,7 @@ struct QueriedSongsListViewContainer: View {
             comparisonType: isExactMatch ? .equalTo : .contains
         )
     }
-    
+
     func update() async {
         await MainActor.run {
             loadState = .loading
@@ -47,9 +47,9 @@ struct QueriedSongsListViewContainer: View {
             loadState = .loaded
         }
     }
-    
+
     var searchHints: [MyMPMediaPropertyPredicate] {
-        switch (filterPredicate.forProperty) {
+        switch filterPredicate.forProperty {
         case MPMediaItemPropertyGenre:
             if let filterVal = filterPredicate.value as? String {
                 let splittedFilterVal = filterVal.intelligentlySplitIntoSubGenres()
@@ -81,36 +81,43 @@ struct QueriedSongsListViewContainer: View {
         }
         return []
     }
-    
+
     var body: some View {
         Group {
-            if (loadState != .loaded) {
+            if loadState != .loaded {
                 ProgressView()
             }
-            SongsListView(songs: songs, title: computedTitle, isLoading: loadState == .loading, searchHints: searchHints, additionalMenuItems: {
-                Menu {
-                    // does not works in first tap
-                    // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
-                    
-                    Button(isExactMatch ? "Exact Match: On" : "Exact Match: Off", action: {
-                        Task {
-                            await MainActor.run {
-                                isExactMatch = !isExactMatch
-                            }
-                            await update()
-                        }
-                    })
-                } label: {
-                    Image(systemName: isExactMatch ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
-                }
-            })
+            SongsListView(
+                songs: songs, title: computedTitle, isLoading: loadState == .loading,
+                searchHints: searchHints,
+                additionalMenuItems: {
+                    Menu {
+                        // does not works in first tap
+                        // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
+
+                        Button(
+                            isExactMatch ? "Exact Match: On" : "Exact Match: Off",
+                            action: {
+                                Task {
+                                    await MainActor.run {
+                                        isExactMatch = !isExactMatch
+                                    }
+                                    await update()
+                                }
+                            })
+                    } label: {
+                        Image(
+                            systemName: isExactMatch
+                                ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
+                    }
+                })
         }.refreshable {
             await update()
         }.task {
             await MainActor.run {
                 isExactMatch = filterPredicate.comparisonType == .equalTo
             }
-            if (songs.isEmpty || loadState == .initial) {
+            if songs.isEmpty || loadState == .initial {
                 await update()
             }
         }

@@ -5,8 +5,8 @@
 //  Created by Satoru Abe on 2022/02/12.
 //
 
-import SwiftUI
 import MediaPlayer
+import SwiftUI
 
 struct PlayableContentMenuView: View {
     var target: [MPMediaItem]
@@ -20,12 +20,16 @@ struct PlayableContentMenuView: View {
         Button(action: {
             prependMediaItems(items: target)
         }) {
-            Label(target.count > 1 ? "Prepend All to Queue" : "Prepend to Queue", systemImage: "text.insert")
+            Label(
+                target.count > 1 ? "Prepend All to Queue" : "Prepend to Queue",
+                systemImage: "text.insert")
         }
         Button(action: {
             appendMediaItems(items: target)
         }) {
-            Label(target.count > 1 ? "Append All to Queue" : "Append to Queue", systemImage: "text.append")
+            Label(
+                target.count > 1 ? "Append All to Queue" : "Append to Queue",
+                systemImage: "text.append")
         }
     }
 }

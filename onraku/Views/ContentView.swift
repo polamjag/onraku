@@ -5,8 +5,8 @@
 //  Created by Satoru Abe on 2022/02/11.
 //
 
-import SwiftUI
 import MediaPlayer
+import SwiftUI
 
 enum NavigationDestinationType {
     case userGrouping, playlist
@@ -34,7 +34,7 @@ struct ContentView: View {
                     } label: {
                         Text("Playlists")
                     }
-                    
+
                     NavigationLink {
                         SongAssortmentsView(type: .userGrouping, title: "User Groupings")
                     } label: {
@@ -45,7 +45,7 @@ struct ContentView: View {
                 Image(systemName: "music.quarternote.3")
                 Text("Library")
             }
-            
+
             NavigationView {
                 NowPlayingViewContainer().navigationBarTitleDisplayMode(.inline)
             }.tabItem {

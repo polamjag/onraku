@@ -5,8 +5,8 @@
 //  Created by Satoru Abe on 2022/02/12.
 //
 
-import SwiftUI
 import MediaPlayer
+import SwiftUI
 
 struct NowPlayingViewContainer: View {
     @State var nowPlayingItem: MPMediaItem?
@@ -14,7 +14,7 @@ struct NowPlayingViewContainer: View {
 
     var body: some View {
         Group {
-            if (loadingState == .loading) {
+            if loadingState == .loading {
                 ProgressView()
             } else if let nowPlayingItem = nowPlayingItem {
                 SongDetailView(song: nowPlayingItem)
@@ -33,7 +33,6 @@ struct NotPlayingView: View {
         Text("Not Playing").foregroundColor(.secondary)
     }
 }
-
 
 struct NowPlayingViewContainer_Previews: PreviewProvider {
     static var previews: some View {

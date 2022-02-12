@@ -17,7 +17,7 @@ struct SongAssortmentsView: View {
 
     var type: NavigationDestinationType
     var title: String
-    
+
     func loadPlaylists() async {
         loadState = .loading
         let gotPlaylists = await loadPlaylistsForType(type: type)
@@ -26,20 +26,25 @@ struct SongAssortmentsView: View {
         }
         loadState = .loaded
     }
-    
+
     var body: some View {
         Group {
-            if (loadState == .loading) {
+            if loadState == .loading {
                 ProgressView()
             } else {
                 List(playlists) { playlist in
                     NavigationLink {
-                        SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name, isLoading: false, searchHints: [], additionalMenuItems: {})
+                        SongsListView(
+                            songs: playlist.navigationDestinationInfo.songs, title: playlist.name,
+                            isLoading: false, searchHints: [], additionalMenuItems: {})
                     } label: {
                         HStack {
-                            SongAssortmentItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
-                        }.lineLimit(1).contextMenu{
-                            PlayableContentMenuView(target: playlist.navigationDestinationInfo.songs)
+                            SongAssortmentItemView(
+                                title: playlist.name,
+                                itemsCount: playlist.navigationDestinationInfo.songs.count)
+                        }.lineLimit(1).contextMenu {
+                            PlayableContentMenuView(
+                                target: playlist.navigationDestinationInfo.songs)
                         }
                     }
                 }
@@ -49,7 +54,7 @@ struct SongAssortmentsView: View {
             }
         }
         .task {
-            if (playlists.isEmpty) {
+            if playlists.isEmpty {
                 await loadPlaylists()
             }
         }.refreshable {

@@ -10,12 +10,10 @@ import SwiftUI
 struct SongAssortmentItemView: View {
     var title: String
     var itemsCount: Int
-    
+
     var body: some View {
         HStack {
-            title.isEmpty ?
-                Text("(no value)").foregroundColor(.secondary) :
-                Text(title)
+            title.isEmpty ? Text("(no value)").foregroundColor(.secondary) : Text(title)
             Spacer()
             Text("\(itemsCount)").monospacedDigit().font(.footnote).foregroundColor(.secondary)
         }

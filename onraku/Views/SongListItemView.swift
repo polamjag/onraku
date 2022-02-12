@@ -5,8 +5,8 @@
 //  Created by Satoru Abe on 2022/02/12.
 //
 
-import SwiftUI
 import MediaPlayer
+import SwiftUI
 
 protocol SongLike {
     var title: String? { get }
@@ -20,11 +20,12 @@ class DummySong: SongLike {
     var title: String?
     var artist: String?
     var artwork: MPMediaItemArtwork?
-    
+
     init(title: String, artist: String) {
         self.title = title
         self.artist = artist
-        self.artwork = MPMediaItemArtwork.init(boundsSize: CGSize(width: 48, height: 48), requestHandler: { _ in UIImage.checkmark })
+        self.artwork = MPMediaItemArtwork.init(
+            boundsSize: CGSize(width: 48, height: 48), requestHandler: { _ in UIImage.checkmark })
     }
 }
 
@@ -32,10 +33,11 @@ private let artworkSize: CGFloat = 42
 
 struct SongListItemView: View {
     var song: SongLike
-    
+
     var body: some View {
         HStack {
-            if let image = song.artwork?.image(at: CGSize(width: artworkSize, height: artworkSize)) {
+            if let image = song.artwork?.image(at: CGSize(width: artworkSize, height: artworkSize))
+            {
                 Image(uiImage: image)
                     .resizable()
                     .frame(width: artworkSize, height: artworkSize)
