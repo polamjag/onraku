@@ -12,9 +12,9 @@ func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
     let task = Task<[Playlist], Error>.detached(priority: .high) {
         switch (type) {
         case .playlist:
-            return await loadPlaylist()
+            return loadPlaylist()
         case .userGrouping:
-            return await loadGroupings()
+            return loadGroupings()
         }
     }
     
