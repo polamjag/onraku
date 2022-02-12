@@ -47,16 +47,7 @@ struct SongsListView: View {
         List {
             Section {
                 ForEach(getSongs()) { song in
-                    HStack {
-                        Image(
-                            uiImage:
-                                song.item.artwork!.image(at: CGSize(width: artworkSize, height: artworkSize))!
-                        ).resizable().frame(width: artworkSize, height: artworkSize).cornerRadius(4)
-                        VStack(alignment: .leading) {
-                            Text(song.item.title ?? "").lineLimit(1)
-                            Text(song.item.artist ?? "").font(.footnote).foregroundColor(.secondary).lineLimit(1)
-                        }
-                    }.onTapGesture {
+                    SongListItemView(song: song.item as! SongLike).onTapGesture {
                         playMediaItems(items: [song.item])
                     }
                 }

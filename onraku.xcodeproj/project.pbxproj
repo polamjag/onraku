@@ -16,6 +16,7 @@
 		6092535327B60B7B00E23931 /* onrakuUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092535227B60B7B00E23931 /* onrakuUITestsLaunchTests.swift */; };
 		6092536127B60C6800E23931 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6092536027B60C6800E23931 /* MediaPlayer.framework */; };
 		6092536527B6324300E23931 /* SongsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536427B6324300E23931 /* SongsListView.swift */; };
+		6092536727B7810A00E23931 /* SongListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536627B7810A00E23931 /* SongListItemView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 		6092535227B60B7B00E23931 /* onrakuUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = onrakuUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		6092536027B60C6800E23931 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		6092536427B6324300E23931 /* SongsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsListView.swift; sourceTree = "<group>"; };
+		6092536627B7810A00E23931 /* SongListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongListItemView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +105,7 @@
 				6092533527B60B7A00E23931 /* onrakuApp.swift */,
 				6092533727B60B7A00E23931 /* ContentView.swift */,
 				6092536427B6324300E23931 /* SongsListView.swift */,
+				6092536627B7810A00E23931 /* SongListItemView.swift */,
 				6092533927B60B7B00E23931 /* Assets.xcassets */,
 				6092533B27B60B7B00E23931 /* Preview Content */,
 			);
@@ -274,6 +277,7 @@
 			files = (
 				6092536527B6324300E23931 /* SongsListView.swift in Sources */,
 				6092533827B60B7A00E23931 /* ContentView.swift in Sources */,
+				6092536727B7810A00E23931 /* SongListItemView.swift in Sources */,
 				6092533627B60B7A00E23931 /* onrakuApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
