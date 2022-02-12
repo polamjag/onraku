@@ -25,38 +25,57 @@ private struct Playlist: Identifiable {
 
 struct ContentView: View {
     @State private var playlists: [Playlist] = []
+    @State private var isLoading: Bool = false
     
     func loadPlaylist() {
-        let playlistsQuery = MPMediaQuery.playlists().collections ?? []
-        playlists = playlistsQuery.map {
-            Playlist(
-                name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
-                id: String($0.representativeItem?.persistentID ?? 0),
-                navigationDestinationInfo: NavigationDestinationInfo(
-                    type: .playlist, songs: $0.items
+        let dq = DispatchQueue(label: "songfinder", qos: .userInteractive)
+        isLoading = true
+        dq.async {
+            let playlistsQuery = MPMediaQuery.playlists().collections ?? []
+            let p: [Playlist] = playlistsQuery.map {
+                Playlist(
+                    name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
+                    id: String($0.representativeItem?.persistentID ?? 0),
+                    navigationDestinationInfo: NavigationDestinationInfo(
+                        type: .playlist, songs: $0.items
+                    )
                 )
-            )
+            }
+            
+            DispatchQueue.main.async {
+                isLoading = false
+                playlists = p
+            }
         }
     }
     
     func loadGroupings() {
-        let songs = MPMediaQuery.songs().items
-        let songsByGrouping = songs?.reduce([String:[MPMediaItem]](), {
-            var prev = $0
-            let gr = $1.userGrouping ?? ""
-            prev[gr] = (prev[gr] ?? []) + [$1]
-            return prev
-        })
-        if (songsByGrouping == nil) { return }
-        playlists = songsByGrouping!.keys.sorted().map {
-            return Playlist(
-                name: $0,
-                id: $0,
-                navigationDestinationInfo: NavigationDestinationInfo(
-                    type: .userGrouping,
-                    songs: songsByGrouping?[$0] ?? []
+        let dq = DispatchQueue(label: "songfinder", qos: .userInteractive)
+        isLoading = true
+        dq.async {
+            let songs = MPMediaQuery.songs().items
+            let songsByGrouping = songs?.reduce([String:[MPMediaItem]](), {
+                var prev = $0
+                let gr = $1.userGrouping ?? ""
+                prev[gr] = (prev[gr] ?? []) + [$1]
+                return prev
+            })
+            if (songsByGrouping == nil) { return }
+            let p: [Playlist] = songsByGrouping!.keys.sorted().map {
+                return Playlist(
+                    name: $0,
+                    id: $0,
+                    navigationDestinationInfo: NavigationDestinationInfo(
+                        type: .userGrouping,
+                        songs: songsByGrouping?[$0] ?? []
+                    )
                 )
-            )
+            }
+            
+            DispatchQueue.main.async {
+                isLoading = false
+                playlists = p
+            }
         }
     }
     
@@ -72,14 +91,18 @@ struct ContentView: View {
             }
             
             Section {
-                ForEach(playlists) { playlist in
-                    NavigationLink {
-                        SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
-                    } label: {
-                        HStack {
-                            SongGroupItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
-                        }.contextMenu{
-                            PlayableContentMenuView(target: playlist.navigationDestinationInfo.songs)
+                if (isLoading) {
+                    ProgressView()
+                } else {
+                    ForEach(playlists) { playlist in
+                        NavigationLink {
+                            SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
+                        } label: {
+                            HStack {
+                                SongGroupItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
+                            }.lineLimit(1).contextMenu{
+                                PlayableContentMenuView(target: playlist.navigationDestinationInfo.songs)
+                            }
                         }
                     }
                 }
