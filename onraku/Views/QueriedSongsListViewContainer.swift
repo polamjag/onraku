@@ -14,8 +14,22 @@ struct QueriedSongsListViewContainer: View {
     
     var filterPredicate: MyMPMediaPropertyPredicate
     
+    var title: String {
+        if let s = filterPredicate.value as? String {
+            return s
+        } else {
+            return ""
+        }
+    }
+    
     var body: some View {
-        SongsListView(songs: songs, title: "").task {
+        Group {
+            if (loadState != .loaded) {
+                ProgressView()
+            }
+            SongsListView(songs: songs, title: title)
+        }
+        .task {
             loadState = .loading
             songs = await getSongsByPredicate(predicate: filterPredicate)
             loadState = .loaded
