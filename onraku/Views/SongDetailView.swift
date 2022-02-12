@@ -134,8 +134,11 @@ struct SongDetailView: View {
                 KeyValueView(key: "user grouping", value: song.userGrouping)
             }
             
-            
-            HorizontalKeyValueView(key: "genre", value: song.genre)
+            NavigationLink {
+                QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.genre, forProperty: MPMediaItemPropertyGenre))
+            } label: {
+                HorizontalKeyValueView(key: "genre", value: song.genre)
+            }
             
             Group {
                 HorizontalKeyValueView(key: "rating", value: song.rating == 0 ? "-" : String(song.rating))
