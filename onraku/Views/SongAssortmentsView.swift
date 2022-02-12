@@ -14,10 +14,15 @@ enum LoadingState {
 struct SongAssortmentsView: View {
     @State var playlists: [Playlist] = []
     @State var loadState: LoadingState = .initial
-    @State var lastLoadedNavigationDestinationType: NavigationDestinationType?
 
     var type: NavigationDestinationType
     var title: String
+    
+    func loadPlaylists() async {
+        loadState = .loading
+        playlists = await loadPlaylistsForType(type: type)
+        loadState = .loaded
+    }
     
     var body: some View {
         Group {
@@ -42,11 +47,11 @@ struct SongAssortmentsView: View {
             }
         }
         .task {
-            if (loadState != .loaded || lastLoadedNavigationDestinationType != type) {
-                loadState = .loading
-                playlists = await loadPlaylistsForType(type: type)
-                loadState = .loaded
+            if (playlists.isEmpty) {
+                await loadPlaylists()
             }
+        }.refreshable {
+            await loadPlaylists()
         }
     }
 }
