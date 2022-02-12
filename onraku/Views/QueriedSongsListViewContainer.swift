@@ -84,9 +84,19 @@ struct QueriedSongsListViewContainer: View {
             }
             SongsListView(songs: songs, title: computedTitle, searchHints: searchHints, additionalMenuItems: {
                 Menu {
-                    Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
+                    // does not works in first tap
+                    // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
+                    
+                    Button(isExactMatch ? "Exact Match: On" : "Exact Match: Off", action: {
+                        Task {
+                            await MainActor.run {
+                                isExactMatch = !isExactMatch
+                            }
+                            await update()
+                        }
+                    })
                 } label: {
-                    Image(systemName: "magnifyingglass")
+                    Image(systemName: isExactMatch ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
                 }
             })
         }
