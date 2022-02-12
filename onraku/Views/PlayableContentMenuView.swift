@@ -14,18 +14,18 @@ struct PlayableContentMenuView: View {
         Button(action: {
             playMediaItems(items: target)
         }) {
-            Label("Play All Now", systemImage: "play")
+            Label(target.count > 1 ? "Play All Now" : "Play Now", systemImage: "play")
         }
         Divider()
         Button(action: {
             prependMediaItems(items: target)
         }) {
-            Label("Prepend All to Queue", systemImage: "arrow.turn.up.right")
+            Label(target.count > 1 ? "Prepend All to Queue" : "Prepend to Queue", systemImage: "arrow.turn.up.right")
         }
         Button(action: {
             appendMediaItems(items: target)
         }) {
-            Label("Append All to Queue", systemImage: "arrow.turn.down.right")
+            Label(target.count > 1 ? "Append All to Queue" : "Append to Queue", systemImage: "arrow.turn.down.right")
         }
     }
 }

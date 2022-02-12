@@ -26,6 +26,8 @@ struct SongsListView: View {
                 ForEach(songs) { song in
                     SongListItemView(song: song).onTapGesture {
                         playMediaItems(items: [song])
+                    }.contextMenu {
+                        PlayableContentMenuView(target: [song])
                     }
                 }
             }
