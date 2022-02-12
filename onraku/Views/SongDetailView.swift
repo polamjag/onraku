@@ -136,6 +136,12 @@ struct SongDetailView: View {
             }.disabled(song.albumArtist?.isEmpty ?? true)
             
             NavigationLink {
+                QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.composer, forProperty: MPMediaItemPropertyComposer))
+            } label: {
+                KeyValueView(key: "composer", value: song.composer)
+            }.disabled(song.composer?.isEmpty ?? true)
+            
+            NavigationLink {
                 QueriedSongsListViewContainer(filterPredicate: MyMPMediaPropertyPredicate(value: song.userGrouping, forProperty: MPMediaItemPropertyUserGrouping))
             } label: {
                 HorizontalKeyValueView(key: "user grouping", value: song.userGrouping)
