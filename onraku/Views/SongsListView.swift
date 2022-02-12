@@ -36,15 +36,17 @@ enum SortSongsBy: String, Equatable, CaseIterable {
 struct SongsListView<Content: View>: View {
     var songs: [MPMediaItem]
     var title: String
+    var isLoading: Bool
     @State var sort: SortSongsBy = .none
     
     let additionalMenuItems: Content
     let searchHints: [MyMPMediaPropertyPredicate]
     
-    init(songs: [MPMediaItem], title: String, searchHints: [MyMPMediaPropertyPredicate], @ViewBuilder additionalMenuItems: () -> Content) {
+    init(songs: [MPMediaItem], title: String, isLoading: Bool, searchHints: [MyMPMediaPropertyPredicate], @ViewBuilder additionalMenuItems: () -> Content) {
         self.songs = songs
         self.title = title
         self.searchHints = searchHints
+        self.isLoading = isLoading
         self.additionalMenuItems = additionalMenuItems()
     }
 
@@ -75,6 +77,10 @@ struct SongsListView<Content: View>: View {
     
     var body: some View {
         List {
+            if (isLoading) {
+                ProgressView()
+            }
+            
             if (!searchHints.isEmpty) {
                 Section{
                     ForEach(searchHints) { searchHint in
@@ -88,6 +94,7 @@ struct SongsListView<Content: View>: View {
                     }
                 } header: { Text("Search") }
             }
+            
             Section(footer: Text("\(songs.count) songs")) {
                 ForEach(sortedSongs) { song in
                     NavigationLink {
@@ -108,10 +115,14 @@ struct SongsListView<Content: View>: View {
                 self.additionalMenuItems
                 Menu {
                     PlayableContentMenuView(target: sortedSongs)
-                    Picker("sort by", selection: $sort) {
-                        ForEach(SortSongsBy.allCases, id: \.self) { value in
-                            Text(value.rawValue).tag(value)
+                    Menu {
+                        Picker("sort by", selection: $sort) {
+                            ForEach(SortSongsBy.allCases, id: \.self) { value in
+                                Text(value.rawValue).tag(value)
+                            }
                         }
+                    } label: {
+                        Label("Sort Order: \(sort.rawValue)", systemImage: "arrow.up.arrow.down")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -123,6 +134,6 @@ struct SongsListView<Content: View>: View {
 
 struct SongsListView_Previews: PreviewProvider {
     static var previews: some View {
-        SongsListView(songs: [], title: "Some Playlist", searchHints: [], additionalMenuItems: {})
+        SongsListView(songs: [], title: "Some Playlist", isLoading: false, searchHints: [], additionalMenuItems: {})
     }
 }

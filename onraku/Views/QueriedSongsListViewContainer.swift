@@ -87,7 +87,7 @@ struct QueriedSongsListViewContainer: View {
             if (loadState != .loaded) {
                 ProgressView()
             }
-            SongsListView(songs: songs, title: computedTitle, searchHints: searchHints, additionalMenuItems: {
+            SongsListView(songs: songs, title: computedTitle, isLoading: loadState == .loading, searchHints: searchHints, additionalMenuItems: {
                 Menu {
                     // does not works in first tap
                     // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
