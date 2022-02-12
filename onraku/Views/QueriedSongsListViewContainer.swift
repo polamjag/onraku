@@ -89,7 +89,9 @@ struct QueriedSongsListViewContainer: View {
         }
         .task {
             isExactMatch = filterPredicate.comparisonType == .equalTo
-            await update()
+            if (songs.isEmpty || loadState == .initial) {
+                await update()
+            }
         }
     }
 }
