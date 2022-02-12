@@ -20,11 +20,11 @@ struct SongAssortmentsView: View {
     var title: String
     
     var body: some View {
-        List {
+        Group {
             if (loadState == .loading) {
                 ProgressView()
             } else {
-                ForEach(playlists) { playlist in
+                List(playlists) { playlist in
                     NavigationLink {
                         SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
                     } label: {
@@ -35,11 +35,12 @@ struct SongAssortmentsView: View {
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle(title)
+                
             }
         }
-        .listStyle(.insetGrouped)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(title)
         .task {
             if (loadState != .loaded || lastLoadedNavigationDestinationType != type) {
                 loadState = .loading
@@ -47,7 +48,6 @@ struct SongAssortmentsView: View {
                 loadState = .loaded
             }
         }
-        
     }
 }
 
