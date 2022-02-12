@@ -11,7 +11,9 @@ import SwiftUI
 struct onrakuApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationView{
+                ContentView()
+            }
         }
     }
 }
