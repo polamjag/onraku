@@ -25,7 +25,7 @@ func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
     }
 }
 
-func loadPlaylist() async -> [Playlist] {
+func loadPlaylist() -> [Playlist] {
     let playlistsQuery = MPMediaQuery.playlists().collections ?? []
     return playlistsQuery.map {
         Playlist(
@@ -38,7 +38,7 @@ func loadPlaylist() async -> [Playlist] {
     }
 }
 
-func loadGroupings() async -> [Playlist] {
+func loadGroupings() -> [Playlist] {
     let songs = MPMediaQuery.songs().items
     let songsByGrouping = songs?.reduce([String:[MPMediaItem]](), {
         var prev = $0
