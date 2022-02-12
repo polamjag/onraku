@@ -173,7 +173,7 @@ struct SongDetailView: View {
                     HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
                 }
             }
-        }.navigationTitle("Song Detail").toolbar {
+        }.navigationTitle(song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
                     PlayableContentMenuView(target: [song as! MPMediaItem])
