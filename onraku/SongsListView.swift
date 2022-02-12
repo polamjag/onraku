@@ -45,9 +45,9 @@ struct SongsListView: View {
     
     var body: some View {
         List {
-            Section {
+            Section(footer: Text("\(songs.count) songs")) {
                 ForEach(getSongs()) { song in
-                    SongListItemView(song: song.item as! SongLike).onTapGesture {
+                    SongListItemView(song: song.item).onTapGesture {
                         playMediaItems(items: [song.item])
                     }
                 }

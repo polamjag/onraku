@@ -76,7 +76,9 @@ struct ContentView: View {
                     NavigationLink {
                         SongsListView(songs: playlist.navigationDestinationInfo.songs, title: playlist.name)
                     } label: {
-                        Text(playlist.name)
+                        HStack {
+                            SongListIGroupItemView(title: playlist.name, itemsCount: playlist.navigationDestinationInfo.songs.count)
+                        }
                     }
                 }
             }

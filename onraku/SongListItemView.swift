@@ -14,6 +14,8 @@ protocol SongLike {
     var artwork: MPMediaItemArtwork? { get }
 }
 
+extension MPMediaItem: SongLike {}
+
 class DummySong: SongLike {
     var title: String?
     var artist: String?
