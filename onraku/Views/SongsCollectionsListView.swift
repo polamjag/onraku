@@ -34,11 +34,7 @@ struct SongsCollectionsListView: View {
     var body: some View {
         List {
             if loadState == .loading || loadState == .initial {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
+                LoadingCellView()
             }
 
             ForEach(playlists) { playlist in

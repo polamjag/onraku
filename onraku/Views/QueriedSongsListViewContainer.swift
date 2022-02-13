@@ -81,7 +81,7 @@ struct QueriedSongsListViewContainer: View {
             }
 
             if vm.shouldShowLoadingIndicator {
-                ProgressView()
+                LoadingCellView()
             } else {
                 Section(footer: Text("\(vm.songs.count) songs")) {
                     ForEach(vm.sortedSongs) { song in
