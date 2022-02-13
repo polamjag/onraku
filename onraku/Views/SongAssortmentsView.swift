@@ -20,16 +20,22 @@ struct SongAssortmentsView: View {
     var title: String
 
     func loadPlaylists() async {
-        loadState = .loading
+        await MainActor.run {
+            loadState = .loading
+        }
         let gotPlaylists = await loadSongsCollectionsFor(type: type)
         await MainActor.run {
             playlists = gotPlaylists
+            loadState = .loaded
         }
-        loadState = .loaded
+
     }
 
     var body: some View {
         Group {
+            if loadState == .loading {
+                ProgressView()
+            }
             List(playlists) { playlist in
                 NavigationLink {
                     QueriedSongsListViewContainer(
