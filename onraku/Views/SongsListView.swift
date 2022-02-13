@@ -33,6 +33,25 @@ enum SortSongsBy: String, Equatable, CaseIterable {
     case playCountAsc = "Least Played"
 }
 
+private func getTertiaryInfo(of item: MPMediaItem, withHint: SortSongsBy) -> String? {
+    switch withHint {
+    case .none, .title, .artist:
+        return nil
+    case .album:
+        return item.albumTitle ?? "-"
+    case .genre:
+        return item.genre ?? "-"
+    case .userGrouping:
+        return item.userGrouping ?? "-"
+    case .addedAt:
+        return item.dateAdded.formatted(date: .abbreviated, time: .omitted)
+    case .bpm:
+        return item.beatsPerMinute == 0 ? "-" : String(item.beatsPerMinute)
+    case .playCountAsc, .playCountDesc:
+        return String(item.playCount)
+    }
+}
+
 struct SongsListView<Content: View>: View {
     var songs: [MPMediaItem]
     var title: String
@@ -108,7 +127,12 @@ struct SongsListView<Content: View>: View {
                     NavigationLink {
                         SongDetailView(song: song)
                     } label: {
-                        SongListItemView(song: song).contextMenu {
+                        SongListItemView(
+                            title: song.title,
+                            secondaryText: song.artist,
+                            tertiaryText: getTertiaryInfo(of: song, withHint: sort),
+                            artwork: song.artwork
+                        ).contextMenu {
                             PlayableContentMenuView(target: [song])
                         }
                     }
