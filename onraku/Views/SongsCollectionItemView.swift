@@ -1,5 +1,5 @@
 //
-//  SongListIGroupItemView.swift
+//  SongsCollectionItemView.swift
 //  onraku
 //
 //  Created by Satoru Abe on 2022/02/12.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SongAssortmentItemView: View {
+struct SongsCollectionItemView: View {
     var title: String
     var itemsCount: Int
 
@@ -20,8 +20,8 @@ struct SongAssortmentItemView: View {
     }
 }
 
-struct SongGroupItemView_Previews: PreviewProvider {
+struct SongsCollectionItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongAssortmentItemView(title: "Gorgeous Label", itemsCount: 42)
+        SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42)
     }
 }

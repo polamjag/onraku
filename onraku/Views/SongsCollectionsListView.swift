@@ -44,7 +44,7 @@ struct SongsCollectionsListView: View {
                     )
                 } label: {
                     HStack {
-                        SongAssortmentItemView(
+                        SongsCollectionItemView(
                             title: playlist.name,
                             itemsCount: playlist.items.count)
                     }.lineLimit(1).contextMenu {
