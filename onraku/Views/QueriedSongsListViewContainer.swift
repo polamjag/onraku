@@ -97,7 +97,7 @@ struct QueriedSongsListViewContainer: View {
                                     tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
                                     artwork: song.artwork
                                 ).contextMenu {
-                                    PlayableContentMenuView(target: [song])
+                                    PlayableItemsMenuView(target: [song])
                                 }
                             }
                         }
@@ -118,7 +118,7 @@ struct QueriedSongsListViewContainer: View {
                         }.disabled(!vm.exactMatchSettable)
 
                         Menu {
-                            PlayableContentMenuView(target: vm.sortedSongs)
+                            PlayableItemsMenuView(target: vm.sortedSongs)
                             Menu {
                                 Picker("sort by", selection: $vm.sort) {
                                     ForEach(SongsSortKey.allCases, id: \.self) { value in

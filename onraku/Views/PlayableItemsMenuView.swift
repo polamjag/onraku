@@ -8,7 +8,7 @@
 import MediaPlayer
 import SwiftUI
 
-struct PlayableContentMenuView: View {
+struct PlayableItemsMenuView: View {
     var target: [MPMediaItem]
     var body: some View {
         Button(action: {
@@ -36,6 +36,6 @@ struct PlayableContentMenuView: View {
 
 struct PlayableContentMenuView_Previews: PreviewProvider {
     static var previews: some View {
-        PlayableContentMenuView(target: [])
+        PlayableItemsMenuView(target: [])
     }
 }

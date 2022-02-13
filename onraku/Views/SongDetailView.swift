@@ -217,7 +217,7 @@ struct SongDetailView: View {
         }.navigationTitle(song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
-                    PlayableContentMenuView(target: [song as! MPMediaItem])
+                    PlayableItemsMenuView(target: [song as! MPMediaItem])
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
