@@ -100,9 +100,7 @@ struct QueriedSongsListViewContainer: View {
                     }
                 }
             }
-        }.listStyle(.insetGrouped)
-            .navigationTitle(computedTitle)
-            .navigationBarTitleDisplayMode(.inline)
+        }.navigationTitle(computedTitle)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {

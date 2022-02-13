@@ -21,13 +21,17 @@ struct ContentView: View {
                         }
                     }
                 }.navigationTitle("Library")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .listStyle(.insetGrouped)
             }.tabItem {
                 Image(systemName: "music.quarternote.3")
                 Text("Library")
             }
 
             NavigationView {
-                NowPlayingViewContainer().navigationBarTitleDisplayMode(.inline)
+                NowPlayingViewContainer()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .listStyle(.insetGrouped)
             }.tabItem {
                 Image(systemName: "play")
                 Text("Now Playing")

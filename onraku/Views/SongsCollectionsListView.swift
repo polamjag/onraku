@@ -54,8 +54,6 @@ struct SongsCollectionsListView: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
-            .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(title)
         }.task {
             if playlists.isEmpty {
