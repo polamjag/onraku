@@ -18,12 +18,12 @@ func appendMediaItems(items: [MPMediaItem]) {
     let collection = MPMediaItemCollection.init(items: items)
     let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
     MPMusicPlayerController.systemMusicPlayer.append(qd)
-    showToastWithMessage("\(items.count) Items Appended")
+    showToastWithMessage("\(items.count) Items Playing Last", withSystemImage: "text.append")
 }
 
 func prependMediaItems(items: [MPMediaItem]) {
     let collection = MPMediaItemCollection.init(items: items)
     let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
     MPMusicPlayerController.systemMusicPlayer.prepend(qd)
-    showToastWithMessage("\(items.count) Items Prepended")
+    showToastWithMessage("\(items.count) Items Playing Next", withSystemImage: "text.insert")
 }
