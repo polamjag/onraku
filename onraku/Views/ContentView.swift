@@ -18,7 +18,7 @@ struct ContentView: View {
                         NavigationLink {
                             SongAssortmentsView(type: type, title: type.rawValue)
                         } label: {
-                            Text(type.rawValue)
+                            Label(type.rawValue, systemImage: type.systemImageName)
                         }
                     }.navigationTitle("Library")
                 }

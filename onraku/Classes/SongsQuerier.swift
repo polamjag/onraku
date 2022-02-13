@@ -29,6 +29,21 @@ enum CollectionType: String, Equatable, CaseIterable {
             return MPMediaQuery.albums()
         }
     }
+    
+    var systemImageName: String {
+        switch self {
+            case .playlist:
+                return "list.dash"
+            case .album:
+                return "square.stack"
+            case .genre:
+                return "guitars"
+            case .artist:
+                return "music.mic"
+            case .userGrouping:
+                return "folder.fill.badge.person.crop"
+        }
+    }
 }
 
 struct SongsCollection: Identifiable, Hashable {
