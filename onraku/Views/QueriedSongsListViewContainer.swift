@@ -93,7 +93,6 @@ extension QueriedSongsListViewContainer {
         }
 
         func execQuery() async {
-            print("execQuery computedPredicate", computedPredicate)
             if let computedPredicate = computedPredicate {
                 let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
                     loadState = .loading
