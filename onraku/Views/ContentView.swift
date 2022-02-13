@@ -25,7 +25,7 @@ struct ContentView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         .listStyle(.insetGrouped)
                 }.tabItem {
-                    Image(systemName: "music.quarternote.3")
+                    Image(systemName: "books.vertical.fill")
                     Text("Library")
                 }
 
