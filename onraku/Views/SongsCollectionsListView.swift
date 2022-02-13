@@ -32,12 +32,16 @@ struct SongsCollectionsListView: View {
     }
 
     var body: some View {
-        Group {
-            List(playlists) { playlist in
-                if loadState == .loading || loadState == .initial {
+        List {
+            if loadState == .loading || loadState == .initial {
+                HStack {
+                    Spacer()
                     ProgressView()
+                    Spacer()
                 }
-                
+            }
+
+            ForEach(playlists) { playlist in
                 NavigationLink {
                     QueriedSongsListViewContainer(
                         filterPredicate: playlist.getFilterPredicate(),
@@ -57,7 +61,6 @@ struct SongsCollectionsListView: View {
             .listStyle(.insetGrouped)
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(title)
-
         }.task {
             if playlists.isEmpty {
                 await loadPlaylists()
