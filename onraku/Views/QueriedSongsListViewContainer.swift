@@ -66,26 +66,26 @@ struct QueriedSongsListViewContainer: View {
 
     var body: some View {
         Group {
-            if vm.shouldShowLoadingIndicator {
-                ProgressView()
-            } else {
-                List {
-                    if !vm.searchHints.isEmpty {
-                        Section {
-                            ForEach(vm.searchHints) { searchHint in
-                                NavigationLink {
-                                    QueriedSongsListViewContainer(
-                                        filterPredicate: searchHint
-                                    )
-                                } label: {
-                                    Text(searchHint.someFriendlyLabel)
-                                }
+            List {
+                if !vm.searchHints.isEmpty {
+                    Section {
+                        ForEach(vm.searchHints) { searchHint in
+                            NavigationLink {
+                                QueriedSongsListViewContainer(
+                                    filterPredicate: searchHint
+                                )
+                            } label: {
+                                Text(searchHint.someFriendlyLabel)
                             }
-                        } header: {
-                            Text("Search")
                         }
+                    } header: {
+                        Text("Search")
                     }
+                }
 
+                if vm.shouldShowLoadingIndicator {
+                    ProgressView()
+                } else {
                     Section(footer: Text("\(vm.songs.count) songs")) {
                         ForEach(vm.sortedSongs) { song in
                             NavigationLink {
@@ -102,43 +102,40 @@ struct QueriedSongsListViewContainer: View {
                             }
                         }
                     }
-                }.listStyle(.insetGrouped)
-                    .navigationTitle(computedTitle)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            Menu {
-                                Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(
-                                    of: vm.isExactMatch
-                                ) { _ in Task { await vm.execQuery() } }
-                            } label: {
-                                Image(
-                                    systemName: vm.isExactMatch
-                                        ? "magnifyingglass.circle.fill"
-                                        : "magnifyingglass.circle")
-                            }.disabled(!vm.exactMatchSettable)
+                }
+            }.listStyle(.insetGrouped)
+                .navigationTitle(computedTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        Menu {
+                            Toggle("Exact Match", isOn: $vm.isExactMatch)
+                        } label: {
+                            Image(
+                                systemName: vm.isExactMatch
+                                    ? "magnifyingglass.circle.fill"
+                                    : "magnifyingglass.circle")
+                        }.disabled(!vm.exactMatchSettable)
 
+                        Menu {
+                            PlayableContentMenuView(target: vm.sortedSongs)
                             Menu {
-                                PlayableContentMenuView(target: vm.sortedSongs)
-                                Menu {
-                                    Picker("sort by", selection: $vm.sort) {
-                                        ForEach(SongsSortKey.allCases, id: \.self) { value in
-                                            Text(value.rawValue).tag(value)
-                                        }
-                                    }.onChange(of: vm.sort) { _ in
-                                        Task { await vm.setSortedSongs() }
+                                Picker("sort by", selection: $vm.sort) {
+                                    ForEach(SongsSortKey.allCases, id: \.self) { value in
+                                        Text(value.rawValue).tag(value)
                                     }
-                                } label: {
-                                    Label(
-                                        "Sort Order: \(vm.sort.rawValue)",
-                                        systemImage: "arrow.up.arrow.down")
                                 }
                             } label: {
-                                Image(systemName: "ellipsis.circle")
+                                Label(
+                                    "Sort Order: \(vm.sort.rawValue)",
+                                    systemImage: "arrow.up.arrow.down")
                             }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
+
                     }
-            }
+                }
         }.refreshable {
             await vm.refreshQuery()
         }.task {
@@ -152,13 +149,21 @@ extension QueriedSongsListViewContainer {
     class ViewModel: ObservableObject {
         @Published private(set) var songs: [MPMediaItem] = []
         private var filterPredicate: MyMPMediaPropertyPredicate?
-        @Published @MainActor var isExactMatch: Bool = true
+        @Published @MainActor var isExactMatch: Bool = true {
+            didSet {
+                Task { await execQuery() }
+            }
+        }
 
         @MainActor var exactMatchSettable: Bool {
             return filterPredicate != nil
         }
 
-        @Published @MainActor var sort: SongsSortKey = .none
+        @Published @MainActor var sort: SongsSortKey = .none {
+            didSet {
+                Task { await setSortedSongs() }
+            }
+        }
 
         @Published @MainActor var loadState: LoadingState = .initial
         @MainActor var shouldShowLoadingIndicator: Bool {
