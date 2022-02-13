@@ -21,6 +21,7 @@ struct SongItemView: View {
             if let image = artwork?.image(at: CGSize(width: artworkSize, height: artworkSize)) {
                 Image(uiImage: image)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: artworkSize, height: artworkSize)
                     .cornerRadius(4)
             } else {

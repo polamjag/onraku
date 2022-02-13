@@ -140,6 +140,7 @@ struct SongDetailView: View {
                     {
                         Image(uiImage: image)
                             .resizable()
+                            .aspectRatio(contentMode: .fit)
                             .frame(width: artworkSize, height: artworkSize)
                             .cornerRadius(4)
                     }
