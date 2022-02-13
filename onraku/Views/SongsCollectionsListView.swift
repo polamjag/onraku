@@ -13,19 +13,19 @@ enum LoadingState {
 }
 
 struct SongsCollectionsListView: View {
-    @State @MainActor var playlists: [SongsCollection] = []
+    @State @MainActor var collections: [SongsCollection] = []
     @State var loadState: LoadingState = .initial
 
     var type: CollectionType
     var title: String
 
-    func loadPlaylists() async {
+    func loadCollections() async {
         await MainActor.run {
             loadState = .loading
         }
-        let gotPlaylists = await loadSongsCollectionsOf(type)
+        let gotCollections = await loadSongsCollectionsOf(type)
         await MainActor.run {
-            playlists = gotPlaylists
+            collections = gotCollections
             loadState = .loaded
         }
 
@@ -37,31 +37,31 @@ struct SongsCollectionsListView: View {
                 LoadingCellView()
             }
 
-            ForEach(playlists) { playlist in
+            ForEach(collections) { collection in
                 NavigationLink {
                     QueriedSongsListViewContainer(
-                        filterPredicate: playlist.getFilterPredicate(),
-                        songs: playlist.items
+                        filterPredicate: collection.getFilterPredicate(),
+                        songs: collection.items
                     )
                 } label: {
                     HStack {
                         SongsCollectionItemView(
-                            title: playlist.name,
-                            itemsCount: playlist.items.count)
+                            title: collection.name,
+                            itemsCount: collection.items.count)
                     }.lineLimit(1).contextMenu {
                         PlayableItemsMenuView(
-                            target: .array(playlist.items))
+                            target: .array(collection.items))
                     }
                 }
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
         }.task {
-            if playlists.isEmpty {
-                await loadPlaylists()
+            if collections.isEmpty {
+                await loadCollections()
             }
         }.refreshable {
-            await loadPlaylists()
+            await loadCollections()
         }
     }
 }
