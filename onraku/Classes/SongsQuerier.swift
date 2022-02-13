@@ -41,7 +41,7 @@ enum CollectionType: String, Equatable, CaseIterable {
         case .artist:
             return "music.mic"
         case .userGrouping:
-            return "folder.fill.badge.person.crop"
+            return "rectangle.3.group"
         }
     }
 }
