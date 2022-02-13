@@ -23,7 +23,7 @@ struct MyMPMediaPropertyPredicate: Identifiable {
         }
         return "<unknown>"
     }
-    
+
     var id: String {
         return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
     }
