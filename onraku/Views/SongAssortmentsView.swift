@@ -22,7 +22,7 @@ struct NavigationDestinationInfo {
 }
 
 struct SongAssortmentsView: View {
-    @State @MainActor var playlists: [Playlist] = []
+    @State @MainActor var playlists: [SongsCollection] = []
     @State var loadState: LoadingState = .initial
 
     var type: NavigationDestinationType
@@ -30,7 +30,7 @@ struct SongAssortmentsView: View {
 
     func loadPlaylists() async {
         loadState = .loading
-        let gotPlaylists = await loadPlaylistsForType(type: type)
+        let gotPlaylists = await loadSongsCollectionsFor(type: type)
         await MainActor.run {
             playlists = gotPlaylists
         }

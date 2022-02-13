@@ -8,8 +8,8 @@
 import Foundation
 import MediaPlayer
 
-struct Playlist: Identifiable, Hashable {
-    static func == (lhs: Playlist, rhs: Playlist) -> Bool {
+struct SongsCollection: Identifiable, Hashable {
+    static func == (lhs: SongsCollection, rhs: SongsCollection) -> Bool {
         return lhs.id == rhs.id
     }
     func hash(into hasher: inout Hasher) {
@@ -21,8 +21,8 @@ struct Playlist: Identifiable, Hashable {
     let navigationDestinationInfo: NavigationDestinationInfo
 }
 
-func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
-    let task = Task.detached(priority: .high) { () -> [Playlist] in
+func loadSongsCollectionsFor(type: NavigationDestinationType) async -> [SongsCollection] {
+    let task = Task.detached(priority: .high) { () -> [SongsCollection] in
         switch type {
         case .playlist:
             return loadPlaylist()
@@ -38,10 +38,10 @@ func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
     }
 }
 
-func loadPlaylist() -> [Playlist] {
+func loadPlaylist() -> [SongsCollection] {
     let playlistsQuery = MPMediaQuery.playlists().collections ?? []
     return playlistsQuery.map {
-        Playlist(
+        SongsCollection(
             name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
             id: String($0.persistentID),
             navigationDestinationInfo: NavigationDestinationInfo(
@@ -51,7 +51,7 @@ func loadPlaylist() -> [Playlist] {
     }
 }
 
-func loadGroupings() -> [Playlist] {
+func loadGroupings() -> [SongsCollection] {
     let songs = MPMediaQuery.songs().items
     let songsByGrouping = songs?.reduce(
         [String: [MPMediaItem]](),
@@ -63,7 +63,7 @@ func loadGroupings() -> [Playlist] {
         })
     if songsByGrouping == nil { return [] }
     return songsByGrouping!.keys.sorted().map {
-        return Playlist(
+        return SongsCollection(
             name: $0,
             id: $0,
             navigationDestinationInfo: NavigationDestinationInfo(
