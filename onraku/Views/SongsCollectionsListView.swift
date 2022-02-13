@@ -55,6 +55,7 @@ struct SongsCollectionsListView: View {
                 }
             }
             .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
         }.task {
             if playlists.isEmpty {
                 await loadPlaylists()
