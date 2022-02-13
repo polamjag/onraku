@@ -14,18 +14,14 @@ struct ContentView: View {
         TabView {
             NavigationView {
                 List {
-                    NavigationLink {
-                        SongAssortmentsView(type: .playlist, title: "Playlists")
-                    } label: {
-                        Text("Playlists")
-                    }
-
-                    NavigationLink {
-                        SongAssortmentsView(type: .userGrouping, title: "User Groupings")
-                    } label: {
-                        Text("User Groupings")
-                    }
-                }.navigationTitle("Library")
+                    ForEach(CollectionType.allCases, id: \.self) { type in
+                        NavigationLink {
+                            SongAssortmentsView(type: type, title: type.rawValue)
+                        } label: {
+                            Text(type.rawValue)
+                        }
+                    }.navigationTitle("Library")
+                }
             }.tabItem {
                 Image(systemName: "music.quarternote.3")
                 Text("Library")

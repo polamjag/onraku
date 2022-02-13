@@ -8,8 +8,27 @@
 import Foundation
 import MediaPlayer
 
-enum CollectionType {
-    case userGrouping, playlist
+enum CollectionType: String, Equatable, CaseIterable {
+    case userGrouping = "User Grouping"
+    case playlist = "Playlist"
+    case genre = "Genre"
+    case artist = "Artist"
+    case album = "Album"
+
+    func getQueryForType() -> MPMediaQuery? {
+        switch self {
+        case .userGrouping:
+            return nil
+        case .playlist:
+            return MPMediaQuery.playlists()
+        case .genre:
+            return MPMediaQuery.genres()
+        case .artist:
+            return MPMediaQuery.artists()
+        case .album:
+            return MPMediaQuery.albums()
+        }
+    }
 }
 
 struct SongsCollection: Identifiable, Hashable {
@@ -29,8 +48,8 @@ struct SongsCollection: Identifiable, Hashable {
 func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     let task = Task.detached(priority: .high) { () -> [SongsCollection] in
         switch type {
-        case .playlist:
-            return loadAllPlaylists()
+        case .playlist, .genre, .artist, .album:
+            return loadAllCollectionsFor(type)
         case .userGrouping:
             return loadAllUserGroupings()
         }
@@ -43,11 +62,26 @@ func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     }
 }
 
-private func loadAllPlaylists() -> [SongsCollection] {
-    let playlistsQuery = MPMediaQuery.playlists().collections ?? []
-    return playlistsQuery.map {
-        SongsCollection(
-            name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
+private func getCollectionName(collection: MPMediaItemCollection, type: CollectionType) -> String {
+    switch type {
+    case .playlist:
+        return collection.value(forProperty: MPMediaPlaylistPropertyName)! as! String
+    case .album:
+        return collection.representativeItem?.albumTitle ?? ""
+    case .artist:
+        return collection.representativeItem?.artist ?? ""
+    case .genre:
+        return collection.representativeItem?.genre ?? ""
+    default:
+        return ""
+    }
+}
+
+private func loadAllCollectionsFor(_ type: CollectionType) -> [SongsCollection] {
+    let a = type.getQueryForType()!.collections ?? []
+    return a.map {
+        return SongsCollection(
+            name: getCollectionName(collection: $0, type: type),
             id: String($0.persistentID),
             type: .playlist,
             items: $0.items
