@@ -107,7 +107,7 @@ private func loadAllCollectionsFor(_ type: CollectionType) -> [SongsCollection] 
     let a = type.getQueryForType()!.collections ?? []
     return a.map {
         return SongsCollection(
-            name: $0.getCollectionName(as: type),
+            name: $0.getCollectionName(as: type) ?? "",
             id: String($0.persistentID),
             type: type,
             items: $0.items
