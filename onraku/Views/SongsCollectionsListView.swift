@@ -28,7 +28,6 @@ struct SongsCollectionsListView: View {
             collections = gotCollections
             loadState = .loaded
         }
-
     }
 
     var body: some View {
