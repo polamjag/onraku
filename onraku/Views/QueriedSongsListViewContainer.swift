@@ -78,7 +78,7 @@ struct QueriedSongsListViewContainer: View {
                                         filterPredicate: searchHint
                                     )
                                 } label: {
-                                    Text(searchHint.value as! String)
+                                    Text(searchHint.someFriendlyLabel)
                                 }
                             }
                         } header: {
@@ -267,39 +267,10 @@ extension QueriedSongsListViewContainer {
 
         var searchHints: [MyMPMediaPropertyPredicate] {
             if let filterPredicate = filterPredicate {
-                switch filterPredicate.forProperty {
-                case MPMediaItemPropertyGenre:
-                    if let filterVal = filterPredicate.value as? String {
-                        let splittedFilterVal = filterVal.intelligentlySplitIntoSubGenres()
-                        if splittedFilterVal.count > 1 {
-                            return splittedFilterVal.map {
-                                MyMPMediaPropertyPredicate(
-                                    value: $0,
-                                    forProperty: filterPredicate.forProperty,
-                                    comparisonType: .contains
-                                )
-                            }
-                        }
-                    }
-                case MPMediaItemPropertyArtist, MPMediaItemPropertyComposer:
-                    if let filterVal = filterPredicate.value as? String {
-                        let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists()
-                        if splittedFilterVal.count > 1 {
-                            return splittedFilterVal.map {
-                                MyMPMediaPropertyPredicate(
-                                    value: $0,
-                                    forProperty: filterPredicate.forProperty,
-                                    comparisonType: .contains
-                                )
-                            }
-                        }
-                    }
-                default:
-                    return []
-                }
+                return getNextSearchHints(from: filterPredicate)
+            } else {
+                return []
             }
-
-            return []
         }
     }
 }

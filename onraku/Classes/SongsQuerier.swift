@@ -61,12 +61,6 @@ func loadGroupings() -> [Playlist] {
     }
 }
 
-struct MyMPMediaPropertyPredicate {
-    let value: Any?
-    let forProperty: String
-    var comparisonType: MPMediaPredicateComparison = .equalTo
-}
-
 func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMediaItem] {
     let task = Task.detached(priority: .high) { () -> [MPMediaItem] in
         if predicate.forProperty == MPMediaItemPropertyUserGrouping {
