@@ -25,7 +25,7 @@ struct ContentView: View {
                 Image(systemName: "music.quarternote.3")
                 Text("Library")
             }
-            
+
             NavigationView {
                 NowPlayingViewContainer().navigationBarTitleDisplayMode(.inline)
             }.tabItem {
