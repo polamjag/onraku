@@ -31,6 +31,7 @@
 		60A7BA6027B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */; };
 		60A7BA6227B904C5002451A5 /* MPMediaItemCollection+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */; };
 		60A7BA6627B91ED9002451A5 /* LoadingCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA6527B91ED9002451A5 /* LoadingCellView.swift */; };
+		60C23F6627B9659000A01DCB /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C23F6527B9659000A01DCB /* ToastView.swift */; };
 		60FF5E8427B932BB00663D61 /* Array+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60FF5E8327B932BB00663D61 /* Array+Extension.swift */; };
 /* End PBXBuildFile section */
 
@@ -78,6 +79,7 @@
 		60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyMPMediaPropertyPredicate.swift; sourceTree = "<group>"; };
 		60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MPMediaItemCollection+Extension.swift"; sourceTree = "<group>"; };
 		60A7BA6527B91ED9002451A5 /* LoadingCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCellView.swift; sourceTree = "<group>"; };
+		60C23F6527B9659000A01DCB /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		60FF5E8327B932BB00663D61 /* Array+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -191,6 +193,7 @@
 			isa = PBXGroup;
 			children = (
 				6092533727B60B7A00E23931 /* ContentView.swift */,
+				60C23F6527B9659000A01DCB /* ToastView.swift */,
 				6092537427B7B54E00E23931 /* SongsCollectionsListView.swift */,
 				6044F06A27B7EAB60083A506 /* MultiLineTextView.swift */,
 				6092536827B788B300E23931 /* SongsCollectionItemView.swift */,
@@ -343,6 +346,7 @@
 				6092536927B788B300E23931 /* SongsCollectionItemView.swift in Sources */,
 				6092533827B60B7A00E23931 /* ContentView.swift in Sources */,
 				6092537127B791A300E23931 /* SongDetailView.swift in Sources */,
+				60C23F6627B9659000A01DCB /* ToastView.swift in Sources */,
 				6092536727B7810A00E23931 /* SongItemView.swift in Sources */,
 				6044F06D27B7FDF10083A506 /* String+Extension.swift in Sources */,
 				60A7BA6627B91ED9002451A5 /* LoadingCellView.swift in Sources */,
