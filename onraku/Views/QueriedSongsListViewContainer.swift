@@ -65,83 +65,82 @@ struct QueriedSongsListViewContainer: View {
     }
 
     var body: some View {
-        Group {
-            List {
-                if !vm.searchHints.isEmpty {
-                    Section {
-                        ForEach(vm.searchHints) { searchHint in
-                            NavigationLink {
-                                QueriedSongsListViewContainer(
-                                    filterPredicate: searchHint
-                                )
-                            } label: {
-                                Text(searchHint.someFriendlyLabel)
+        List {
+            if !vm.searchHints.isEmpty {
+                Section {
+                    ForEach(vm.searchHints) { searchHint in
+                        NavigationLink {
+                            QueriedSongsListViewContainer(
+                                filterPredicate: searchHint
+                            )
+                        } label: {
+                            Text(searchHint.someFriendlyLabel)
+                        }
+                    }
+                } header: {
+                    Text("Search Hints")
+                }
+            }
+
+            if vm.shouldShowLoadingIndicator {
+                ProgressView()
+            } else {
+                Section(footer: Text("\(vm.songs.count) songs")) {
+                    ForEach(vm.sortedSongs) { song in
+                        NavigationLink {
+                            SongDetailView(song: song)
+                        } label: {
+                            SongListItemView(
+                                title: song.title,
+                                secondaryText: song.artist,
+                                tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
+                                artwork: song.artwork
+                            ).contextMenu {
+                                PlayableItemsMenuView(target: [song])
                             }
                         }
-                    } header: {
-                        Text("Search Hints")
                     }
                 }
+            }
+        }.listStyle(.insetGrouped)
+            .navigationTitle(computedTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Menu {
+                        Toggle("Filter with Exact Match", isOn: $vm.isExactMatch)
+                    } label: {
+                        Image(
+                            systemName: vm.isExactMatch
+                                ? "magnifyingglass.circle.fill"
+                                : "magnifyingglass.circle")
+                    }.disabled(!vm.exactMatchSettable)
 
-                if vm.shouldShowLoadingIndicator {
-                    ProgressView()
-                } else {
-                    Section(footer: Text("\(vm.songs.count) songs")) {
-                        ForEach(vm.sortedSongs) { song in
-                            NavigationLink {
-                                SongDetailView(song: song)
-                            } label: {
-                                SongListItemView(
-                                    title: song.title,
-                                    secondaryText: song.artist,
-                                    tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
-                                    artwork: song.artwork
-                                ).contextMenu {
-                                    PlayableItemsMenuView(target: [song])
+                    Menu {
+                        PlayableItemsMenuView(target: vm.sortedSongs)
+                        Menu {
+                            Picker("sort by", selection: $vm.sort) {
+                                ForEach(SongsSortKey.allCases, id: \.self) { value in
+                                    Text(value.rawValue).tag(value)
                                 }
                             }
-                        }
-                    }
-                }
-            }.listStyle(.insetGrouped)
-                .navigationTitle(computedTitle)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        Menu {
-                            Toggle("Filter with Exact Match", isOn: $vm.isExactMatch)
                         } label: {
-                            Image(
-                                systemName: vm.isExactMatch
-                                    ? "magnifyingglass.circle.fill"
-                                    : "magnifyingglass.circle")
-                        }.disabled(!vm.exactMatchSettable)
-
-                        Menu {
-                            PlayableItemsMenuView(target: vm.sortedSongs)
-                            Menu {
-                                Picker("sort by", selection: $vm.sort) {
-                                    ForEach(SongsSortKey.allCases, id: \.self) { value in
-                                        Text(value.rawValue).tag(value)
-                                    }
-                                }
-                            } label: {
-                                Label(
-                                    "Sort Order: \(vm.sort.rawValue)",
-                                    systemImage: "arrow.up.arrow.down")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
+                            Label(
+                                "Sort Order: \(vm.sort.rawValue)",
+                                systemImage: "arrow.up.arrow.down")
                         }
-
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
+
                 }
-        }.refreshable {
-            await vm.refreshQuery()
-        }.task {
-            await vm.setProps(songs: songs, filterPredicate: filterPredicate)
-            await vm.initializeIfNeeded()
-        }
+            }
+            .refreshable {
+                await vm.refreshQuery()
+            }.task {
+                await vm.setProps(songs: songs, filterPredicate: filterPredicate)
+                await vm.initializeIfNeeded()
+            }
     }
 }
 
