@@ -107,14 +107,17 @@ struct QueriedSongsListViewContainer: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            Menu {
-                                Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(
-                                    of: vm.isExactMatch
-                                ) { _ in Task { await vm.execQuery() } }
-                            } label: {
-                                Image(
-                                    systemName: vm.isExactMatch
-                                        ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
+                            if vm.exactMatchSettable {
+                                Menu {
+                                    Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(
+                                        of: vm.isExactMatch
+                                    ) { _ in Task { await vm.execQuery() } }
+                                } label: {
+                                    Image(
+                                        systemName: vm.isExactMatch
+                                            ? "magnifyingglass.circle.fill"
+                                            : "magnifyingglass.circle")
+                                }
                             }
                             Menu {
                                 PlayableContentMenuView(target: vm.sortedSongs)
@@ -151,6 +154,10 @@ extension QueriedSongsListViewContainer {
         @Published private(set) var songs: [MPMediaItem] = []
         private var filterPredicate: MyMPMediaPropertyPredicate?
         @Published @MainActor var isExactMatch: Bool = true
+
+        @MainActor var exactMatchSettable: Bool {
+            return filterPredicate != nil
+        }
 
         @Published @MainActor var sort: SongsSortKey = .none
 
