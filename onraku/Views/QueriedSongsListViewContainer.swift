@@ -79,7 +79,7 @@ struct QueriedSongsListViewContainer: View {
                             }
                         }
                     } header: {
-                        Text("Search")
+                        Text("Search Hints")
                     }
                 }
 
@@ -109,7 +109,7 @@ struct QueriedSongsListViewContainer: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Menu {
-                            Toggle("Exact Match", isOn: $vm.isExactMatch)
+                            Toggle("Filter with Exact Match", isOn: $vm.isExactMatch)
                         } label: {
                             Image(
                                 systemName: vm.isExactMatch
