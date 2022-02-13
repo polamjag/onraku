@@ -132,10 +132,8 @@ struct QueriedSongsListViewContainer: View {
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
-
                 }
-            }
-            .refreshable {
+            }.refreshable {
                 await vm.refreshQuery()
             }.task {
                 await vm.setProps(songs: songs, filterPredicate: filterPredicate)
