@@ -30,7 +30,7 @@ func loadPlaylist() -> [Playlist] {
     return playlistsQuery.map {
         Playlist(
             name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
-            id: String($0.representativeItem?.persistentID ?? 0),
+            id: String($0.persistentID),
             navigationDestinationInfo: NavigationDestinationInfo(
                 type: .playlist, songs: $0.items
             )
