@@ -87,7 +87,7 @@ struct QueriedSongsListViewContainer: View {
                     }
                 }
 
-                Section(footer: Text("\(songs.count) songs")) {
+                Section(footer: Text("\(vm.songs.count) songs")) {
                     ForEach(vm.sortedSongs) { song in
                         NavigationLink {
                             SongDetailView(song: song)
