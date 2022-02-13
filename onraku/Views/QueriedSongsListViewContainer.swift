@@ -153,9 +153,9 @@ extension QueriedSongsListViewContainer {
         @Published var isExactMatch: Bool = true
 
         @Published var sort: SongsSortKey = .none
-        
+
         @Published var loadState: LoadingState = .initial
-        var shouldShowLoadingIndicator : Bool {
+        var shouldShowLoadingIndicator: Bool {
             return loadState == .loading
         }
 
@@ -196,11 +196,11 @@ extension QueriedSongsListViewContainer {
                 await execQuery()
             }
         }
-        
+
         func refreshQuery() async {
             return await query(loadingState: .loadingByPullToRefresh)
         }
-        
+
         func execQuery() async {
             return await query(loadingState: .loading)
         }
