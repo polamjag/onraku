@@ -39,6 +39,7 @@ struct SongsCollectionsListView: View {
             List(playlists) { playlist in
                 NavigationLink {
                     QueriedSongsListViewContainer(
+                        filterPredicate: playlist.getFilterPredicate(),
                         songs: playlist.items
                     )
                 } label: {

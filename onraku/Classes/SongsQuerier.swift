@@ -44,6 +44,21 @@ enum CollectionType: String, Equatable, CaseIterable {
             return "rectangle.3.group"
         }
     }
+
+    var queryPredicateType: String? {
+        switch self {
+        case .userGrouping:
+            return MPMediaItemPropertyUserGrouping
+        case .artist:
+            return MPMediaItemPropertyArtist
+        case .album:
+            return MPMediaItemPropertyAlbumTitle
+        case .genre:
+            return MPMediaItemPropertyGenre
+        case .playlist:
+            return nil
+        }
+    }
 }
 
 struct SongsCollection: Identifiable, Hashable {
@@ -58,6 +73,17 @@ struct SongsCollection: Identifiable, Hashable {
     let id: String
     let type: CollectionType
     let items: [MPMediaItem]
+
+    func getFilterPredicate() -> MyMPMediaPropertyPredicate? {
+        if let forProperty = type.queryPredicateType {
+            return MyMPMediaPropertyPredicate(
+                value: name,
+                forProperty: forProperty,
+                comparisonType: .equalTo
+            )
+        }
+        return nil
+    }
 }
 
 func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
