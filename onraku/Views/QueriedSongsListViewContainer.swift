@@ -70,7 +70,6 @@ struct QueriedSongsListViewContainer: View {
                 ProgressView()
             } else {
                 List {
-
                     if !vm.searchHints.isEmpty {
                         Section {
                             ForEach(vm.searchHints) { searchHint in
@@ -235,8 +234,8 @@ extension QueriedSongsListViewContainer {
                 return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
             case .bpm:
                 return songs.sorted {
-                    ($0.beatsPerMinute == 0 ? Int.max : $0.beatsPerMinute)
-                        < ($1.beatsPerMinute == 0 ? Int.max : $1.beatsPerMinute)
+                    $0.beatsPerMinuteForSorting
+                        < $1.beatsPerMinuteForSorting
                 }
             case .playCountAsc:
                 return songs.sorted { $0.playCount < $1.playCount }

@@ -12,4 +12,8 @@ extension MPMediaItem: Identifiable {
     public var id: String {
         return String(self.persistentID)
     }
+
+    public var beatsPerMinuteForSorting: Int {
+        self.beatsPerMinute == 0 ? Int.max : self.beatsPerMinute
+    }
 }
