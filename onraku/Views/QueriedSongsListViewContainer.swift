@@ -107,18 +107,17 @@ struct QueriedSongsListViewContainer: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            if vm.exactMatchSettable {
-                                Menu {
-                                    Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(
-                                        of: vm.isExactMatch
-                                    ) { _ in Task { await vm.execQuery() } }
-                                } label: {
-                                    Image(
-                                        systemName: vm.isExactMatch
-                                            ? "magnifyingglass.circle.fill"
-                                            : "magnifyingglass.circle")
-                                }
-                            }
+                            Menu {
+                                Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(
+                                    of: vm.isExactMatch
+                                ) { _ in Task { await vm.execQuery() } }
+                            } label: {
+                                Image(
+                                    systemName: vm.isExactMatch
+                                        ? "magnifyingglass.circle.fill"
+                                        : "magnifyingglass.circle")
+                            }.disabled(!vm.exactMatchSettable)
+
                             Menu {
                                 PlayableContentMenuView(target: vm.sortedSongs)
                                 Menu {
