@@ -44,14 +44,14 @@ struct PlayableItemsMenuView: View {
             prependMediaItems(items: target.asArray())
         }) {
             Label(
-                target.count > 1 ? "Prepend All to Queue" : "Prepend to Queue",
+                target.count > 1 ? "Play All Next" : "Play Next",
                 systemImage: "text.insert")
         }
         Button(action: {
             appendMediaItems(items: target.asArray())
         }) {
             Label(
-                target.count > 1 ? "Append All to Queue" : "Append to Queue",
+                target.count > 1 ? "Play All Last" : "Play Last",
                 systemImage: "text.append")
         }
     }
@@ -74,20 +74,20 @@ struct PlayableItemsAboveAndBelowMenuView: View {
             Button(action: {
                 playMediaItems(items: thisAndAbove)
             }) {
-                Label("Play Them", systemImage: "play")
+                Label("Play These Songs", systemImage: "play")
             }
             Button(action: {
                 prependMediaItems(items: thisAndAbove)
             }) {
                 Label(
-                    "Prepend to Queue",
+                    "Play These Songs Next",
                     systemImage: "text.insert")
             }
             Button(action: {
                 appendMediaItems(items: thisAndAbove)
             }) {
                 Label(
-                    "Append to Queue",
+                    "Play These Songs Last",
                     systemImage: "text.append")
             }
         } label: {
@@ -98,20 +98,20 @@ struct PlayableItemsAboveAndBelowMenuView: View {
             Button(action: {
                 playMediaItems(items: thisAndBelow)
             }) {
-                Label("Play Them", systemImage: "play")
+                Label("Play These Songs", systemImage: "play")
             }
             Button(action: {
                 prependMediaItems(items: thisAndBelow)
             }) {
                 Label(
-                    "Prepend to Queue",
+                    "Play These Songs Next",
                     systemImage: "text.insert")
             }
             Button(action: {
                 appendMediaItems(items: thisAndBelow)
             }) {
                 Label(
-                    "Append to Queue",
+                    "Play These Songs Last",
                     systemImage: "text.append")
             }
         } label: {
