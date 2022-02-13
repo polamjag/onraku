@@ -36,8 +36,16 @@ func getNextSearchHints(from filterPredicate: MyMPMediaPropertyPredicate)
     case MPMediaItemPropertyGenre:
         return getNextSearchHintsOfSubGenreLike(from: filterPredicate)
     case MPMediaItemPropertyArtist:
+        let min = getNextSearchHintsOfSubArtistsLike(from: filterPredicate, requiredMinItems: 0)
         return getNextSearchHintsOfSubArtistsLike(from: filterPredicate)
-            + getNextSearchHintsOfSubArtistsLike(from: filterPredicate, requiredMinItems: 0).map {
+            + min.map {
+                MyMPMediaPropertyPredicate(
+                    value: $0.value,
+                    forProperty: MPMediaItemPropertyTitle,
+                    comparisonType: .contains
+                )
+            }
+            + min.map {
                 MyMPMediaPropertyPredicate(
                     value: $0.value,
                     forProperty: MPMediaItemPropertyComposer,
