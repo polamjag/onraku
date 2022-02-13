@@ -285,8 +285,8 @@ extension QueriedSongsListViewContainer {
     }
 }
 
-//struct QueriedSongsListViewContainer_Previews: PreviewProvider {
-//    static var previews: some View {
-//        QueriedSongsListViewContainer()
-//    }
-//}
+struct QueriedSongsListViewContainer_Previews: PreviewProvider {
+    static var previews: some View {
+        QueriedSongsListViewContainer()
+    }
+}
