@@ -106,7 +106,9 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
     }
 }
 
-private func getSongsByUserGrouping(userGrouping: String, comparisonType: MPMediaPredicateComparison)
+private func getSongsByUserGrouping(
+    userGrouping: String, comparisonType: MPMediaPredicateComparison
+)
     -> [MPMediaItem]
 {
     let songs = MPMediaQuery.songs().items ?? []
