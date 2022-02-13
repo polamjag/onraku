@@ -9,15 +9,18 @@ import MediaPlayer
 import SwiftUI
 
 struct QueriedSongsListViewContainer: View {
-    @StateObject private var vm = ViewModel(songs: [])
+    @StateObject private var vm = ViewModel()
 
-    var filterPredicate: MyMPMediaPropertyPredicate
+    var filterPredicate: MyMPMediaPropertyPredicate?
     var title: String?
+
+    var songs: [MPMediaItem] = []
+    var needsInitialization: Bool = false
 
     var computedTitle: String {
         if let title = title {
             return title
-        } else if let s = filterPredicate.value as? String {
+        } else if let s = filterPredicate?.value as? String {
             return s
         } else {
             return ""
@@ -53,7 +56,10 @@ struct QueriedSongsListViewContainer: View {
         }.refreshable {
             await vm.execQuery()
         }.task {
-            vm.setFilterPredicate(filterPredicate: filterPredicate)
+            vm.setProps(
+                songs: songs, needsInitialization: needsInitialization,
+                filterPredicate: filterPredicate)
+
             await vm.initializeIfNeeded()
         }
     }
@@ -66,13 +72,17 @@ extension QueriedSongsListViewContainer {
         @Published var isExactMatch: Bool?
         @Published var loadState: LoadingState = .initial
 
-        init(songs: [MPMediaItem]) {
+        func setProps(
+            songs: [MPMediaItem], needsInitialization: Bool,
+            filterPredicate: MyMPMediaPropertyPredicate?
+        ) {
             self.songs = songs
-        }
+            self.loadState = needsInitialization ? .initial : .loaded
 
-        func setFilterPredicate(filterPredicate: MyMPMediaPropertyPredicate) {
-            self.filterPredicate = filterPredicate
-            self.isExactMatch = filterPredicate.comparisonType == .equalTo
+            if let filterPredicate = filterPredicate {
+                self.filterPredicate = filterPredicate
+                self.isExactMatch = filterPredicate.comparisonType == .equalTo
+            }
         }
 
         var computedPredicate: MyMPMediaPropertyPredicate? {
@@ -87,7 +97,7 @@ extension QueriedSongsListViewContainer {
         }
 
         func initializeIfNeeded() async {
-            if songs.isEmpty {
+            if songs.isEmpty || loadState == .initial {
                 await execQuery()
             }
         }

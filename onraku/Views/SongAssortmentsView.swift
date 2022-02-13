@@ -29,31 +29,28 @@ struct SongAssortmentsView: View {
 
     var body: some View {
         Group {
-            if loadState == .loading {
-                ProgressView()
-            } else {
-                List(playlists) { playlist in
-                    NavigationLink {
-                        SongsListView(
-                            songs: playlist.navigationDestinationInfo.songs, title: playlist.name,
-                            isLoading: false, searchHints: [], additionalMenuItems: {})
-                    } label: {
-                        HStack {
-                            SongAssortmentItemView(
-                                title: playlist.name,
-                                itemsCount: playlist.navigationDestinationInfo.songs.count)
-                        }.lineLimit(1).contextMenu {
-                            PlayableContentMenuView(
-                                target: playlist.navigationDestinationInfo.songs)
-                        }
+            List(playlists) { playlist in
+                NavigationLink {
+                    QueriedSongsListViewContainer(
+                        songs: playlist.navigationDestinationInfo.songs,
+                        needsInitialization: false
+                    )
+                } label: {
+                    HStack {
+                        SongAssortmentItemView(
+                            title: playlist.name,
+                            itemsCount: playlist.navigationDestinationInfo.songs.count)
+                    }.lineLimit(1).contextMenu {
+                        PlayableContentMenuView(
+                            target: playlist.navigationDestinationInfo.songs)
                     }
                 }
-                .listStyle(.insetGrouped)
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle(title)
             }
-        }
-        .task {
+            .listStyle(.insetGrouped)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(title)
+
+        }.task {
             if playlists.isEmpty {
                 await loadPlaylists()
             }
