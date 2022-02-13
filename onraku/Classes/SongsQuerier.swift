@@ -8,6 +8,19 @@
 import Foundation
 import MediaPlayer
 
+struct Playlist: Identifiable, Hashable {
+    static func == (lhs: Playlist, rhs: Playlist) -> Bool {
+        return lhs.id == rhs.id
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    let name: String
+    let id: String
+    let navigationDestinationInfo: NavigationDestinationInfo
+}
+
 func loadPlaylistsForType(type: NavigationDestinationType) async -> [Playlist] {
     let task = Task.detached(priority: .high) { () -> [Playlist] in
         switch type {

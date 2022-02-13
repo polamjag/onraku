@@ -21,12 +21,6 @@ struct NavigationDestinationInfo {
     let songs: [MPMediaItem]
 }
 
-struct Playlist: Identifiable {
-    let name: String
-    let id: String
-    let navigationDestinationInfo: NavigationDestinationInfo
-}
-
 struct SongAssortmentsView: View {
     @State @MainActor var playlists: [Playlist] = []
     @State var loadState: LoadingState = .initial
