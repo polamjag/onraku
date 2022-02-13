@@ -15,7 +15,7 @@ struct Playlist: Identifiable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     let name: String
     let id: String
     let navigationDestinationInfo: NavigationDestinationInfo
