@@ -17,7 +17,7 @@ struct NowPlayingViewContainer: View {
             if loadingState == .loading {
                 ProgressView()
             } else if let nowPlayingItem = nowPlayingItem {
-                SongDetailView(song: nowPlayingItem)
+                SongDetailView(song: nowPlayingItem, title: "Now Playing")
             } else {
                 NotPlayingView()
             }

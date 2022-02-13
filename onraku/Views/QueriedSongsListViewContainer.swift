@@ -74,11 +74,9 @@ struct QueriedSongsListViewContainer: View {
                                 filterPredicate: searchHint
                             )
                         } label: {
-                            Text(searchHint.someFriendlyLabel)
+                            Label(searchHint.someFriendlyLabel, systemImage: "magnifyingglass")
                         }
                     }
-                } header: {
-                    Text("Search Hints")
                 }
             }
 

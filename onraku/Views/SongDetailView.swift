@@ -77,6 +77,7 @@ private let formatter = DateComponentsFormatter()
 
 struct SongDetailView: View {
     var song: SongDetailLike
+    var title: String?
 
     var body: some View {
         List {
@@ -214,7 +215,7 @@ struct SongDetailView: View {
                     HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
                 }.disabled(song.lyrics?.isEmpty ?? true)
             }
-        }.navigationTitle(song.title ?? "Song Detail").toolbar {
+        }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
                     PlayableItemsMenuView(target: [song as! MPMediaItem])

@@ -9,7 +9,6 @@ import MediaPlayer
 import SwiftUI
 
 struct ContentView: View {
-    @State private var activeTab: String?
     var body: some View {
         TabView {
             NavigationView {
@@ -20,13 +19,13 @@ struct ContentView: View {
                         } label: {
                             Label(type.rawValue, systemImage: type.systemImageName)
                         }
-                    }.navigationTitle("Library")
-                }
+                    }
+                }.navigationTitle("Library")
             }.tabItem {
                 Image(systemName: "music.quarternote.3")
                 Text("Library")
             }
-
+            
             NavigationView {
                 NowPlayingViewContainer().navigationBarTitleDisplayMode(.inline)
             }.tabItem {
