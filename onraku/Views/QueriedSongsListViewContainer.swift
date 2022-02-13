@@ -163,7 +163,7 @@ extension QueriedSongsListViewContainer {
 
             self.isPropsSet = true
             self.songs = songs
-            
+
             let needsInitialization = filterPredicate != nil && songs.isEmpty
 
             self.loadState = needsInitialization ? .initial : .loaded
