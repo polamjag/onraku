@@ -124,7 +124,7 @@ private func loadAllCollectionsFor(_ type: CollectionType) -> [SongsCollection] 
         return SongsCollection(
             name: getCollectionName(collection: $0, type: type),
             id: String($0.persistentID),
-            type: .playlist,
+            type: type,
             items: $0.items
         )
     }
