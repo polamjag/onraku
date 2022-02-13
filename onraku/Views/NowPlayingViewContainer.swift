@@ -28,7 +28,7 @@ struct NowPlayingViewContainer: View {
                 NotPlayingView()
             }
         }.task {
-            nowPlayingItem = getNowPlayingSong()
+            await refreshNowPlayingSong()
         }.refreshable {
             await refreshNowPlayingSong()
         }.onReceive(
