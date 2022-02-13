@@ -111,22 +111,11 @@ struct QueriedSongsListViewContainer: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
-                        // does not works in first tap
-                        // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
-
-                        Button(
-                            vm.isExactMatch ?? false ? "Exact Match: On" : "Exact Match: Off",
-                            action: {
-                                Task {
-                                    await MainActor.run {
-                                        vm.isExactMatch = !(vm.isExactMatch ?? false)
-                                    }
-                                    await vm.execQuery()
-                                }
-                            })
+                        Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(of: vm.isExactMatch)
+                        { _ in Task { await vm.execQuery() } }
                     } label: {
                         Image(
-                            systemName: vm.isExactMatch ?? false
+                            systemName: vm.isExactMatch
                                 ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
                     }
                     Menu {
@@ -163,7 +152,7 @@ extension QueriedSongsListViewContainer {
     class ViewModel: ObservableObject {
         @Published private(set) var songs: [MPMediaItem] = []
         private var filterPredicate: MyMPMediaPropertyPredicate?
-        @Published var isExactMatch: Bool?
+        @Published var isExactMatch: Bool = true
         @Published var loadState: LoadingState = .initial
         @Published var sort: SongsSortKey = .none
 
@@ -186,7 +175,7 @@ extension QueriedSongsListViewContainer {
         }
 
         var computedPredicate: MyMPMediaPropertyPredicate? {
-            if let filterPredicate = filterPredicate, let isExactMatch = isExactMatch {
+            if let filterPredicate = filterPredicate {
                 return MyMPMediaPropertyPredicate(
                     value: filterPredicate.value,
                     forProperty: filterPredicate.forProperty,
