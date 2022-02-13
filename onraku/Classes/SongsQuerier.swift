@@ -9,11 +9,11 @@ import Foundation
 import MediaPlayer
 
 enum CollectionType: String, Equatable, CaseIterable {
-    case userGrouping = "User Grouping"
     case playlist = "Playlist"
-    case genre = "Genre"
-    case artist = "Artist"
     case album = "Album"
+    case artist = "Artist"
+    case genre = "Genre"
+    case userGrouping = "User Grouping"
 
     func getQueryForType() -> MPMediaQuery? {
         switch self {
