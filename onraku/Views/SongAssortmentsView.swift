@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum LoadingState {
-    case initial, loading, loaded
+    case initial, loading, loaded, loadingByPullToRefresh
 }
 
 struct SongAssortmentsView: View {

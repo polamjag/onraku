@@ -66,77 +66,78 @@ struct QueriedSongsListViewContainer: View {
 
     var body: some View {
         Group {
-            List {
-                if vm.loadState == .loading {
-                    ProgressView()
-                }
+            if vm.shouldShowLoadingIndicator {
+                ProgressView()
+            } else {
+                List {
 
-                if !vm.searchHints.isEmpty {
-                    Section {
-                        ForEach(vm.searchHints) { searchHint in
-                            NavigationLink {
-                                QueriedSongsListViewContainer(
-                                    filterPredicate: searchHint
-                                )
-                            } label: {
-                                Text(searchHint.value as! String)
-                            }
-                        }
-                    } header: {
-                        Text("Search")
-                    }
-                }
-
-                Section(footer: Text("\(vm.songs.count) songs")) {
-                    ForEach(vm.sortedSongs) { song in
-                        NavigationLink {
-                            SongDetailView(song: song)
-                        } label: {
-                            SongListItemView(
-                                title: song.title,
-                                secondaryText: song.artist,
-                                tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
-                                artwork: song.artwork
-                            ).contextMenu {
-                                PlayableContentMenuView(target: [song])
-                            }
-                        }
-                    }
-                }
-            }
-            .listStyle(.insetGrouped)
-            .navigationTitle(computedTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Menu {
-                        Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(of: vm.isExactMatch)
-                        { _ in Task { await vm.execQuery() } }
-                    } label: {
-                        Image(
-                            systemName: vm.isExactMatch
-                                ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
-                    }
-                    Menu {
-                        PlayableContentMenuView(target: vm.sortedSongs)
-                        Menu {
-                            Picker("sort by", selection: $vm.sort) {
-                                ForEach(SongsSortKey.allCases, id: \.self) { value in
-                                    Text(value.rawValue).tag(value)
+                    if !vm.searchHints.isEmpty {
+                        Section {
+                            ForEach(vm.searchHints) { searchHint in
+                                NavigationLink {
+                                    QueriedSongsListViewContainer(
+                                        filterPredicate: searchHint
+                                    )
+                                } label: {
+                                    Text(searchHint.value as! String)
                                 }
                             }
-                        } label: {
-                            Label(
-                                "Sort Order: \(vm.sort.rawValue)",
-                                systemImage: "arrow.up.arrow.down")
+                        } header: {
+                            Text("Search")
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
                     }
-                }
+
+                    Section(footer: Text("\(vm.songs.count) songs")) {
+                        ForEach(vm.sortedSongs) { song in
+                            NavigationLink {
+                                SongDetailView(song: song)
+                            } label: {
+                                SongListItemView(
+                                    title: song.title,
+                                    secondaryText: song.artist,
+                                    tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
+                                    artwork: song.artwork
+                                ).contextMenu {
+                                    PlayableContentMenuView(target: [song])
+                                }
+                            }
+                        }
+                    }
+                }.listStyle(.insetGrouped)
+                    .navigationTitle(computedTitle)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .navigationBarTrailing) {
+                            Menu {
+                                Toggle("Exact Match", isOn: $vm.isExactMatch).onChange(
+                                    of: vm.isExactMatch
+                                ) { _ in Task { await vm.execQuery() } }
+                            } label: {
+                                Image(
+                                    systemName: vm.isExactMatch
+                                        ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
+                            }
+                            Menu {
+                                PlayableContentMenuView(target: vm.sortedSongs)
+                                Menu {
+                                    Picker("sort by", selection: $vm.sort) {
+                                        ForEach(SongsSortKey.allCases, id: \.self) { value in
+                                            Text(value.rawValue).tag(value)
+                                        }
+                                    }
+                                } label: {
+                                    Label(
+                                        "Sort Order: \(vm.sort.rawValue)",
+                                        systemImage: "arrow.up.arrow.down")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                            }
+                        }
+                    }
             }
         }.refreshable {
-            await vm.execQuery()
+            await vm.refreshQuery()
         }.task {
             vm.setProps(songs: songs, filterPredicate: filterPredicate)
 
@@ -150,8 +151,13 @@ extension QueriedSongsListViewContainer {
         @Published private(set) var songs: [MPMediaItem] = []
         private var filterPredicate: MyMPMediaPropertyPredicate?
         @Published var isExactMatch: Bool = true
-        @Published var loadState: LoadingState = .initial
+
         @Published var sort: SongsSortKey = .none
+        
+        @Published var loadState: LoadingState = .initial
+        var shouldShowLoadingIndicator : Bool {
+            return loadState == .loading
+        }
 
         private var isPropsSet = false
 
@@ -190,11 +196,19 @@ extension QueriedSongsListViewContainer {
                 await execQuery()
             }
         }
-
+        
+        func refreshQuery() async {
+            return await query(loadingState: .loadingByPullToRefresh)
+        }
+        
         func execQuery() async {
+            return await query(loadingState: .loading)
+        }
+
+        func query(loadingState: LoadingState) async {
             if let computedPredicate = computedPredicate {
                 let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
-                    loadState = .loading
+                    loadState = loadingState
                     return computedPredicate
                 }
                 let gotSongs = await getSongsByPredicate(predicate: predicate)
