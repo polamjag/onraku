@@ -8,6 +8,44 @@
 import MediaPlayer
 import SwiftUI
 
+extension MyMPMediaPropertyPredicate: Identifiable {
+    var id: String {
+        return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
+    }
+}
+
+enum SortSongsBy: String, Equatable, CaseIterable {
+    case none = "Default"
+    case title = "Title"
+    case album = "Album"
+    case artist = "Artist"
+    case genre = "Genre"
+    case userGrouping = "User Grouping"
+    case addedAt = "Date Added"
+    case bpm = "BPM"
+    case playCountDesc = "Most Played"
+    case playCountAsc = "Least Played"
+}
+
+private func getTertiaryInfo(of item: MPMediaItem, withHint: SortSongsBy) -> String? {
+    switch withHint {
+    case .none, .title, .artist:
+        return nil
+    case .album:
+        return item.albumTitle ?? "-"
+    case .genre:
+        return item.genre ?? "-"
+    case .userGrouping:
+        return item.userGrouping ?? "-"
+    case .addedAt:
+        return item.dateAdded.formatted(date: .abbreviated, time: .omitted)
+    case .bpm:
+        return item.beatsPerMinute == 0 ? "-" : String(item.beatsPerMinute)
+    case .playCountAsc, .playCountDesc:
+        return String(item.playCount)
+    }
+}
+
 struct QueriedSongsListViewContainer: View {
     @StateObject private var vm = ViewModel()
 
@@ -29,10 +67,49 @@ struct QueriedSongsListViewContainer: View {
 
     var body: some View {
         Group {
-            SongsListView(
-                songs: vm.songs, title: computedTitle, isLoading: vm.loadState == .loading,
-                searchHints: vm.searchHints,
-                additionalMenuItems: {
+            List {
+                if vm.loadState == .loading {
+                    ProgressView()
+                }
+
+                if !vm.searchHints.isEmpty {
+                    Section {
+                        ForEach(vm.searchHints) { searchHint in
+                            NavigationLink {
+                                QueriedSongsListViewContainer(
+                                    filterPredicate: searchHint
+                                )
+                            } label: {
+                                Text(searchHint.value as! String)
+                            }
+                        }
+                    } header: {
+                        Text("Search")
+                    }
+                }
+
+                Section(footer: Text("\(songs.count) songs")) {
+                    ForEach(vm.sortedSongs) { song in
+                        NavigationLink {
+                            SongDetailView(song: song)
+                        } label: {
+                            SongListItemView(
+                                title: song.title,
+                                secondaryText: song.artist,
+                                tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
+                                artwork: song.artwork
+                            ).contextMenu {
+                                PlayableContentMenuView(target: [song])
+                            }
+                        }
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle(computedTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
                         // does not works in first tap
                         // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
@@ -52,7 +129,24 @@ struct QueriedSongsListViewContainer: View {
                             systemName: vm.isExactMatch ?? false
                                 ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
                     }
-                })
+                    Menu {
+                        PlayableContentMenuView(target: vm.sortedSongs)
+                        Menu {
+                            Picker("sort by", selection: $vm.sort) {
+                                ForEach(SortSongsBy.allCases, id: \.self) { value in
+                                    Text(value.rawValue).tag(value)
+                                }
+                            }
+                        } label: {
+                            Label(
+                                "Sort Order: \(vm.sort.rawValue)",
+                                systemImage: "arrow.up.arrow.down")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
         }.refreshable {
             await vm.execQuery()
         }.task {
@@ -71,11 +165,17 @@ extension QueriedSongsListViewContainer {
         private var filterPredicate: MyMPMediaPropertyPredicate?
         @Published var isExactMatch: Bool?
         @Published var loadState: LoadingState = .initial
+        @Published var sort: SortSongsBy = .none
+
+        private var isPropsSet = false
 
         func setProps(
             songs: [MPMediaItem], needsInitialization: Bool,
             filterPredicate: MyMPMediaPropertyPredicate?
         ) {
+            if self.isPropsSet { return }
+
+            self.isPropsSet = true
             self.songs = songs
             self.loadState = needsInitialization ? .initial : .loaded
 
@@ -113,6 +213,34 @@ extension QueriedSongsListViewContainer {
                     songs = gotSongs
                     loadState = .loaded
                 }
+            }
+        }
+
+        var sortedSongs: [MPMediaItem] {
+            switch sort {
+            case .addedAt:
+                return songs.sorted { $0.dateAdded < $1.dateAdded }
+            case .title:
+                return songs.sorted { $0.title ?? "" < $1.title ?? "" }
+            case .album:
+                return songs.sorted { $0.albumTitle ?? "" < $1.albumTitle ?? "" }
+            case .artist:
+                return songs.sorted { $0.artist ?? "" < $1.artist ?? "" }
+            case .genre:
+                return songs.sorted { $0.genre ?? "" < $1.genre ?? "" }
+            case .userGrouping:
+                return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
+            case .bpm:
+                return songs.sorted {
+                    ($0.beatsPerMinute == 0 ? Int.max : $0.beatsPerMinute)
+                        < ($1.beatsPerMinute == 0 ? Int.max : $1.beatsPerMinute)
+                }
+            case .playCountAsc:
+                return songs.sorted { $0.playCount < $1.playCount }
+            case .playCountDesc:
+                return songs.sorted { $0.playCount > $1.playCount }
+            default:
+                return songs
             }
         }
 
