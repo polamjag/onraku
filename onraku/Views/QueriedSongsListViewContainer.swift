@@ -14,7 +14,7 @@ extension MyMPMediaPropertyPredicate: Identifiable {
     }
 }
 
-enum SortSongsBy: String, Equatable, CaseIterable {
+enum SongsSortKey: String, Equatable, CaseIterable {
     case none = "Default"
     case title = "Title"
     case album = "Album"
@@ -27,7 +27,7 @@ enum SortSongsBy: String, Equatable, CaseIterable {
     case playCountAsc = "Least Played"
 }
 
-private func getTertiaryInfo(of item: MPMediaItem, withHint: SortSongsBy) -> String? {
+private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey) -> String? {
     switch withHint {
     case .none, .title, .artist:
         return nil
@@ -133,7 +133,7 @@ struct QueriedSongsListViewContainer: View {
                         PlayableContentMenuView(target: vm.sortedSongs)
                         Menu {
                             Picker("sort by", selection: $vm.sort) {
-                                ForEach(SortSongsBy.allCases, id: \.self) { value in
+                                ForEach(SongsSortKey.allCases, id: \.self) { value in
                                     Text(value.rawValue).tag(value)
                                 }
                             }
@@ -165,7 +165,7 @@ extension QueriedSongsListViewContainer {
         private var filterPredicate: MyMPMediaPropertyPredicate?
         @Published var isExactMatch: Bool?
         @Published var loadState: LoadingState = .initial
-        @Published var sort: SortSongsBy = .none
+        @Published var sort: SongsSortKey = .none
 
         private var isPropsSet = false
 
