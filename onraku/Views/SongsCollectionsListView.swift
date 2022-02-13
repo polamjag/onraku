@@ -12,7 +12,7 @@ enum LoadingState {
     case initial, loading, loaded, loadingByPullToRefresh
 }
 
-struct SongAssortmentsView: View {
+struct SongsCollectionsListView: View {
     @State @MainActor var playlists: [SongsCollection] = []
     @State var loadState: LoadingState = .initial
 
