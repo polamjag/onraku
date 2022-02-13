@@ -254,7 +254,7 @@ private struct KeyValueView: View {
     var fallbackValue: String = "-"
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(key).font(.footnote).foregroundColor(.secondary)
             if let str = value, !str.isEmpty {
                 Text(str)

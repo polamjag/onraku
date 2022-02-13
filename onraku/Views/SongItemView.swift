@@ -28,7 +28,7 @@ struct SongItemView: View {
                 Rectangle().opacity(0).frame(width: artworkSize, height: artworkSize)
             }
 
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: tertiaryText == nil ? 2 : 1) {
                 Text(title ?? "").lineLimit(1)
 
                 Text((secondaryText ?? ""))
