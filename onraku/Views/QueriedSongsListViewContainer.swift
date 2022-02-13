@@ -8,12 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-extension MyMPMediaPropertyPredicate: Identifiable {
-    var id: String {
-        return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
-    }
-}
-
 enum SongsSortKey: String, Equatable, CaseIterable {
     case none = "Default"
     case title = "Title"

@@ -8,7 +8,7 @@
 import Foundation
 import MediaPlayer
 
-struct MyMPMediaPropertyPredicate {
+struct MyMPMediaPropertyPredicate: Identifiable {
     var value: Any?
     var forProperty: String
     var comparisonType: MPMediaPredicateComparison = .equalTo
@@ -22,6 +22,10 @@ struct MyMPMediaPropertyPredicate {
             return "\(forProperty): \(str)"
         }
         return "<unknown>"
+    }
+    
+    var id: String {
+        return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
     }
 }
 
