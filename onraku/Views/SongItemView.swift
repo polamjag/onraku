@@ -1,5 +1,5 @@
 //
-//  SongListItemView.swift
+//  SongItemView.swift
 //  onraku
 //
 //  Created by Satoru Abe on 2022/02/12.
@@ -10,7 +10,7 @@ import SwiftUI
 
 private let artworkSize: CGFloat = 42
 
-struct SongListItemView: View {
+struct SongItemView: View {
     var title: String?
     var secondaryText: String?
     var tertiaryText: String?
@@ -46,9 +46,9 @@ struct SongListItemView: View {
     }
 }
 
-struct SongListItemView_Previews: PreviewProvider {
+struct SongItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongListItemView(
+        SongItemView(
             title: "Super song 超いい曲",
             secondaryText: "Lolem ipsum"
         )

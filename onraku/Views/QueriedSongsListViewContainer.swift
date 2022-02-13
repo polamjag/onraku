@@ -90,7 +90,7 @@ struct QueriedSongsListViewContainer: View {
                         NavigationLink {
                             SongDetailView(song: song)
                         } label: {
-                            SongListItemView(
+                            SongItemView(
                                 title: song.title,
                                 secondaryText: song.artist,
                                 tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
