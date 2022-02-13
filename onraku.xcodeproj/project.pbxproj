@@ -31,6 +31,7 @@
 		60A7BA6027B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */; };
 		60A7BA6227B904C5002451A5 /* MPMediaItemCollection+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */; };
 		60A7BA6627B91ED9002451A5 /* LoadingCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA6527B91ED9002451A5 /* LoadingCellView.swift */; };
+		60FF5E8427B932BB00663D61 /* Array+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60FF5E8327B932BB00663D61 /* Array+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 		60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyMPMediaPropertyPredicate.swift; sourceTree = "<group>"; };
 		60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MPMediaItemCollection+Extension.swift"; sourceTree = "<group>"; };
 		60A7BA6527B91ED9002451A5 /* LoadingCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCellView.swift; sourceTree = "<group>"; };
+		60FF5E8327B932BB00663D61 /* Array+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +182,7 @@
 				60A7BA5A27B8C191002451A5 /* MPMediaInfo+Extension.swift */,
 				60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */,
 				60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */,
+				60FF5E8327B932BB00663D61 /* Array+Extension.swift */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -334,6 +337,7 @@
 				60A7BA6227B904C5002451A5 /* MPMediaItemCollection+Extension.swift in Sources */,
 				6092536F27B78F8800E23931 /* PlayableItemsMenuView.swift in Sources */,
 				6044F06B27B7EAB60083A506 /* MultiLineTextView.swift in Sources */,
+				60FF5E8427B932BB00663D61 /* Array+Extension.swift in Sources */,
 				6032AC6E27B7D18000686A99 /* QueriedSongsListViewContainer.swift in Sources */,
 				6032AC6C27B7C89300686A99 /* NowPlayingViewContainer.swift in Sources */,
 				6092536927B788B300E23931 /* SongsCollectionItemView.swift in Sources */,

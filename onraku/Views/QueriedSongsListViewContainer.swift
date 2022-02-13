@@ -84,7 +84,7 @@ struct QueriedSongsListViewContainer: View {
                 LoadingCellView()
             } else {
                 Section(footer: Text("\(vm.songs.count) songs")) {
-                    ForEach(vm.sortedSongs) { song in
+                    ForEach(vm.enumeratedSortedSongs, id: \.element) { index, song in
                         NavigationLink {
                             SongDetailView(song: song)
                         } label: {
@@ -94,7 +94,12 @@ struct QueriedSongsListViewContainer: View {
                                 tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
                                 artwork: song.artwork
                             ).contextMenu {
-                                PlayableItemsMenuView(target: [song])
+                                PlayableItemsMenuView(target: .array([song]))
+                                if vm.songs.count > 2 {
+                                    Divider()
+                                    PlayableItemsAboveAndBelowMenuView(
+                                        target: vm.enumeratedSortedSongs, currentIndex: index)
+                                }
                             }
                         }
                     }
@@ -113,7 +118,7 @@ struct QueriedSongsListViewContainer: View {
                     }.disabled(!vm.exactMatchSettable)
 
                     Menu {
-                        PlayableItemsMenuView(target: vm.sortedSongs)
+                        PlayableItemsMenuView(target: .enumSeq(vm.enumeratedSortedSongs))
                         Menu {
                             Picker("sort by", selection: $vm.sort) {
                                 ForEach(SongsSortKey.allCases, id: \.self) { value in
@@ -163,7 +168,8 @@ extension QueriedSongsListViewContainer {
             return loadState == .loading
         }
 
-        @Published @MainActor var sortedSongs: [MPMediaItem] = []
+        @Published @MainActor var enumeratedSortedSongs:
+            [EnumeratedSequence<[MPMediaItem]>.Element] = []
 
         private var isPropsSet = false
 
@@ -179,7 +185,7 @@ extension QueriedSongsListViewContainer {
             let needsInitialization = filterPredicate != nil && songs.isEmpty
 
             await MainActor.run {
-                self.sortedSongs = songs
+                self.enumeratedSortedSongs = Array(songs.enumerated())
                 self.loadState = needsInitialization ? .initial : .loaded
 
                 if let filterPredicate = filterPredicate {
@@ -260,9 +266,9 @@ extension QueriedSongsListViewContainer {
             }
 
             do {
-                let sortedSongsX = try await task.result.get()
+                let sortedSongs = try await Array(task.result.get().enumerated())
                 await MainActor.run {
-                    self.sortedSongs = sortedSongsX
+                    self.enumeratedSortedSongs = sortedSongs
                 }
             } catch {
                 print("failed")

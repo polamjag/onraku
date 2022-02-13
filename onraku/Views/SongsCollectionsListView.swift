@@ -50,7 +50,7 @@ struct SongsCollectionsListView: View {
                             itemsCount: playlist.items.count)
                     }.lineLimit(1).contextMenu {
                         PlayableItemsMenuView(
-                            target: playlist.items)
+                            target: .array(playlist.items))
                     }
                 }
             }
