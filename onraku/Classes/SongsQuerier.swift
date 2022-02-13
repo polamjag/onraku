@@ -103,26 +103,11 @@ func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     }
 }
 
-private func getCollectionName(collection: MPMediaItemCollection, type: CollectionType) -> String {
-    switch type {
-    case .playlist:
-        return collection.value(forProperty: MPMediaPlaylistPropertyName)! as! String
-    case .album:
-        return collection.representativeItem?.albumTitle ?? ""
-    case .artist:
-        return collection.representativeItem?.artist ?? ""
-    case .genre:
-        return collection.representativeItem?.genre ?? ""
-    default:
-        return ""
-    }
-}
-
 private func loadAllCollectionsFor(_ type: CollectionType) -> [SongsCollection] {
     let a = type.getQueryForType()!.collections ?? []
     return a.map {
         return SongsCollection(
-            name: getCollectionName(collection: $0, type: type),
+            name: $0.getCollectionName(as: type),
             id: String($0.persistentID),
             type: type,
             items: $0.items
