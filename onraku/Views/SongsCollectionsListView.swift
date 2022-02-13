@@ -33,10 +33,11 @@ struct SongsCollectionsListView: View {
 
     var body: some View {
         Group {
-            if loadState == .loading {
-                ProgressView()
-            }
             List(playlists) { playlist in
+                if loadState == .loading || loadState == .initial {
+                    ProgressView()
+                }
+                
                 NavigationLink {
                     QueriedSongsListViewContainer(
                         filterPredicate: playlist.getFilterPredicate(),
