@@ -143,7 +143,11 @@ extension QueriedSongsListViewContainer {
         private var filterPredicate: MyMPMediaPropertyPredicate?
         @Published @MainActor var isExactMatch: Bool = true {
             didSet {
-                Task { await execQuery() }
+                if self.isPropsSet {
+                    Task {
+                        await execQuery()
+                    }
+                }
             }
         }
 
@@ -173,7 +177,6 @@ extension QueriedSongsListViewContainer {
         ) async {
             if self.isPropsSet { return }
 
-            self.isPropsSet = true
             self.songs = songs
 
             let needsInitialization = filterPredicate != nil && songs.isEmpty
@@ -186,6 +189,8 @@ extension QueriedSongsListViewContainer {
                     self.filterPredicate = filterPredicate
                     self.isExactMatch = filterPredicate.comparisonType == .equalTo
                 }
+
+                self.isPropsSet = true
             }
         }
 
