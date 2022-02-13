@@ -9,8 +9,8 @@ import MediaPlayer
 import SwiftUI
 
 struct NowPlayingViewContainer: View {
-    @State var nowPlayingItem: MPMediaItem?
-    @State var loadingState: LoadingState = .initial
+    @MainActor @State var nowPlayingItem: MPMediaItem?
+    @MainActor @State var loadingState: LoadingState = .initial
 
     @MainActor func refreshNowPlayingSong() async {
         await MainActor.run {
