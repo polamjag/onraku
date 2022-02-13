@@ -52,20 +52,22 @@ struct SearchHintItemView: View {
     }
 
     var body: some View {
-        NavigationLink {
-            QueriedSongsListViewContainer(
-                filterPredicate: searchHint
-            )
-        } label: {
-            SongsCollectionItemView(
-                title: searchHint.someFriendlyLabel,
-                systemImage: "magnifyingglass",
-                itemsCount: resultCount,
-                isLoading: resultCount == nil
-            )
-        }.disabled(shouldBeDisabled).task {
-            let res = await getSongsByPredicate(predicate: searchHint)
-            resultCount = res.count
+        if !shouldBeDisabled {
+            NavigationLink {
+                QueriedSongsListViewContainer(
+                    filterPredicate: searchHint
+                )
+            } label: {
+                SongsCollectionItemView(
+                    title: searchHint.someFriendlyLabel,
+                    systemImage: "magnifyingglass",
+                    itemsCount: resultCount,
+                    isLoading: resultCount == nil
+                )
+            }.disabled(shouldBeDisabled).task {
+                let res = await getSongsByPredicate(predicate: searchHint)
+                resultCount = res.count
+            }
         }
     }
 }
