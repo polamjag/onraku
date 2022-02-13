@@ -30,9 +30,9 @@ func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     let task = Task.detached(priority: .high) { () -> [SongsCollection] in
         switch type {
         case .playlist:
-            return loadPlaylist()
+            return loadAllPlaylists()
         case .userGrouping:
-            return loadGroupings()
+            return loadAllUserGroupings()
         }
     }
 
@@ -43,7 +43,7 @@ func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     }
 }
 
-func loadPlaylist() -> [SongsCollection] {
+private func loadAllPlaylists() -> [SongsCollection] {
     let playlistsQuery = MPMediaQuery.playlists().collections ?? []
     return playlistsQuery.map {
         SongsCollection(
@@ -55,7 +55,7 @@ func loadPlaylist() -> [SongsCollection] {
     }
 }
 
-func loadGroupings() -> [SongsCollection] {
+private func loadAllUserGroupings() -> [SongsCollection] {
     let songs = MPMediaQuery.songs().items
     let songsByGrouping = songs?.reduce(
         [String: [MPMediaItem]](),
@@ -106,7 +106,7 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
     }
 }
 
-func getSongsByUserGrouping(userGrouping: String, comparisonType: MPMediaPredicateComparison)
+private func getSongsByUserGrouping(userGrouping: String, comparisonType: MPMediaPredicateComparison)
     -> [MPMediaItem]
 {
     let songs = MPMediaQuery.songs().items ?? []
