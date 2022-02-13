@@ -9,9 +9,7 @@ import MediaPlayer
 import SwiftUI
 
 struct QueriedSongsListViewContainer: View {
-    @State @MainActor private var songs: [MPMediaItem] = []
-    @State @MainActor private var loadState: LoadingState = .initial
-    @State @MainActor private var isExactMatch = true
+    @StateObject private var vm = ViewModel(songs: [])
 
     var filterPredicate: MyMPMediaPropertyPredicate
     var title: String?
@@ -26,100 +24,124 @@ struct QueriedSongsListViewContainer: View {
         }
     }
 
-    @MainActor var computedPredicate: MyMPMediaPropertyPredicate {
-        return MyMPMediaPropertyPredicate(
-            value: filterPredicate.value,
-            forProperty: filterPredicate.forProperty,
-            comparisonType: isExactMatch ? .equalTo : .contains
-        )
-    }
-
-    func update() async {
-        await MainActor.run {
-            loadState = .loading
-        }
-        let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
-            return computedPredicate
-        }
-        let gotSongs = await getSongsByPredicate(predicate: predicate)
-        await MainActor.run {
-            songs = gotSongs
-            loadState = .loaded
-        }
-    }
-
-    var searchHints: [MyMPMediaPropertyPredicate] {
-        switch filterPredicate.forProperty {
-        case MPMediaItemPropertyGenre:
-            if let filterVal = filterPredicate.value as? String {
-                let splittedFilterVal = filterVal.intelligentlySplitIntoSubGenres()
-                if splittedFilterVal.count > 1 {
-                    return splittedFilterVal.map {
-                        MyMPMediaPropertyPredicate(
-                            value: $0,
-                            forProperty: filterPredicate.forProperty,
-                            comparisonType: .contains
-                        )
-                    }
-                }
-            }
-        case MPMediaItemPropertyArtist, MPMediaItemPropertyComposer:
-            if let filterVal = filterPredicate.value as? String {
-                let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists()
-                if splittedFilterVal.count > 1 {
-                    return splittedFilterVal.map {
-                        MyMPMediaPropertyPredicate(
-                            value: $0,
-                            forProperty: filterPredicate.forProperty,
-                            comparisonType: .contains
-                        )
-                    }
-                }
-            }
-        default:
-            return []
-        }
-        return []
-    }
-
     var body: some View {
         Group {
-            if loadState != .loaded {
-                ProgressView()
-            }
             SongsListView(
-                songs: songs, title: computedTitle, isLoading: loadState == .loading,
-                searchHints: searchHints,
+                songs: vm.songs, title: computedTitle, isLoading: vm.loadState == .loading,
+                searchHints: vm.searchHints,
                 additionalMenuItems: {
                     Menu {
                         // does not works in first tap
                         // Toggle("Exact Match", isOn: $isExactMatch).onChange(of: isExactMatch) { _ in Task { await update() } }
 
                         Button(
-                            isExactMatch ? "Exact Match: On" : "Exact Match: Off",
+                            vm.isExactMatch ?? false ? "Exact Match: On" : "Exact Match: Off",
                             action: {
                                 Task {
                                     await MainActor.run {
-                                        isExactMatch = !isExactMatch
+                                        vm.isExactMatch = !(vm.isExactMatch ?? false)
                                     }
-                                    await update()
+                                    await vm.execQuery()
                                 }
                             })
                     } label: {
                         Image(
-                            systemName: isExactMatch
+                            systemName: vm.isExactMatch ?? false
                                 ? "magnifyingglass.circle.fill" : "magnifyingglass.circle")
                     }
                 })
         }.refreshable {
-            await update()
+            await vm.execQuery()
         }.task {
-            await MainActor.run {
-                isExactMatch = filterPredicate.comparisonType == .equalTo
+            vm.setFilterPredicate(filterPredicate: filterPredicate)
+            await vm.initializeIfNeeded()
+        }
+    }
+}
+
+extension QueriedSongsListViewContainer {
+    class ViewModel: ObservableObject {
+        @Published private(set) var songs: [MPMediaItem] = []
+        private var filterPredicate: MyMPMediaPropertyPredicate?
+        @Published var isExactMatch: Bool?
+        @Published var loadState: LoadingState = .initial
+
+        init(songs: [MPMediaItem]) {
+            self.songs = songs
+        }
+
+        func setFilterPredicate(filterPredicate: MyMPMediaPropertyPredicate) {
+            self.filterPredicate = filterPredicate
+            self.isExactMatch = filterPredicate.comparisonType == .equalTo
+        }
+
+        var computedPredicate: MyMPMediaPropertyPredicate? {
+            if let filterPredicate = filterPredicate, let isExactMatch = isExactMatch {
+                return MyMPMediaPropertyPredicate(
+                    value: filterPredicate.value,
+                    forProperty: filterPredicate.forProperty,
+                    comparisonType: isExactMatch ? .equalTo : .contains
+                )
             }
-            if songs.isEmpty || loadState == .initial {
-                await update()
+            return nil
+        }
+
+        func initializeIfNeeded() async {
+            if songs.isEmpty {
+                await execQuery()
             }
+        }
+
+        func execQuery() async {
+            print("execQuery computedPredicate", computedPredicate)
+            if let computedPredicate = computedPredicate {
+                let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
+                    loadState = .loading
+                    return computedPredicate
+                }
+                let gotSongs = await getSongsByPredicate(predicate: predicate)
+                await MainActor.run {
+                    songs = gotSongs
+                    loadState = .loaded
+                }
+            }
+        }
+
+        var searchHints: [MyMPMediaPropertyPredicate] {
+            if let filterPredicate = filterPredicate {
+                switch filterPredicate.forProperty {
+                case MPMediaItemPropertyGenre:
+                    if let filterVal = filterPredicate.value as? String {
+                        let splittedFilterVal = filterVal.intelligentlySplitIntoSubGenres()
+                        if splittedFilterVal.count > 1 {
+                            return splittedFilterVal.map {
+                                MyMPMediaPropertyPredicate(
+                                    value: $0,
+                                    forProperty: filterPredicate.forProperty,
+                                    comparisonType: .contains
+                                )
+                            }
+                        }
+                    }
+                case MPMediaItemPropertyArtist, MPMediaItemPropertyComposer:
+                    if let filterVal = filterPredicate.value as? String {
+                        let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists()
+                        if splittedFilterVal.count > 1 {
+                            return splittedFilterVal.map {
+                                MyMPMediaPropertyPredicate(
+                                    value: $0,
+                                    forProperty: filterPredicate.forProperty,
+                                    comparisonType: .contains
+                                )
+                            }
+                        }
+                    }
+                default:
+                    return []
+                }
+            }
+
+            return []
         }
     }
 }
