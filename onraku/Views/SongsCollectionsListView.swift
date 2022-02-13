@@ -23,7 +23,7 @@ struct SongsCollectionsListView: View {
         await MainActor.run {
             loadState = .loading
         }
-        let gotPlaylists = await loadSongsCollectionsFor(type: type)
+        let gotPlaylists = await loadSongsCollectionsOf(type)
         await MainActor.run {
             playlists = gotPlaylists
             loadState = .loaded

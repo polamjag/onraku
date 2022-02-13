@@ -86,11 +86,11 @@ struct SongsCollection: Identifiable, Hashable {
     }
 }
 
-func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
+func loadSongsCollectionsOf(_ type: CollectionType) async -> [SongsCollection] {
     let task = Task.detached(priority: .high) { () -> [SongsCollection] in
         switch type {
         case .playlist, .genre, .artist, .album:
-            return loadAllCollectionsFor(type)
+            return loadAllCollectionsOf(type)
         case .userGrouping:
             return loadAllUserGroupings()
         }
@@ -103,7 +103,7 @@ func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     }
 }
 
-private func loadAllCollectionsFor(_ type: CollectionType) -> [SongsCollection] {
+private func loadAllCollectionsOf(_ type: CollectionType) -> [SongsCollection] {
     let a = type.getQueryForType()!.collections ?? []
     return a.map {
         return SongsCollection(
