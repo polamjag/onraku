@@ -9,18 +9,22 @@ import Foundation
 import MediaPlayer
 
 extension MPMediaItemCollection {
-    func getCollectionName(as type: CollectionType) -> String {
+    func getCollectionName(as type: CollectionType) -> String? {
         switch type {
         case .playlist:
-            return self.value(forProperty: MPMediaPlaylistPropertyName)! as! String
+            if let ret = self.value(forProperty: MPMediaPlaylistPropertyName) as? String {
+                return ret
+            }
         case .album:
-            return self.representativeItem?.albumTitle ?? ""
+            return self.representativeItem?.albumTitle
         case .artist:
-            return self.representativeItem?.artist ?? ""
+            return self.representativeItem?.artist
         case .genre:
-            return self.representativeItem?.genre ?? ""
-        default:
-            return ""
+            return self.representativeItem?.genre
+        case .userGrouping:
+            return nil
         }
+        return nil
     }
+
 }
