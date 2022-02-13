@@ -8,6 +8,10 @@
 import Foundation
 import MediaPlayer
 
+enum CollectionType {
+    case userGrouping, playlist
+}
+
 struct SongsCollection: Identifiable, Hashable {
     static func == (lhs: SongsCollection, rhs: SongsCollection) -> Bool {
         return lhs.id == rhs.id
@@ -18,10 +22,11 @@ struct SongsCollection: Identifiable, Hashable {
 
     let name: String
     let id: String
-    let navigationDestinationInfo: NavigationDestinationInfo
+    let type: CollectionType
+    let items: [MPMediaItem]
 }
 
-func loadSongsCollectionsFor(type: NavigationDestinationType) async -> [SongsCollection] {
+func loadSongsCollectionsFor(type: CollectionType) async -> [SongsCollection] {
     let task = Task.detached(priority: .high) { () -> [SongsCollection] in
         switch type {
         case .playlist:
@@ -44,9 +49,8 @@ func loadPlaylist() -> [SongsCollection] {
         SongsCollection(
             name: $0.value(forProperty: MPMediaPlaylistPropertyName)! as! String,
             id: String($0.persistentID),
-            navigationDestinationInfo: NavigationDestinationInfo(
-                type: .playlist, songs: $0.items
-            )
+            type: .playlist,
+            items: $0.items
         )
     }
 }
@@ -66,10 +70,9 @@ func loadGroupings() -> [SongsCollection] {
         return SongsCollection(
             name: $0,
             id: $0,
-            navigationDestinationInfo: NavigationDestinationInfo(
-                type: .userGrouping,
-                songs: songsByGrouping?[$0] ?? []
-            )
+            type: .userGrouping,
+            items: songsByGrouping?[$0] ?? []
+
         )
     }
 }
@@ -88,7 +91,8 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
                 MPMediaQuery(
                     filterPredicates: Set([
                         MPMediaPropertyPredicate(
-                            value: predicate.value, forProperty: predicate.forProperty,
+                            value: predicate.value,
+                            forProperty: predicate.forProperty,
                             comparisonType: predicate.comparisonType)
                     ])
                 ).items ?? []

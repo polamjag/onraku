@@ -12,20 +12,11 @@ enum LoadingState {
     case initial, loading, loaded, loadingByPullToRefresh
 }
 
-enum NavigationDestinationType {
-    case userGrouping, playlist
-}
-
-struct NavigationDestinationInfo {
-    let type: NavigationDestinationType
-    let songs: [MPMediaItem]
-}
-
 struct SongAssortmentsView: View {
     @State @MainActor var playlists: [SongsCollection] = []
     @State var loadState: LoadingState = .initial
 
-    var type: NavigationDestinationType
+    var type: CollectionType
     var title: String
 
     func loadPlaylists() async {
@@ -42,16 +33,16 @@ struct SongAssortmentsView: View {
             List(playlists) { playlist in
                 NavigationLink {
                     QueriedSongsListViewContainer(
-                        songs: playlist.navigationDestinationInfo.songs
+                        songs: playlist.items
                     )
                 } label: {
                     HStack {
                         SongAssortmentItemView(
                             title: playlist.name,
-                            itemsCount: playlist.navigationDestinationInfo.songs.count)
+                            itemsCount: playlist.items.count)
                     }.lineLimit(1).contextMenu {
                         PlayableContentMenuView(
-                            target: playlist.navigationDestinationInfo.songs)
+                            target: playlist.items)
                     }
                 }
             }
