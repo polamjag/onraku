@@ -8,12 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-extension MPMediaItem: Identifiable {
-    public var id: String {
-        return String(self.persistentID)
-    }
-}
-
 extension MyMPMediaPropertyPredicate: Identifiable {
     var id: String {
         return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
