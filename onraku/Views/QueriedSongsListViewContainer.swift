@@ -53,7 +53,6 @@ struct QueriedSongsListViewContainer: View {
     var title: String?
 
     var songs: [MPMediaItem] = []
-    var needsInitialization: Bool = false
 
     var computedTitle: String {
         if let title = title {
@@ -139,9 +138,7 @@ struct QueriedSongsListViewContainer: View {
         }.refreshable {
             await vm.execQuery()
         }.task {
-            vm.setProps(
-                songs: songs, needsInitialization: needsInitialization,
-                filterPredicate: filterPredicate)
+            vm.setProps(songs: songs, filterPredicate: filterPredicate)
 
             await vm.initializeIfNeeded()
         }
@@ -159,13 +156,16 @@ extension QueriedSongsListViewContainer {
         private var isPropsSet = false
 
         func setProps(
-            songs: [MPMediaItem], needsInitialization: Bool,
+            songs: [MPMediaItem],
             filterPredicate: MyMPMediaPropertyPredicate?
         ) {
             if self.isPropsSet { return }
 
             self.isPropsSet = true
             self.songs = songs
+            
+            let needsInitialization = filterPredicate != nil && songs.isEmpty
+
             self.loadState = needsInitialization ? .initial : .loaded
 
             if let filterPredicate = filterPredicate {

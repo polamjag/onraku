@@ -32,8 +32,7 @@ struct SongAssortmentsView: View {
             List(playlists) { playlist in
                 NavigationLink {
                     QueriedSongsListViewContainer(
-                        songs: playlist.navigationDestinationInfo.songs,
-                        needsInitialization: false
+                        songs: playlist.navigationDestinationInfo.songs
                     )
                 } label: {
                     HStack {
