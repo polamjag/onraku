@@ -8,21 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-enum NavigationDestinationType {
-    case userGrouping, playlist
-}
-
-struct NavigationDestinationInfo {
-    let type: NavigationDestinationType
-    let songs: [MPMediaItem]
-}
-
-struct Playlist: Identifiable {
-    let name: String
-    let id: String
-    let navigationDestinationInfo: NavigationDestinationInfo
-}
-
 struct ContentView: View {
     @State private var activeTab: String?
     var body: some View {

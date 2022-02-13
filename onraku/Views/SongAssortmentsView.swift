@@ -5,10 +5,26 @@
 //  Created by Satoru Abe on 2022/02/12.
 //
 
+import MediaPlayer
 import SwiftUI
 
 enum LoadingState {
     case initial, loading, loaded, loadingByPullToRefresh
+}
+
+enum NavigationDestinationType {
+    case userGrouping, playlist
+}
+
+struct NavigationDestinationInfo {
+    let type: NavigationDestinationType
+    let songs: [MPMediaItem]
+}
+
+struct Playlist: Identifiable {
+    let name: String
+    let id: String
+    let navigationDestinationInfo: NavigationDestinationInfo
 }
 
 struct SongAssortmentsView: View {
