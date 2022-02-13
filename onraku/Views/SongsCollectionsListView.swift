@@ -46,7 +46,9 @@ struct SongsCollectionsListView: View {
                     HStack {
                         SongsCollectionItemView(
                             title: collection.name,
-                            itemsCount: collection.items.count)
+                            itemsCount: collection.items.count,
+                            isLoading: false
+                        )
                     }.lineLimit(1).contextMenu {
                         PlayableItemsMenuView(
                             target: .array(collection.items))

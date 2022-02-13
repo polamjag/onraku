@@ -9,19 +9,43 @@ import SwiftUI
 
 struct SongsCollectionItemView: View {
     var title: String
-    var itemsCount: Int
+    var systemImage: String?
+    var itemsCount: Int?
+    var isLoading: Bool
 
     var body: some View {
         HStack {
-            title.isEmpty ? Text("(no value)").foregroundColor(.secondary) : Text(title)
+            if title.isEmpty {
+                Group {
+                    if let systemImage = systemImage {
+                        Label("(no value)", systemImage: systemImage)
+                    } else {
+                        Text("(no value)")
+                    }
+                }.foregroundColor(.secondary)
+
+            } else {
+                if let systemImage = systemImage {
+                    Label(title, systemImage: systemImage)
+                } else {
+                    Text(title)
+                }
+            }
             Spacer()
-            Text("\(itemsCount)").monospacedDigit().font(.footnote).foregroundColor(.secondary)
+            if let itemsCount = itemsCount {
+                Text(String(itemsCount))
+                    .monospacedDigit()
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            } else if isLoading {
+                ProgressView()
+            }
         }
     }
 }
 
 struct SongsCollectionItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42)
+        SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42, isLoading: false)
     }
 }

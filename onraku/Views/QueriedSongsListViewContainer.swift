@@ -40,6 +40,36 @@ private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey) -> St
     }
 }
 
+struct SearchHintItemView: View {
+    var searchHint: MyMPMediaPropertyPredicate
+    @State var resultCount: Int?
+    var shouldBeDisabled: Bool {
+        if let resultCount = resultCount {
+            return resultCount == 0
+        } else {
+            return false
+        }
+    }
+
+    var body: some View {
+        NavigationLink {
+            QueriedSongsListViewContainer(
+                filterPredicate: searchHint
+            )
+        } label: {
+            SongsCollectionItemView(
+                title: searchHint.someFriendlyLabel,
+                systemImage: "magnifyingglass",
+                itemsCount: resultCount,
+                isLoading: resultCount == nil
+            )
+        }.disabled(shouldBeDisabled).task {
+            let res = await getSongsByPredicate(predicate: searchHint)
+            resultCount = res.count
+        }
+    }
+}
+
 struct QueriedSongsListViewContainer: View {
     @StateObject private var vm = ViewModel()
 
@@ -63,13 +93,7 @@ struct QueriedSongsListViewContainer: View {
             if !vm.searchHints.isEmpty {
                 Section {
                     ForEach(vm.searchHints) { searchHint in
-                        NavigationLink {
-                            QueriedSongsListViewContainer(
-                                filterPredicate: searchHint
-                            )
-                        } label: {
-                            Label(searchHint.someFriendlyLabel, systemImage: "magnifyingglass")
-                        }
+                        SearchHintItemView(searchHint: searchHint)
                     }
                 }
             }
@@ -100,6 +124,7 @@ struct QueriedSongsListViewContainer: View {
                 }
             }
         }.navigationTitle(computedTitle)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Menu {
