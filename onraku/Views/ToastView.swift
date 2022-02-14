@@ -84,10 +84,10 @@ struct ToastContentView: View {
 
 struct ToastView_Previews: PreviewProvider {
     static var previews: some View {
-        ToastContentView(message: "Lolem Ipsum", systemImage: "text.insert")
+        ToastContentView(message: "Lolem Ipsum", systemImage: "text.insert").preferredColorScheme(
+            .light)
         ToastContentView(message: "Lolem Ipsum Dot Sitor Amet", systemImage: "text.insert")
             .preferredColorScheme(
-                .light)
-
+                .dark)
     }
 }
