@@ -39,6 +39,13 @@ struct PlayableItemsMenuView: View {
         }) {
             Label(target.count > 1 ? "Play All Now" : "Play Now", systemImage: "play")
         }
+        if target.count > 1 {
+            Button(action: {
+                playMediaItems(items: target.asArray().shuffled())
+            }) {
+                Label("Shuffle All Now", systemImage: "shuffle")
+            }
+        }
         Divider()
         Button(action: {
             prependMediaItems(items: target.asArray())
