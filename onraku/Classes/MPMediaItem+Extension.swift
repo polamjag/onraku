@@ -1,5 +1,5 @@
 //
-//  MPMediaInfo+Extension.swift
+//  MPMediaItem+Extension.swift
 //  onraku
 //
 //  Created by Satoru Abe on 2022/02/13.
