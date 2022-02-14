@@ -9,9 +9,15 @@ import MediaPlayer
 import SwiftUI
 
 struct ContentView: View {
+    private enum Tab {
+        case Library, NowPlaying
+    }
+
+    @State private var selectedTab: Tab = .Library
+
     var body: some View {
         ZStack {
-            TabView {
+            TabView(selection: $selectedTab) {
                 NavigationView {
                     List {
                         ForEach(CollectionType.allCases, id: \.self) { type in
@@ -25,9 +31,10 @@ struct ContentView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         .listStyle(.insetGrouped)
                 }.tabItem {
-                    Image(systemName: "books.vertical.fill")
+                    Image(systemName: "books.vertical")
+                        .environment(\.symbolVariants, selectedTab == .Library ? .fill : .none)
                     Text("Library")
-                }
+                }.tag(Tab.Library)
 
                 NavigationView {
                     NowPlayingViewContainer()
@@ -35,8 +42,9 @@ struct ContentView: View {
                         .listStyle(.insetGrouped)
                 }.tabItem {
                     Image(systemName: "play")
+                        .environment(\.symbolVariants, selectedTab == .NowPlaying ? .fill : .none)
                     Text("Now Playing")
-                }
+                }.tag(Tab.NowPlaying)
             }
             ToastView()
         }
