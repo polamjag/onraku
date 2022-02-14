@@ -11,10 +11,12 @@ import SwiftUI
 struct NowPlayingViewContainer: View {
     @MainActor @State var nowPlayingItem: MPMediaItem?
     @MainActor @State var loadingState: LoadingState = .initial
-    
-    @MainActor @State var isAppearing = false { didSet {
-        print("isAppearing didset", isAppearing)
-    }}
+
+    @MainActor @State var isAppearing = false {
+        didSet {
+            print("isAppearing didset", isAppearing)
+        }
+    }
 
     @MainActor func refreshNowPlayingSong() async {
         await MainActor.run {
@@ -43,7 +45,7 @@ struct NowPlayingViewContainer: View {
                 for: Notification.Name("MPMusicPlayerControllerNowPlayingItemDidChangeNotification")
             ),
             perform: { _ in
-                Task { if (isAppearing) { await refreshNowPlayingSong() } }
+                Task { if isAppearing { await refreshNowPlayingSong() } }
             }
         ).onAppear {
             isAppearing = true
