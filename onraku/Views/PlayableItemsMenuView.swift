@@ -68,61 +68,43 @@ struct PlayableItemsAboveAndBelowMenuView: View {
     var target: [EnumeratedSequence<[MPMediaItem]>.Element]
     var currentIndex: Int
 
-    var thisAndAbove: [MPMediaItem] {
-        target.map { _, x in x }.thisAndAbove(at: currentIndex)
-    }
+    private enum OperationPatterns: String, CaseIterable, Identifiable {
+        case thisAndAbove, thisAndBelow
 
-    var thisAndBelow: [MPMediaItem] {
-        target.map { _, x in x }.thisAndBelow(at: currentIndex)
+        func getTargets(target: [EnumeratedSequence<[MPMediaItem]>.Element], currentIndex: Int)
+            -> [MPMediaItem]
+        {
+            switch self {
+            case .thisAndAbove:
+                return target.map { _, x in x }.thisAndAbove(at: currentIndex)
+            case .thisAndBelow:
+                return target.map { _, x in x }.thisAndBelow(at: currentIndex)
+            }
+        }
+
+        var id: String { rawValue }
+
+        var menuLabel: (String, String) {
+            switch self {
+            case .thisAndAbove:
+                return ("This and Above...", "arrow.down.to.line")
+            case .thisAndBelow:
+                return ("This and Below...", "arrow.down")
+            }
+        }
     }
 
     var body: some View {
-        Menu {
-            Button(action: {
-                playMediaItems(items: thisAndAbove)
-            }) {
-                Label("Play These Songs", systemImage: "play")
+        if currentIndex != 0 && target.count != currentIndex - 1 {
+            ForEach(OperationPatterns.allCases) { pattern in
+                Menu {
+                    PlayableItemsMenuView(
+                        target: .array(
+                            pattern.getTargets(target: target, currentIndex: currentIndex)))
+                } label: {
+                    Label(pattern.menuLabel.0, systemImage: pattern.menuLabel.1)
+                }
             }
-            Button(action: {
-                prependMediaItems(items: thisAndAbove)
-            }) {
-                Label(
-                    "Play These Songs Next",
-                    systemImage: "text.insert")
-            }
-            Button(action: {
-                appendMediaItems(items: thisAndAbove)
-            }) {
-                Label(
-                    "Play These Songs Last",
-                    systemImage: "text.append")
-            }
-        } label: {
-            Label("This and Above...", systemImage: "arrow.down.to.line")
-        }
-
-        Menu {
-            Button(action: {
-                playMediaItems(items: thisAndBelow)
-            }) {
-                Label("Play These Songs", systemImage: "play")
-            }
-            Button(action: {
-                prependMediaItems(items: thisAndBelow)
-            }) {
-                Label(
-                    "Play These Songs Next",
-                    systemImage: "text.insert")
-            }
-            Button(action: {
-                appendMediaItems(items: thisAndBelow)
-            }) {
-                Label(
-                    "Play These Songs Last",
-                    systemImage: "text.append")
-            }
-        } label: {
-            Label("This and Below...", systemImage: "arrow.down")
         }
     }
 }
