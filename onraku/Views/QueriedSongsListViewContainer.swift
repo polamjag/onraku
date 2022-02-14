@@ -303,7 +303,7 @@ extension QueriedSongsListViewContainer {
 
         var searchHints: [MyMPMediaPropertyPredicate] {
             if let filterPredicate = filterPredicate {
-                return getNextSearchHints(from: filterPredicate)
+                return filterPredicate.getNextSearchHints()
             } else {
                 return []
             }

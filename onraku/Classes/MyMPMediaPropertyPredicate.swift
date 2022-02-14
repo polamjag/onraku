@@ -27,42 +27,40 @@ struct MyMPMediaPropertyPredicate: Identifiable {
     var id: String {
         return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
     }
-}
 
-func getNextSearchHints(from filterPredicate: MyMPMediaPropertyPredicate)
-    -> [MyMPMediaPropertyPredicate]
-{
-    switch filterPredicate.forProperty {
-    case MPMediaItemPropertyGenre:
-        return getNextSearchHintsOfSubGenreLike(from: filterPredicate)
-    case MPMediaItemPropertyArtist:
-        let min = getNextSearchHintsOfSubArtistsLike(from: filterPredicate, requiredMinItems: 0)
-        return getNextSearchHintsOfSubArtistsLike(from: filterPredicate)
-            + min.map {
-                MyMPMediaPropertyPredicate(
-                    value: $0.value,
-                    forProperty: MPMediaItemPropertyTitle,
-                    comparisonType: .contains
-                )
-            }
-            + min.map {
-                MyMPMediaPropertyPredicate(
-                    value: $0.value,
-                    forProperty: MPMediaItemPropertyComposer,
-                    comparisonType: $0.comparisonType
-                )
-            }
-    case MPMediaItemPropertyComposer:
-        return getNextSearchHintsOfSubArtistsLike(from: filterPredicate)
-            + getNextSearchHintsOfSubArtistsLike(from: filterPredicate, requiredMinItems: 0).map {
-                MyMPMediaPropertyPredicate(
-                    value: $0.value,
-                    forProperty: MPMediaItemPropertyArtist,
-                    comparisonType: $0.comparisonType
-                )
-            }
-    default:
-        return []
+    func getNextSearchHints() -> [MyMPMediaPropertyPredicate] {
+        switch self.forProperty {
+        case MPMediaItemPropertyGenre:
+            return getNextSearchHintsOfSubGenreLike(from: self)
+        case MPMediaItemPropertyArtist:
+            let min = getNextSearchHintsOfSubArtistsLike(from: self, requiredMinItems: 0)
+            return getNextSearchHintsOfSubArtistsLike(from: self)
+                + min.map {
+                    MyMPMediaPropertyPredicate(
+                        value: $0.value,
+                        forProperty: MPMediaItemPropertyTitle,
+                        comparisonType: .contains
+                    )
+                }
+                + min.map {
+                    MyMPMediaPropertyPredicate(
+                        value: $0.value,
+                        forProperty: MPMediaItemPropertyComposer,
+                        comparisonType: $0.comparisonType
+                    )
+                }
+        case MPMediaItemPropertyComposer:
+            return getNextSearchHintsOfSubArtistsLike(from: self)
+                + getNextSearchHintsOfSubArtistsLike(from: self, requiredMinItems: 0).map {
+                    MyMPMediaPropertyPredicate(
+                        value: $0.value,
+                        forProperty: MPMediaItemPropertyArtist,
+                        comparisonType: $0.comparisonType
+                    )
+                }
+        default:
+            return []
+        }
     }
 }
 
