@@ -22,6 +22,8 @@ extension String {
             self
             .components(separatedBy: " x ")
             .flatMap { $0.components(separatedBy: " from ") }
+            .flatMap { $0.components(separatedBy: " feat. ") }
+            .flatMap { $0.components(separatedBy: " Feat. ") }
             .flatMap { $0.split { s in s == "(" || s == ")" } }
             .flatMap { $0.split { s in s == "," || s == "&" || s == "/" || s == "・" || s == "×" } }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
