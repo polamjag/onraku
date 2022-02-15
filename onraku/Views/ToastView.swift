@@ -11,12 +11,14 @@ extension NSNotification {
     static let ShowToastRequest = Notification.Name.init("ShowToastRequest")
 }
 
-func showToastWithMessage(_ message: String, withSystemImage: String?) {
-    NotificationCenter.default.post(
-        name: NSNotification.ShowToastRequest,
-        object: nil,
-        userInfo: ["message": message, "systemImage": withSystemImage ?? ""]
-    )
+func showToastWithMessage(_ message: String, systemImage: String?) async {
+    await MainActor.run {
+        NotificationCenter.default.post(
+            name: NSNotification.ShowToastRequest,
+            object: nil,
+            userInfo: ["message": message, "systemImage": systemImage ?? ""]
+        )
+    }
 }
 
 struct ToastView: View {
