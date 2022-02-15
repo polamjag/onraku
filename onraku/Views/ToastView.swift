@@ -44,14 +44,12 @@ struct ToastView: View {
                             self.systemImage = systemImage
 
                             withAnimation(.easeIn(duration: 0.15)) {
-                                print("showing")
                                 self.isShown = true
                             }
                             DispatchQueue.main.asyncAfter(
                                 deadline: .now() + 1.7,
                                 execute: {
                                     withAnimation(.easeOut(duration: 0.25)) {
-                                        print("hiding")
                                         self.isShown = false
                                     }
                                 })

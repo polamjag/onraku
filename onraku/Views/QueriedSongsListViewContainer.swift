@@ -296,7 +296,7 @@ extension QueriedSongsListViewContainer {
                     self.enumeratedSortedSongs = sortedSongs
                 }
             } catch {
-                print("failed")
+
             }
         }
 

@@ -12,11 +12,7 @@ struct NowPlayingViewContainer: View {
     @MainActor @State var nowPlayingItem: MPMediaItem?
     @MainActor @State var loadingState: LoadingState = .initial
 
-    @MainActor @State var isAppearing = false {
-        didSet {
-            print("isAppearing didset", isAppearing)
-        }
-    }
+    @MainActor @State var isAppearing = false
 
     @MainActor func refreshNowPlayingSong() async {
         await MainActor.run {
