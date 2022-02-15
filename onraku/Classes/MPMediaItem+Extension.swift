@@ -9,7 +9,7 @@ import Foundation
 import MediaPlayer
 
 extension MPMediaItem: Identifiable {
-    public var id: UInt64 {
+    public var id: MPMediaEntityPersistentID {
         return self.persistentID
     }
 
