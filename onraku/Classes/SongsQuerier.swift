@@ -187,3 +187,60 @@ private func getSongsByUserGrouping(
 func getNowPlayingSong() -> MPMediaItem? {
     return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
 }
+
+func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMediaItem] {
+    var filterPreds: [MyMPMediaPropertyPredicate] = [
+        MyMPMediaPropertyPredicate(
+            value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
+            comparisonType: .equalTo),
+        MyMPMediaPropertyPredicate(
+            value: item.artist, forProperty: MPMediaItemPropertyArtist,
+            comparisonType: .contains),
+        MyMPMediaPropertyPredicate(
+            value: item.composer, forProperty: MPMediaItemPropertyComposer,
+            comparisonType: .contains),
+        MyMPMediaPropertyPredicate(
+            value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
+            comparisonType: .equalTo),
+        MyMPMediaPropertyPredicate(
+            value: item.albumArtist, forProperty: MPMediaItemPropertyAlbumArtist,
+            comparisonType: .contains),
+
+    ]
+    if includeGenre {
+        filterPreds += [
+            MyMPMediaPropertyPredicate(
+                value: item.userGrouping, forProperty: MPMediaItemPropertyUserGrouping,
+                comparisonType: .contains),
+            MyMPMediaPropertyPredicate(
+                value: item.genre, forProperty: MPMediaItemPropertyGenre,
+                comparisonType: .contains),
+        ]
+    }
+
+    let allFilters: [MyMPMediaPropertyPredicate] =
+        (filterPreds.flatMap { [$0] + $0.getNextSearchHints() }).filter {
+            if let s = $0.value as? String, !s.isEmpty {
+                return true
+            } else {
+                return false
+            }
+        }.unique()
+
+    do {
+        return try await withThrowingTaskGroup(of: [MPMediaItem].self) { group in
+            for pred in allFilters {
+                group.addTask(priority: .high) {
+                    return await getSongsByPredicate(predicate: pred)
+                }
+            }
+            var items: [MPMediaItem] = []
+            for try await (gotItems) in group {
+                items += gotItems
+            }
+            return items.unique().filter { $0 != item }
+        }
+    } catch {
+        return []
+    }
+}

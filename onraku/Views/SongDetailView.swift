@@ -79,6 +79,9 @@ struct SongDetailView: View {
     var song: SongDetailLike
     var title: String?
 
+    @State private var relevantItems: [MPMediaItem] = []
+    @State private var relevantItems2: [MPMediaItem] = []
+
     var body: some View {
         List {
             KeyValueView(key: "title", value: song.title)
@@ -215,6 +218,29 @@ struct SongDetailView: View {
                 } label: {
                     HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
                 }.disabled(song.lyrics?.isEmpty ?? true)
+            }
+
+            Section {
+                NavigationLink {
+                    QueriedSongsListViewContainer(songs: relevantItems)
+                } label: {
+                    SongsCollectionItemView(
+                        title: "Super Related Tracks", systemImage: "aqi.medium",
+                        itemsCount: relevantItems.count)
+                }
+
+                NavigationLink {
+                    QueriedSongsListViewContainer(songs: relevantItems2)
+                } label: {
+                    SongsCollectionItemView(
+                        title: "Ultimate Related Songs", systemImage: "bolt.horizontal",
+                        itemsCount: relevantItems2.count)
+                }
+            }.task {
+                relevantItems = await getRelevantItems(
+                    of: song as! MPMediaItem, includeGenre: false)
+                relevantItems2 = await getRelevantItems(
+                    of: song as! MPMediaItem, includeGenre: true)
             }
         }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {

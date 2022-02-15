@@ -8,7 +8,14 @@
 import Foundation
 import MediaPlayer
 
-struct MyMPMediaPropertyPredicate: Identifiable {
+struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
+    static func == (lhs: MyMPMediaPropertyPredicate, rhs: MyMPMediaPropertyPredicate) -> Bool {
+        return lhs.id == rhs.id
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.id)
+    }
+
     var value: Any?
     var forProperty: String
     var comparisonType: MPMediaPredicateComparison = .equalTo
@@ -25,7 +32,14 @@ struct MyMPMediaPropertyPredicate: Identifiable {
     }
 
     var id: String {
-        return (value as! String) + String(forProperty.hashValue) + String(comparisonType.hashValue)
+        if let value = value as? String {
+            return value + String(forProperty.hashValue) + String(comparisonType.hashValue)
+        } else if let value = value as? UInt64 {
+            return String(value) + String(forProperty.hashValue) + String(comparisonType.hashValue)
+        } else {
+            return String(forProperty.hashValue)
+                + String(comparisonType.hashValue)
+        }
     }
 
     func getNextSearchHints() -> [MyMPMediaPropertyPredicate] {
