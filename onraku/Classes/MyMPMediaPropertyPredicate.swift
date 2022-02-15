@@ -97,10 +97,13 @@ private func getNextSearchHintsOfSubGenreLike(
 }
 
 private func getNextSearchHintsOfSubArtistsLike(
-    from filterPredicate: MyMPMediaPropertyPredicate, requiredMinItems: Int = 1
+    from filterPredicate: MyMPMediaPropertyPredicate, requiredMinItems: Int = 1,
+    requiredMinItemLength: Int = 2
 ) -> [MyMPMediaPropertyPredicate] {
     if let filterVal = filterPredicate.value as? String {
-        let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists()
+        let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists().filter {
+            $0.count >= requiredMinItemLength
+        }
         if splittedFilterVal.count > requiredMinItems {
             return splittedFilterVal.map {
                 MyMPMediaPropertyPredicate(
