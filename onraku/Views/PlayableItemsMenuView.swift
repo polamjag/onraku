@@ -35,27 +35,44 @@ struct PlayableItemsMenuView: View {
     var target: PlayableItems
     var body: some View {
         Button(action: {
-            playMediaItems(items: target.asArray())
+            Task.detached {
+                let items = target.asArray()
+                playMediaItems(items: items)
+                showToastWithMessage("\(items.count) Items Playing", withSystemImage: "play.fill")
+            }
         }) {
             Label(target.count > 1 ? "Play All Now" : "Play Now", systemImage: "play")
         }
         if target.count > 1 {
             Button(action: {
-                playMediaItems(items: target.asArray().shuffled())
+                Task.detached {
+                    let items = target.asArray().shuffled()
+                    playMediaItems(items: items)
+                    showToastWithMessage("\(items.count) Items Shuffing", withSystemImage: "shuffle")
+                }
             }) {
                 Label("Shuffle All Now", systemImage: "shuffle")
             }
         }
         Divider()
         Button(action: {
-            prependMediaItems(items: target.asArray())
+            Task.detached {
+                let items = target.asArray()
+                prependMediaItems(items: items)
+                showToastWithMessage("\(items.count) Items Playing Next", withSystemImage: "text.insert")
+
+            }
         }) {
             Label(
                 target.count > 1 ? "Play All Next" : "Play Next",
                 systemImage: "text.insert")
         }
         Button(action: {
-            appendMediaItems(items: target.asArray())
+            Task.detached {
+                let items = target.asArray()
+                appendMediaItems(items: items)
+                showToastWithMessage("\(items.count) Items Playing Last", withSystemImage: "text.append")
+            }
         }) {
             Label(
                 target.count > 1 ? "Play All Last" : "Play Last",
