@@ -87,9 +87,9 @@ struct PlayableItemsAboveAndBelowMenuView: View {
         var menuLabel: (String, String) {
             switch self {
             case .thisAndAbove:
-                return ("This and Above...", "arrow.down.to.line")
+                return ("This and Above...", "rectangle.portrait.topthird.inset.filled")
             case .thisAndBelow:
-                return ("This and Below...", "arrow.down")
+                return ("This and Below...", "rectangle.portrait.bottomthird.inset.filled")
             }
         }
     }
