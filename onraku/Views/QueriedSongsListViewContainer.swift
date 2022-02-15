@@ -114,11 +114,6 @@ struct QueriedSongsListViewContainer: View {
                                 artwork: song.artwork
                             ).contextMenu {
                                 PlayableItemsMenuView(target: .one(song))
-                                if vm.songs.count > 2 {
-                                    Divider()
-                                    PlayableItemsAboveAndBelowMenuView(
-                                        target: vm.enumeratedSortedSongs, currentIndex: index)
-                                }
                             }
                         }
                     }

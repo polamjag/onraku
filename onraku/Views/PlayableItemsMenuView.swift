@@ -89,51 +89,6 @@ struct PlayableItemsMenuView: View {
     }
 }
 
-struct PlayableItemsAboveAndBelowMenuView: View {
-    var target: [EnumeratedSequence<[MPMediaItem]>.Element]
-    var currentIndex: Int
-
-    private enum OperationPatterns: String, CaseIterable, Identifiable {
-        case thisAndAbove, thisAndBelow
-
-        func getTargets(target: [EnumeratedSequence<[MPMediaItem]>.Element], currentIndex: Int)
-            -> [MPMediaItem]
-        {
-            switch self {
-            case .thisAndAbove:
-                return target.map { _, x in x }.thisAndAbove(at: currentIndex)
-            case .thisAndBelow:
-                return target.map { _, x in x }.thisAndBelow(at: currentIndex)
-            }
-        }
-
-        var id: String { rawValue }
-
-        var menuLabel: (String, String) {
-            switch self {
-            case .thisAndAbove:
-                return ("This and Above...", "rectangle.portrait.topthird.inset.filled")
-            case .thisAndBelow:
-                return ("This and Below...", "rectangle.portrait.bottomthird.inset.filled")
-            }
-        }
-    }
-
-    var body: some View {
-        if currentIndex != 0 && target.count != currentIndex - 1 {
-            ForEach(OperationPatterns.allCases) { pattern in
-                Menu {
-                    PlayableItemsMenuView(
-                        target: .array(
-                            pattern.getTargets(target: target, currentIndex: currentIndex)))
-                } label: {
-                    Label(pattern.menuLabel.0, systemImage: pattern.menuLabel.1)
-                }
-            }
-        }
-    }
-}
-
 struct PlayableContentMenuView_Previews: PreviewProvider {
     static var previews: some View {
         PlayableItemsMenuView(target: .array([]))
