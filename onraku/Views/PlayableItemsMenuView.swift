@@ -43,7 +43,7 @@ struct PlayableItemsMenuView: View {
             Task.detached {
                 let items = target.asArray()
                 playMediaItems(items: items)
-                await showToastWithMessage("\(items.count) Items Playing", systemImage: "play.fill")
+                await showToastWithMessage("Playing \(items.count) Songs", systemImage: "play.fill")
             }
         }) {
             Label(target.count > 1 ? "Play All Now" : "Play Now", systemImage: "play")
@@ -54,7 +54,7 @@ struct PlayableItemsMenuView: View {
                     let items = target.asArray().shuffled()
                     playMediaItems(items: items)
                     await showToastWithMessage(
-                        "\(items.count) Items Shuffing", systemImage: "shuffle")
+                        "Shuffing \(items.count) Songs", systemImage: "shuffle")
                 }
             }) {
                 Label("Shuffle All Now", systemImage: "shuffle")
@@ -66,7 +66,7 @@ struct PlayableItemsMenuView: View {
                 let items = target.asArray()
                 prependMediaItems(items: items)
                 await showToastWithMessage(
-                    "\(items.count) Items Playing Next", systemImage: "text.insert")
+                    "Playing \(items.count) Songs Next", systemImage: "text.insert")
 
             }
         }) {
@@ -79,7 +79,7 @@ struct PlayableItemsMenuView: View {
                 let items = target.asArray()
                 appendMediaItems(items: items)
                 await showToastWithMessage(
-                    "\(items.count) Items Playing Last", systemImage: "text.append")
+                    "Playing \(items.count) Songs Last", systemImage: "text.append")
             }
         }) {
             Label(
