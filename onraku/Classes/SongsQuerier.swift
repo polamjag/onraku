@@ -104,14 +104,18 @@ func loadSongsCollectionsOf(_ type: CollectionType) async -> [SongsCollection] {
 }
 
 private func loadAllCollectionsOf(_ type: CollectionType) -> [SongsCollection] {
-    let a = type.getQueryForType()!.collections ?? []
-    return a.map {
-        return SongsCollection(
-            name: $0.getCollectionName(as: type) ?? "",
-            id: String($0.persistentID),
-            type: type,
-            items: nil
-        )
+    if let collections = type.getQueryForType()?.collections {
+        return collections.map {
+            SongsCollection(
+                name: $0.getCollectionName(as: type) ?? "",
+                id: String($0.persistentID),
+                type: type,
+                items: nil
+            )
+        }
+    } else {
+        return []
+
     }
 }
 
