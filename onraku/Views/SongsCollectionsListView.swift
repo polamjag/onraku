@@ -40,19 +40,15 @@ struct SongsCollectionsListView: View {
                 NavigationLink {
                     QueriedSongsListViewContainer(
                         filterPredicate: collection.getFilterPredicate(),
-                        songs: collection.items
+                        songs: collection.items ?? []
                     )
                 } label: {
                     HStack {
                         SongsCollectionItemView(
                             title: collection.name,
-                            itemsCount: collection.items.count,
                             showLoading: false
                         )
-                    }.lineLimit(1).contextMenu {
-                        PlayableItemsMenuView(
-                            target: .array(collection.items))
-                    }
+                    }.lineLimit(1)
                 }
             }
             .navigationTitle(title)

@@ -72,7 +72,7 @@ struct SongsCollection: Identifiable, Hashable {
     let name: String
     let id: String
     let type: CollectionType
-    let items: [MPMediaItem]
+    let items: [MPMediaItem]?
 
     func getFilterPredicate() -> MyMPMediaPropertyPredicate? {
         if let forProperty = type.queryPredicateType {
@@ -110,7 +110,7 @@ private func loadAllCollectionsOf(_ type: CollectionType) -> [SongsCollection] {
             name: $0.getCollectionName(as: type) ?? "",
             id: String($0.persistentID),
             type: type,
-            items: $0.items
+            items: nil
         )
     }
 }
