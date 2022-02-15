@@ -160,7 +160,7 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
     }
 
     do {
-        return try await task.result.get()
+        return try await task.result.get().filter { $0.mediaType == MPMediaType.music }
     } catch {
         return []
     }
