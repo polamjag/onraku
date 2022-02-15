@@ -213,7 +213,7 @@ private struct SongAndPredicates {
 }
 
 private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
-    var dic: Dictionary<MPMediaEntityPersistentID, SongAndPredicates> = [:]
+    var dic: [MPMediaEntityPersistentID: SongAndPredicates] = [:]
     for x in src {
         if dic[x.song.persistentID] != nil {
             dic[x.song.persistentID]?.predicates.append(x.predicate)
