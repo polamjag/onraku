@@ -113,7 +113,7 @@ struct QueriedSongsListViewContainer: View {
                                 tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
                                 artwork: song.artwork
                             ).contextMenu {
-                                PlayableItemsMenuView(target: .array([song]))
+                                PlayableItemsMenuView(target: .one(song))
                                 if vm.songs.count > 2 {
                                     Divider()
                                     PlayableItemsAboveAndBelowMenuView(

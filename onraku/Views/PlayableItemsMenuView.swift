@@ -9,11 +9,14 @@ import MediaPlayer
 import SwiftUI
 
 enum PlayableItems {
+    case one(MPMediaItem)
     case array([MPMediaItem])
     case enumSeq([EnumeratedSequence<[MPMediaItem]>.Element])
 
     func asArray() -> [MPMediaItem] {
         switch self {
+        case .one(let item):
+            return [item]
         case .array(let arr):
             return arr
         case .enumSeq(let en):
@@ -23,6 +26,8 @@ enum PlayableItems {
 
     var count: Int {
         switch self {
+        case .one:
+            return 1
         case .array(let arr):
             return arr.count
         case .enumSeq(let en):
