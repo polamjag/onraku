@@ -196,6 +196,20 @@ private struct SongWithPredicate {
 private struct SongAndPredicates {
     let song: MPMediaItem
     var predicates: [MyMPMediaPropertyPredicate]
+
+    var sortScore: Float {
+        self.predicates.reduce(0) { res, pred in
+            switch pred.forProperty {
+            case MPMediaItemPropertyUserGrouping:
+                return 0.5 + res
+            case MPMediaItemPropertyGenre:
+                return 0.2 + res
+            default:
+                return 1 + res
+
+            }
+        }
+    }
 }
 
 private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
@@ -207,8 +221,9 @@ private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
             dic[x.song.persistentID] = SongAndPredicates(song: x.song, predicates: [x.predicate])
         }
     }
-    
-    return dic.sorted { $0.value.predicates.count > $1.value.predicates.count }.map{ $0.value.song }
+
+    // make songs with same score shuffled
+    return dic.shuffled().sorted { $0.value.sortScore > $1.value.sortScore }.map { $0.value.song }
 }
 
 func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMediaItem] {
