@@ -222,18 +222,18 @@ struct SongDetailView: View {
 
             Section {
                 NavigationLink {
-                    QueriedSongsListViewContainer(songs: relevantItems)
+                    QueriedSongsListViewContainer(title: "SuperLink", songs: relevantItems)
                 } label: {
                     SongsCollectionItemView(
-                        title: "Super Related Tracks", systemImage: "aqi.medium",
+                        title: "SuperLink", systemImage: "point.3.connected.trianglepath.dotted",
                         itemsCount: relevantItems.count)
                 }
 
                 NavigationLink {
-                    QueriedSongsListViewContainer(songs: relevantItems2)
+                    QueriedSongsListViewContainer(title: "SuperLink Encore", songs: relevantItems2)
                 } label: {
                     SongsCollectionItemView(
-                        title: "Ultimate Related Songs", systemImage: "bolt.horizontal",
+                        title: "SuperLink Encore", systemImage: "move.3d",
                         itemsCount: relevantItems2.count)
                 }
             }.task {
