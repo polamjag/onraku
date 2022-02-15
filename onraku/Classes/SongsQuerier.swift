@@ -56,7 +56,7 @@ enum CollectionType: String, Equatable, CaseIterable {
         case .genre:
             return MPMediaItemPropertyGenre
         case .playlist:
-            return nil
+            return MPMediaPlaylistPropertyName
         }
     }
 }
