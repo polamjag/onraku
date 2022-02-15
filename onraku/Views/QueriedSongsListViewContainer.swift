@@ -61,8 +61,7 @@ struct SearchHintItemView: View {
                 SongsCollectionItemView(
                     title: searchHint.someFriendlyLabel,
                     systemImage: "magnifyingglass",
-                    itemsCount: resultCount,
-                    isLoading: resultCount == nil
+                    itemsCount: resultCount
                 )
             }.disabled(shouldBeDisabled).task {
                 let res = await getSongsByPredicate(predicate: searchHint)

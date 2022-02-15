@@ -11,7 +11,7 @@ struct SongsCollectionItemView: View {
     var title: String
     var systemImage: String?
     var itemsCount: Int?
-    var isLoading: Bool
+    var showLoading: Bool = true
 
     var body: some View {
         HStack {
@@ -37,7 +37,7 @@ struct SongsCollectionItemView: View {
                     .monospacedDigit()
                     .font(.footnote)
                     .foregroundColor(.secondary)
-            } else if isLoading {
+            } else if showLoading {
                 ProgressView()
             }
         }
@@ -46,6 +46,6 @@ struct SongsCollectionItemView: View {
 
 struct SongsCollectionItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42, isLoading: false)
+        SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42, showLoading: false)
     }
 }
