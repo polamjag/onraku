@@ -9,8 +9,8 @@ import Foundation
 import MediaPlayer
 
 extension MPMediaItem: Identifiable {
-    public var id: String {
-        return String(self.persistentID)
+    public var id: UInt64 {
+        return self.persistentID
     }
 
     public var beatsPerMinuteForSorting: Int {
