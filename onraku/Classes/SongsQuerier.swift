@@ -188,6 +188,29 @@ func getNowPlayingSong() -> MPMediaItem? {
     return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
 }
 
+private struct SongWithPredicate {
+    let song: MPMediaItem
+    let predicate: MyMPMediaPropertyPredicate
+}
+
+private struct SongAndPredicates {
+    let song: MPMediaItem
+    var predicates: [MyMPMediaPropertyPredicate]
+}
+
+private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
+    var dic: Dictionary<MPMediaEntityPersistentID, SongAndPredicates> = [:]
+    for x in src {
+        if dic[x.song.persistentID] != nil {
+            dic[x.song.persistentID]?.predicates.append(x.predicate)
+        } else {
+            dic[x.song.persistentID] = SongAndPredicates(song: x.song, predicates: [x.predicate])
+        }
+    }
+    
+    return dic.sorted { $0.value.predicates.count > $1.value.predicates.count }.map{ $0.value.song }
+}
+
 func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMediaItem] {
     var filterPreds: [MyMPMediaPropertyPredicate] = [
         MyMPMediaPropertyPredicate(
@@ -228,17 +251,19 @@ func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMedi
         }.unique()
 
     do {
-        return try await withThrowingTaskGroup(of: [MPMediaItem].self) { group in
+        return try await withThrowingTaskGroup(of: [SongWithPredicate].self) { group in
             for pred in allFilters {
                 group.addTask(priority: .high) {
-                    return await getSongsByPredicate(predicate: pred)
+                    return await getSongsByPredicate(predicate: pred).map {
+                        SongWithPredicate(song: $0, predicate: pred)
+                    }
                 }
             }
-            var items: [MPMediaItem] = []
+            var items: [SongWithPredicate] = []
             for try await (gotItems) in group {
                 items += gotItems
             }
-            return items.unique().filter { $0 != item }
+            return superIntelligentSort(src: items).unique().filter { $0 != item }
         }
     } catch {
         return []
