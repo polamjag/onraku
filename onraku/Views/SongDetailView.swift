@@ -207,17 +207,8 @@ struct SongDetailView: View {
             Group {
                 HorizontalKeyValueView(key: "added at", value: song.dateAdded.formatted())
 
-                NavigationLink {
-                    MultiLineTextView(text: song.comments ?? "")
-                } label: {
-                    HorizontalKeyValueView(key: "comments", value: song.comments)
-                }.disabled(song.comments?.isEmpty ?? true)
-
-                NavigationLink {
-                    MultiLineTextView(text: song.lyrics ?? "")
-                } label: {
-                    HorizontalKeyValueView(key: "lyrics", value: song.lyrics)
-                }.disabled(song.lyrics?.isEmpty ?? true)
+                HorizontalKeyValueToSheetView(key: "comments", value: song.comments)
+                HorizontalKeyValueToSheetView(key: "lyrics", value: song.lyrics)
             }
 
             Section {
@@ -286,6 +277,28 @@ private struct HorizontalKeyValueView: View {
                 Text(fallbackValue).foregroundColor(.secondary)
             }
         }.lineLimit(1)
+    }
+}
+
+private struct HorizontalKeyValueToSheetView: View {
+    var key: String
+    var value: String?
+    @State private var isSheetShowing: Bool = false
+    
+    var isSheetAvailable: Bool {
+        value != nil
+    }
+    
+    var body: some View {
+        HorizontalKeyValueView(key: key, value: value)
+            .onTapGesture {
+                if isSheetAvailable {
+                    isSheetShowing = true
+                }
+            }
+            .sheet(isPresented: $isSheetShowing, onDismiss: { isSheetShowing = false }, content: {
+            MultiLineTextView(text: value ?? "")
+        }).disabled(!isSheetAvailable)
     }
 }
 
