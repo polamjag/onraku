@@ -23,6 +23,7 @@ protocol SongDetailLike {
     var discCount: Int { get }
     var discNumber: Int { get }
     var genre: String? { get }
+    var lastPlayedDate: Date? { get }
     var lyrics: String? { get }
     var playCount: Int { get }
     var rating: Int { get }
@@ -48,6 +49,7 @@ private struct DummySongDetail: SongDetailLike {
     var discCount: Int
     var discNumber: Int
     var genre: String?
+    var lastPlayedDate: Date?
     var lyrics: String?
     var playCount: Int
     var rating: Int
@@ -205,6 +207,8 @@ struct SongDetailView: View {
             }
 
             Group {
+                HorizontalKeyValueView(key: "last played at", value: song.lastPlayedDate?.formatted())
+
                 HorizontalKeyValueView(key: "added at", value: song.dateAdded.formatted())
 
                 HorizontalKeyValueToSheetView(key: "comments", value: song.comments)
