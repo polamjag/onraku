@@ -28,6 +28,7 @@ protocol SongDetailLike {
     var playCount: Int { get }
     var rating: Int { get }
     var releaseDate: Date? { get }
+    var releaseYear: Int? { get }
     var skipCount: Int { get }
     var title: String? { get }
     var userGrouping: String? { get }
@@ -54,6 +55,7 @@ private struct DummySongDetail: SongDetailLike {
     var playCount: Int
     var rating: Int
     var releaseDate: Date?
+    var releaseYear: Int?
     var skipCount: Int
     var title: String?
     var userGrouping: String?
@@ -61,19 +63,6 @@ private struct DummySongDetail: SongDetailLike {
 }
 
 extension MPMediaItem: SongDetailLike {}
-
-func getYear(item: MPMediaItem) -> Int? {
-    // https://stackoverflow.com/questions/45254471/release-date-of-mpmediaitem-returning-nil-swift-4
-    if let yearNumber: NSNumber = item.value(forProperty: "year") as? NSNumber,
-        yearNumber.isKind(of: NSNumber.self)
-    {
-        let year = yearNumber.intValue
-        if year != 0 {
-            return year
-        }
-    }
-    return nil
-}
 
 private let artworkSize: CGFloat = 128
 private let formatter = DateComponentsFormatter()
@@ -133,9 +122,7 @@ struct SongDetailView: View {
                             KeyValueView(
                                 key: "released at",
                                 value: releaseDate.formatted(date: .abbreviated, time: .omitted))
-                        } else if let mpitem = song as? MPMediaItem,
-                            let year = getYear(item: mpitem)
-                        {
+                        } else if let year = song.releaseYear {
                             KeyValueView(key: "released at", value: String(year))
                         }
                     }
