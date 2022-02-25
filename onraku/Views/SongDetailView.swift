@@ -64,7 +64,9 @@ extension MPMediaItem: SongDetailLike {}
 
 func getYear(item: MPMediaItem) -> Int? {
     // https://stackoverflow.com/questions/45254471/release-date-of-mpmediaitem-returning-nil-swift-4
-   if let yearNumber: NSNumber = item.value(forProperty: "year") as? NSNumber, yearNumber.isKind(of: NSNumber.self) {
+    if let yearNumber: NSNumber = item.value(forProperty: "year") as? NSNumber,
+        yearNumber.isKind(of: NSNumber.self)
+    {
         let year = yearNumber.intValue
         if year != 0 {
             return year
@@ -206,7 +208,8 @@ struct SongDetailView: View {
             }
 
             Group {
-                HorizontalKeyValueView(key: "last played at", value: song.lastPlayedDate?.formatted())
+                HorizontalKeyValueView(
+                    key: "last played at", value: song.lastPlayedDate?.formatted())
 
                 HorizontalKeyValueView(key: "added at", value: song.dateAdded.formatted())
 
@@ -287,11 +290,11 @@ private struct HorizontalKeyValueToSheetView: View {
     var key: String
     var value: String?
     @State private var isSheetShowing: Bool = false
-    
+
     var isSheetAvailable: Bool {
         value != nil
     }
-    
+
     var body: some View {
         HorizontalKeyValueView(key: key, value: value)
             .onTapGesture {
@@ -299,9 +302,12 @@ private struct HorizontalKeyValueToSheetView: View {
                     isSheetShowing = true
                 }
             }
-            .sheet(isPresented: $isSheetShowing, onDismiss: { isSheetShowing = false }, content: {
-            MultiLineTextView(text: value ?? "")
-        }).disabled(!isSheetAvailable)
+            .sheet(
+                isPresented: $isSheetShowing, onDismiss: { isSheetShowing = false },
+                content: {
+                    MultiLineTextView(text: value ?? "")
+                }
+            ).disabled(!isSheetAvailable)
     }
 }
 
