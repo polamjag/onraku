@@ -64,8 +64,7 @@ extension MPMediaItem: SongDetailLike {}
 
 func getYear(item: MPMediaItem) -> Int? {
     // https://stackoverflow.com/questions/45254471/release-date-of-mpmediaitem-returning-nil-swift-4
-    let yearNumber: NSNumber = item.value(forProperty: "year") as! NSNumber
-    if yearNumber.isKind(of: NSNumber.self) {
+   if let yearNumber: NSNumber = item.value(forProperty: "year") as? NSNumber, yearNumber.isKind(of: NSNumber.self) {
         let year = yearNumber.intValue
         if year != 0 {
             return year
