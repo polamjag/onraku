@@ -21,6 +21,7 @@ extension String {
         return
             self
             .components(separatedBy: " x ")
+            .flatMap { $0.components(separatedBy: " X ") }
             .flatMap { $0.components(separatedBy: " from ") }
             .flatMap { $0.components(separatedBy: " feat. ") }
             .flatMap { $0.components(separatedBy: " Feat. ") }
