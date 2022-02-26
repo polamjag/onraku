@@ -37,7 +37,7 @@ extension String {
         var ret: [String] = []
 
         let regex = try! NSRegularExpression(
-            pattern: #"(feat.?|feat|featuring|ft.?|Prod.)\s+(?<featuredArtist>[^()\[\]]*)"#,
+            pattern: #"(feat\.?|feat|featuring|ft\.?|Prod\.?)\s+(?<featuredArtist>[^()\[\]]*)"#,
             options: [.caseInsensitive])
         let nsrange = NSRange(self.startIndex..<self.endIndex, in: self)
         let matched = regex.matches(in: self, options: [], range: nsrange)
