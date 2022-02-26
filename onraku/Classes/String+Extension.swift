@@ -20,7 +20,7 @@ extension String {
         var ret: [String] = []
 
         let regex = try! NSRegularExpression(
-            pattern: #"(?<remixers>[^(\[-]*) (Remix|Refix|Re-fix|Rework|Bootleg|Boot)\s*[)\]-]"#,
+            pattern: #"(?<remixers>[^(\[-]*) (Remix|Refix|Re-fix|Rework|Bootleg|Boot|Flip)\s*[)\]-]"#,
             options: [.caseInsensitive])
         let nsrange = NSRange(self.startIndex..<self.endIndex, in: self)
         let matched = regex.matches(in: self, options: [], range: nsrange)

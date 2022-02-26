@@ -30,6 +30,7 @@ class onrakuTests: XCTestCase {
             (src: "hoge [foo Remix]", expected: ["foo"]),
             (src: "hoge (DJ Nantoka Remix)", expected: ["DJ Nantoka"]),
             (src: "hoge (DJ Untara Bootleg)", expected: ["DJ Untara"]),
+            (src: "hoge (bar Flip)", expected: ["bar"]),
         ]
         cases.forEach { (src, expected) in
             XCTAssertEqual(src.intelligentlyExtractRemixersCredit(), expected)
