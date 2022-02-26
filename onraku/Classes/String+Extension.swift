@@ -16,6 +16,23 @@ extension Sequence where Iterator.Element: Hashable {
 }
 
 extension String {
+    public func intelligentlyExtractRemixersCredit() -> [String] {
+        var ret: [String] = []
+
+        let regex = try! NSRegularExpression(
+            pattern: #"(?<remixers>[^(\[-]*) (Remix|Refix|Re-fix|Rework|Bootleg|Boot)\s*[)\]-]"#,
+            options: [.caseInsensitive])
+        let nsrange = NSRange(self.startIndex..<self.endIndex, in: self)
+        let matched = regex.matches(in: self, options: [], range: nsrange)
+        matched.forEach {
+            let remixers = (self as NSString).substring(with: $0.range(withName: "remixers"))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            ret.append(remixers)
+        }
+
+        return ret
+    }
+
     public func intelligentlySplitIntoSubArtists() -> [String] {
         if self.isEmpty { return [] }
         return

@@ -231,24 +231,28 @@ private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
 }
 
 func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMediaItem] {
-    var filterPreds: [MyMPMediaPropertyPredicate] = [
-        MyMPMediaPropertyPredicate(
-            value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
-            comparisonType: .equalTo),
-        MyMPMediaPropertyPredicate(
-            value: item.artist, forProperty: MPMediaItemPropertyArtist,
-            comparisonType: .contains),
-        MyMPMediaPropertyPredicate(
-            value: item.composer, forProperty: MPMediaItemPropertyComposer,
-            comparisonType: .contains),
-        MyMPMediaPropertyPredicate(
-            value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
-            comparisonType: .equalTo),
-        MyMPMediaPropertyPredicate(
-            value: item.albumArtist, forProperty: MPMediaItemPropertyAlbumArtist,
-            comparisonType: .contains),
+    var filterPreds: [MyMPMediaPropertyPredicate] =
+        (item.title?.intelligentlyExtractRemixersCredit().map {
+            MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
+        } ?? []) + [
+            MyMPMediaPropertyPredicate(
+                value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
+                comparisonType: .equalTo),
+            MyMPMediaPropertyPredicate(
+                value: item.artist, forProperty: MPMediaItemPropertyArtist,
+                comparisonType: .contains),
+            MyMPMediaPropertyPredicate(
+                value: item.composer, forProperty: MPMediaItemPropertyComposer,
+                comparisonType: .contains),
+            MyMPMediaPropertyPredicate(
+                value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
+                comparisonType: .equalTo),
+            MyMPMediaPropertyPredicate(
+                value: item.albumArtist, forProperty: MPMediaItemPropertyAlbumArtist,
+                comparisonType: .contains),
 
-    ]
+        ]
+
     if includeGenre {
         filterPreds += [
             MyMPMediaPropertyPredicate(
