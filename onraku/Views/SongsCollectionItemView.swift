@@ -46,6 +46,10 @@ struct SongsCollectionItemView: View {
 
 struct SongsCollectionItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42, showLoading: false)
+        List {
+            SongsCollectionItemView(title: "Gorgeous Label", itemsCount: nil, showLoading: false)
+            SongsCollectionItemView(title: "Gorgeous Label", itemsCount: 42, showLoading: false)
+            SongsCollectionItemView(title: "Gorgeous Label", itemsCount: nil, showLoading: true)
+        }
     }
 }

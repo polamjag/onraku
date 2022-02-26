@@ -49,9 +49,16 @@ struct SongItemView: View {
 
 struct SongItemView_Previews: PreviewProvider {
     static var previews: some View {
-        SongItemView(
-            title: "Super song 超いい曲",
-            secondaryText: "Lolem ipsum"
-        )
+        List {
+            SongItemView(
+                title: "Super song 超いい曲",
+                secondaryText: "Lolem ipsum"
+            )
+            SongItemView(
+                title: "Super song 超いい曲",
+                secondaryText: "Lolem ipsum",
+                tertiaryText: "Ultra album"
+            )
+        }
     }
 }
