@@ -234,7 +234,11 @@ func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMedi
     var filterPreds: [MyMPMediaPropertyPredicate] =
         (item.title?.intelligentlyExtractRemixersCredit().map {
             MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
-        } ?? []) + [
+        } ?? [])
+        + (item.title?.intelligentlyExtractFeaturedArtists().map {
+            MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
+        } ?? [])
+        + [
             MyMPMediaPropertyPredicate(
                 value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
                 comparisonType: .equalTo),

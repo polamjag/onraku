@@ -35,6 +35,20 @@ class onrakuTests: XCTestCase {
             XCTAssertEqual(src.intelligentlyExtractRemixersCredit(), expected)
         }
 
+        let cases2: [(src: String, expected: [String])] = [
+            (src: "hoge", expected: []),
+            (src: "hoge feat. pi yo", expected: ["pi yo"]),
+            (src: "hoge ft. bar", expected: ["bar"]),
+            (src: "hoge featuring ababa", expected: ["ababa"]),
+            (src: "hoge feat.  obobo", expected: ["obobo"]),
+            (src: "hoge feat. fuga (piyo remix)", expected: ["fuga"]),
+            (src: "hoge feat. fuga2 [piyo remix]", expected: ["fuga2"]),
+            (src: "hoge Prod. foo [piyo remix]", expected: ["foo"]),
+        ]
+        cases2.forEach { (src, expected) in
+            XCTAssertEqual(src.intelligentlyExtractFeaturedArtists(), expected)
+        }
+
         XCTAssertEqual("".intelligentlySplitIntoSubArtists(), [])
         XCTAssertEqual("hoge (aa)".intelligentlySplitIntoSubArtists(), ["hoge", "aa"])
         XCTAssertEqual("a (b), c (d)".intelligentlySplitIntoSubArtists(), ["a", "b", "c", "d"])

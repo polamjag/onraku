@@ -33,6 +33,23 @@ extension String {
         return ret
     }
 
+    public func intelligentlyExtractFeaturedArtists() -> [String] {
+        var ret: [String] = []
+
+        let regex = try! NSRegularExpression(
+            pattern: #"(feat.?|feat|featuring|ft.?|Prod.)\s+(?<featuredArtist>[^()\[\]]*)"#,
+            options: [.caseInsensitive])
+        let nsrange = NSRange(self.startIndex..<self.endIndex, in: self)
+        let matched = regex.matches(in: self, options: [], range: nsrange)
+        matched.forEach {
+            let remixers = (self as NSString).substring(with: $0.range(withName: "featuredArtist"))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            ret.append(remixers)
+        }
+
+        return ret
+    }
+
     public func intelligentlySplitIntoSubArtists() -> [String] {
         if self.isEmpty { return [] }
         return
