@@ -58,6 +58,7 @@
 		6032AC6D27B7D18000686A99 /* QueriedSongsListViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueriedSongsListViewContainer.swift; sourceTree = "<group>"; };
 		6044F06A27B7EAB60083A506 /* MultiLineTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiLineTextView.swift; sourceTree = "<group>"; };
 		6044F06C27B7FDF00083A506 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
+		6061CF5927CCEAB70040B4C4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6092533227B60B7A00E23931 /* onraku.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = onraku.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6092533527B60B7A00E23931 /* onrakuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = onrakuApp.swift; sourceTree = "<group>"; };
 		6092533727B60B7A00E23931 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -135,6 +136,7 @@
 		6092533427B60B7A00E23931 /* onraku */ = {
 			isa = PBXGroup;
 			children = (
+				6061CF5927CCEAB70040B4C4 /* Info.plist */,
 				6092533527B60B7A00E23931 /* onrakuApp.swift */,
 				6092536C27B78C1B00E23931 /* Classes */,
 				6092536D27B78C2800E23931 /* Views */,
@@ -524,6 +526,7 @@
 				DEVELOPMENT_TEAM = LWW9E66T79;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = onraku/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This application is designed to help you browse your music library efficiently. Therefore we need permission to access your music library in order to work.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -556,6 +559,7 @@
 				DEVELOPMENT_TEAM = LWW9E66T79;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = onraku/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "This application is designed to help you browse your music library efficiently. Therefore we need permission to access your music library in order to work.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
