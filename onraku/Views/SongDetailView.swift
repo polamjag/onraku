@@ -279,7 +279,7 @@ private struct HorizontalKeyValueToSheetView: View {
     @State private var isSheetShowing: Bool = false
 
     var isSheetAvailable: Bool {
-        value != nil
+        ((value?.isEmpty) == false)
     }
 
     var body: some View {
