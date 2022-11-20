@@ -147,11 +147,6 @@ struct QueriedSongsListViewContainer: View {
 
 struct FilterPredicateConfiguration {
     var filterPredicate: MyMPMediaPropertyPredicate
-    var isExactMatch: Bool
-
-    func load() async -> [MPMediaItem] {
-        return []
-    }
 }
 
 extension QueriedSongsListViewContainer {
@@ -206,8 +201,7 @@ extension QueriedSongsListViewContainer {
 
                 if let filterPredicate {
                     self.filterPredicateConfig = FilterPredicateConfiguration(
-                        filterPredicate: filterPredicate,
-                        isExactMatch: filterPredicate.comparisonType == .equalTo
+                        filterPredicate: filterPredicate
                     )
                 }
 
@@ -220,7 +214,7 @@ extension QueriedSongsListViewContainer {
                 return MyMPMediaPropertyPredicate(
                     value: config.filterPredicate.value,
                     forProperty: config.filterPredicate.forProperty,
-                    comparisonType: config.isExactMatch ? .equalTo : .contains
+                    comparisonType: isExactMatch ? .equalTo : .contains
                 )
             }
             return nil
