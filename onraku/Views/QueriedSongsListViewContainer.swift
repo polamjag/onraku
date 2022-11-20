@@ -8,19 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-enum SongsSortKey: String, Equatable, CaseIterable {
-    case none = "Default"
-    case title = "Title"
-    case album = "Album"
-    case artist = "Artist"
-    case genre = "Genre"
-    case userGrouping = "User Grouping"
-    case addedAt = "Date Added"
-    case bpm = "BPM"
-    case playCountDesc = "Most Played"
-    case playCountAsc = "Least Played"
-}
-
 private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey) -> String? {
     switch withHint {
     case .none, .title, .artist:
@@ -103,7 +90,7 @@ struct QueriedSongsListViewContainer: View {
                 LoadingCellView()
             } else {
                 Section(footer: Text("\(vm.songs.count) songs")) {
-                    ForEach(vm.enumeratedSortedSongs, id: \.element) { index, song in
+                    ForEach(vm.sortedSongs) { song in
                         NavigationLink {
                             SongDetailView(song: song)
                         } label: {
@@ -130,10 +117,10 @@ struct QueriedSongsListViewContainer: View {
                             systemName: vm.isExactMatch
                                 ? "magnifyingglass.circle.fill"
                                 : "magnifyingglass.circle")
-                    }.disabled(!vm.exactMatchSettable)
+                    }.disabled(!vm.isExactMatchConfigurable)
 
                     Menu {
-                        PlayableItemsMenuView(target: .enumSeq(vm.enumeratedSortedSongs))
+                        PlayableItemsMenuView(target: .array(vm.sortedSongs))
                         Menu {
                             Picker("sort by", selection: $vm.sort) {
                                 ForEach(SongsSortKey.allCases, id: \.self) { value in
@@ -150,7 +137,7 @@ struct QueriedSongsListViewContainer: View {
                     }
                 }
             }.refreshable {
-                await vm.refreshQuery()
+                await vm.performRefresh()
             }.task {
                 await vm.setProps(songs: songs, filterPredicate: filterPredicate)
                 await vm.initializeIfNeeded()
@@ -158,10 +145,26 @@ struct QueriedSongsListViewContainer: View {
     }
 }
 
+struct FilterPredicateConfiguration {
+    var filterPredicate: MyMPMediaPropertyPredicate
+    var isExactMatch: Bool
+
+    func load() async -> [MPMediaItem] {
+        return []
+    }
+}
+
 extension QueriedSongsListViewContainer {
     class ViewModel: ObservableObject {
         @Published private(set) var songs: [MPMediaItem] = []
-        private var filterPredicate: MyMPMediaPropertyPredicate?
+        @MainActor private var loadState: LoadingState = .initial
+
+        private var filterPredicateConfig: FilterPredicateConfiguration?
+
+        @MainActor var isExactMatchConfigurable: Bool {
+            self.filterPredicateConfig != nil
+        }
+        
         @Published @MainActor var isExactMatch: Bool = true {
             didSet {
                 if self.isPropsSet {
@@ -172,27 +175,21 @@ extension QueriedSongsListViewContainer {
             }
         }
 
-        @MainActor var exactMatchSettable: Bool {
-            return filterPredicate != nil
-        }
-
         @Published @MainActor var sort: SongsSortKey = .none {
             didSet {
                 Task {
                     await MainActor.run { self.loadState = .loading }
-                    await setSortedSongs()
+                    await updateSortedSongs()
                     await MainActor.run { self.loadState = .loaded }
                 }
             }
         }
 
-        @Published @MainActor var loadState: LoadingState = .initial
         @MainActor var shouldShowLoadingIndicator: Bool {
             return loadState == .loading
         }
 
-        @Published @MainActor var enumeratedSortedSongs:
-            [EnumeratedSequence<[MPMediaItem]>.Element] = []
+        @Published @MainActor var sortedSongs: [MPMediaItem] = []
 
         private var isPropsSet = false
 
@@ -209,11 +206,13 @@ extension QueriedSongsListViewContainer {
                 self.loadState = needsInitialization ? .initial : .loaded
 
                 self.songs = songs
-                self.enumeratedSortedSongs = Array(songs.enumerated())
+                self.sortedSongs = songs
 
-                if let filterPredicate = filterPredicate {
-                    self.filterPredicate = filterPredicate
-                    self.isExactMatch = filterPredicate.comparisonType == .equalTo
+                if let filterPredicate {
+                    self.filterPredicateConfig = FilterPredicateConfiguration(
+                        filterPredicate: filterPredicate,
+                        isExactMatch: filterPredicate.comparisonType == .equalTo
+                    )
                 }
 
                 self.isPropsSet = true
@@ -221,11 +220,11 @@ extension QueriedSongsListViewContainer {
         }
 
         @MainActor var computedPredicate: MyMPMediaPropertyPredicate? {
-            if let filterPredicate = filterPredicate {
+            if let config = filterPredicateConfig {
                 return MyMPMediaPropertyPredicate(
-                    value: filterPredicate.value,
-                    forProperty: filterPredicate.forProperty,
-                    comparisonType: isExactMatch ? .equalTo : .contains
+                    value: config.filterPredicate.value,
+                    forProperty: config.filterPredicate.forProperty,
+                    comparisonType: config.isExactMatch ? .equalTo : .contains
                 )
             }
             return nil
@@ -237,7 +236,7 @@ extension QueriedSongsListViewContainer {
             }
         }
 
-        func refreshQuery() async {
+        func performRefresh() async {
             return await query(loadingState: .loadingByPullToRefresh)
         }
 
@@ -245,7 +244,7 @@ extension QueriedSongsListViewContainer {
             return await query(loadingState: .loading)
         }
 
-        @MainActor func query(loadingState: LoadingState) async {
+        @MainActor private func query(loadingState: LoadingState) async {
             if let computedPredicate = computedPredicate {
                 let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
                     loadState = loadingState
@@ -256,53 +255,18 @@ extension QueriedSongsListViewContainer {
                     songs = gotSongs
                     loadState = .loaded
                 }
-                await setSortedSongs()
+                await updateSortedSongs()
             }
         }
 
-        func setSortedSongs() async {
-            let sorting = await MainActor.run { () -> SongsSortKey in return self.sort }
-            let task = Task.detached(priority: .high) { [self] () -> [MPMediaItem] in
-                switch sorting {
-                case .addedAt:
-                    return songs.sorted { $0.dateAdded < $1.dateAdded }
-                case .title:
-                    return songs.sorted { $0.title ?? "" < $1.title ?? "" }
-                case .album:
-                    return songs.sorted { $0.albumTitle ?? "" < $1.albumTitle ?? "" }
-                case .artist:
-                    return songs.sorted { $0.artist ?? "" < $1.artist ?? "" }
-                case .genre:
-                    return songs.sorted { $0.genre ?? "" < $1.genre ?? "" }
-                case .userGrouping:
-                    return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
-                case .bpm:
-                    return songs.sorted {
-                        $0.beatsPerMinuteForSorting
-                            < $1.beatsPerMinuteForSorting
-                    }
-                case .playCountAsc:
-                    return songs.sorted { $0.playCount < $1.playCount }
-                case .playCountDesc:
-                    return songs.sorted { $0.playCount > $1.playCount }
-                default:
-                    return songs
-                }
-            }
-
-            do {
-                let sortedSongs = try await Array(task.result.get().enumerated())
-                await MainActor.run {
-                    self.enumeratedSortedSongs = sortedSongs
-                }
-            } catch {
-
-            }
+        @MainActor private func updateSortedSongs() async {
+            self.sortedSongs = await sortSongs(songs: self.songs, by: self.sort)
+            self.loadState = .loaded
         }
 
         var searchHints: [MyMPMediaPropertyPredicate] {
-            if let filterPredicate = filterPredicate {
-                return filterPredicate.getNextSearchHints()
+            if let filterPredicateConfig {
+                return filterPredicateConfig.filterPredicate.getNextSearchHints()
             } else {
                 return []
             }
