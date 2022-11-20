@@ -230,7 +230,9 @@ private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
     return dic.shuffled().sorted { $0.value.sortScore > $1.value.sortScore }.map { $0.value.song }
 }
 
-func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMediaItem] {
+private func getRelevantItemsQuery(for item: MPMediaItem, includeGenre: Bool)
+    -> [MyMPMediaPropertyPredicate]
+{
     var filterPreds: [MyMPMediaPropertyPredicate] =
         (item.title?.intelligentlyExtractRemixersCredit().map {
             MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
@@ -276,6 +278,14 @@ func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async -> [MPMedi
                 return false
             }
         }.unique()
+
+    return allFilters
+}
+
+func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async
+    -> [MPMediaItem]
+{
+    let allFilters = getRelevantItemsQuery(for: item, includeGenre: includeGenre)
 
     do {
         return try await withThrowingTaskGroup(of: [SongWithPredicate].self) { group in
