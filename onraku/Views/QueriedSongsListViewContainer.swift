@@ -137,7 +137,7 @@ struct QueriedSongsListViewContainer: View {
                     }
                 }
             }.refreshable {
-                await vm.refreshQuery()
+                await vm.performRefresh()
             }.task {
                 await vm.setProps(songs: songs, filterPredicate: filterPredicate)
                 await vm.initializeIfNeeded()
@@ -237,7 +237,7 @@ extension QueriedSongsListViewContainer {
             }
         }
 
-        func refreshQuery() async {
+        func performRefresh() async {
             return await query(loadingState: .loadingByPullToRefresh)
         }
 
@@ -245,7 +245,7 @@ extension QueriedSongsListViewContainer {
             return await query(loadingState: .loading)
         }
 
-        @MainActor func query(loadingState: LoadingState) async {
+        @MainActor private func query(loadingState: LoadingState) async {
             if let computedPredicate = computedPredicate {
                 let predicate = await MainActor.run { () -> MyMPMediaPropertyPredicate in
                     loadState = loadingState
@@ -260,7 +260,7 @@ extension QueriedSongsListViewContainer {
             }
         }
 
-        func setSortedSongs() async {
+        private func setSortedSongs() async {
             let sorting = await MainActor.run { () -> SongsSortKey in return self.sort }
             let sortedSongs = Array((await sortSongs(songs: songs, by: sorting)).enumerated())
 
