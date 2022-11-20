@@ -18,17 +18,18 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
                 return []
             }
         } else {
-            return MPMediaQuery(
-                filterPredicates: Set([
-                    MPMediaPropertyPredicate(
-                        value: predicate.value,
-                        forProperty: predicate.forProperty,
-                        comparisonType: predicate.comparisonType)
-                ])
-            ).items ?? []
+            return
+                MPMediaQuery(
+                    filterPredicates: Set([
+                        MPMediaPropertyPredicate(
+                            value: predicate.value,
+                            forProperty: predicate.forProperty,
+                            comparisonType: predicate.comparisonType)
+                    ])
+                ).items ?? []
         }
     }
-    
+
     do {
         return try await task.result.get().filter { $0.mediaType == MPMediaType.music }
     } catch {
@@ -39,19 +40,19 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
 private func getSongsByUserGrouping(
     userGrouping: String, comparisonType: MPMediaPredicateComparison
 )
--> [MPMediaItem]
+    -> [MPMediaItem]
 {
     let songs = MPMediaQuery.songs().items ?? []
-    
+
     switch comparisonType {
-        case .equalTo:
-            return songs.filter { ($0.userGrouping ?? "") == userGrouping }
-        case .contains:
-            return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
-        @unknown default:
-            return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
+    case .equalTo:
+        return songs.filter { ($0.userGrouping ?? "") == userGrouping }
+    case .contains:
+        return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
+    @unknown default:
+        return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
     }
-    
+
 }
 
 func getNowPlayingSong() -> MPMediaItem? {
@@ -66,17 +67,17 @@ private struct SongWithPredicate {
 private struct SongAndPredicates {
     let song: MPMediaItem
     var predicates: [MyMPMediaPropertyPredicate]
-    
+
     var sortScore: Float {
         self.predicates.reduce(0) { res, pred in
             switch pred.forProperty {
-                case MPMediaItemPropertyUserGrouping:
-                    return 0.5 + res
-                case MPMediaItemPropertyGenre:
-                    return 0.2 + res
-                default:
-                    return 1 + res
-                    
+            case MPMediaItemPropertyUserGrouping:
+                return 0.5 + res
+            case MPMediaItemPropertyGenre:
+                return 0.2 + res
+            default:
+                return 1 + res
+
             }
         }
     }
@@ -91,40 +92,40 @@ private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
             dic[x.song.persistentID] = SongAndPredicates(song: x.song, predicates: [x.predicate])
         }
     }
-    
+
     // make songs with same score shuffled
     return dic.shuffled().sorted { $0.value.sortScore > $1.value.sortScore }.map { $0.value.song }
 }
 
 private func getRelevantItemsQuery(for item: MPMediaItem, includeGenre: Bool)
--> [MyMPMediaPropertyPredicate]
+    -> [MyMPMediaPropertyPredicate]
 {
     var filterPreds: [MyMPMediaPropertyPredicate] =
-    (item.title?.intelligentlyExtractRemixersCredit().map {
-        MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
-    } ?? [])
-    + (item.title?.intelligentlyExtractFeaturedArtists().map {
-        MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
-    } ?? [])
-    + [
-        MyMPMediaPropertyPredicate(
-            value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
-            comparisonType: .equalTo),
-        MyMPMediaPropertyPredicate(
-            value: item.artist, forProperty: MPMediaItemPropertyArtist,
-            comparisonType: .contains),
-        MyMPMediaPropertyPredicate(
-            value: item.composer, forProperty: MPMediaItemPropertyComposer,
-            comparisonType: .contains),
-        MyMPMediaPropertyPredicate(
-            value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
-            comparisonType: .equalTo),
-        MyMPMediaPropertyPredicate(
-            value: item.albumArtist, forProperty: MPMediaItemPropertyAlbumArtist,
-            comparisonType: .contains),
-        
-    ]
-    
+        (item.title?.intelligentlyExtractRemixersCredit().map {
+            MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
+        } ?? [])
+        + (item.title?.intelligentlyExtractFeaturedArtists().map {
+            MyMPMediaPropertyPredicate(value: $0, forProperty: MPMediaItemPropertyArtist)
+        } ?? [])
+        + [
+            MyMPMediaPropertyPredicate(
+                value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
+                comparisonType: .equalTo),
+            MyMPMediaPropertyPredicate(
+                value: item.artist, forProperty: MPMediaItemPropertyArtist,
+                comparisonType: .contains),
+            MyMPMediaPropertyPredicate(
+                value: item.composer, forProperty: MPMediaItemPropertyComposer,
+                comparisonType: .contains),
+            MyMPMediaPropertyPredicate(
+                value: item.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle,
+                comparisonType: .equalTo),
+            MyMPMediaPropertyPredicate(
+                value: item.albumArtist, forProperty: MPMediaItemPropertyAlbumArtist,
+                comparisonType: .contains),
+
+        ]
+
     if includeGenre {
         filterPreds += [
             MyMPMediaPropertyPredicate(
@@ -135,24 +136,24 @@ private func getRelevantItemsQuery(for item: MPMediaItem, includeGenre: Bool)
                 comparisonType: .contains),
         ]
     }
-    
+
     let allFilters: [MyMPMediaPropertyPredicate] =
-    (filterPreds.flatMap { [$0] + $0.getNextSearchHints() }).filter {
-        if let s = $0.value as? String, !s.isEmpty {
-            return true
-        } else {
-            return false
-        }
-    }.unique()
-    
+        (filterPreds.flatMap { [$0] + $0.getNextSearchHints() }).filter {
+            if let s = $0.value as? String, !s.isEmpty {
+                return true
+            } else {
+                return false
+            }
+        }.unique()
+
     return allFilters
 }
 
 private func queryMultiPredicates(predicates: [MyMPMediaPropertyPredicate]) async
--> [SongWithPredicate]
+    -> [SongWithPredicate]
 {
     var songsWithPreds: [SongWithPredicate] = []
-    
+
     do {
         try await withThrowingTaskGroup(of: [SongWithPredicate].self) { group in
             for pred in predicates {
@@ -168,17 +169,17 @@ private func queryMultiPredicates(predicates: [MyMPMediaPropertyPredicate]) asyn
         }
     } catch {
     }
-    
+
     return songsWithPreds
 }
 
 func getRelevantItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth: Int = 1) async
--> [MPMediaItem]
+    -> [MPMediaItem]
 {
     let allPredicates = getRelevantItemsQuery(for: item, includeGenre: includeGenre)
-    
+
     var firstResult = await queryMultiPredicates(predicates: allPredicates)
-    
+
     if depth > 1 {
         for _ in 2...depth {
             let relevantItemsQuery = firstResult.flatMap { sp in
@@ -187,6 +188,6 @@ func getRelevantItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth:
             firstResult += await queryMultiPredicates(predicates: relevantItemsQuery)
         }
     }
-    
+
     return superIntelligentSort(src: firstResult).unique().filter { $0 != item }
 }

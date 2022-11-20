@@ -207,7 +207,7 @@ extension QueriedSongsListViewContainer {
                 let needsInitialization = filterPredicate != nil && songs.isEmpty
 
                 self.loadState = needsInitialization ? .initial : .loaded
-                
+
                 self.songs = songs
                 self.enumeratedSortedSongs = Array(songs.enumerated())
 
