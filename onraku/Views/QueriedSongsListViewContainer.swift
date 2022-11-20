@@ -157,7 +157,7 @@ struct FilterPredicateConfiguration {
 extension QueriedSongsListViewContainer {
     class ViewModel: ObservableObject {
         @Published private(set) var songs: [MPMediaItem] = []
-        @Published @MainActor var loadState: LoadingState = .initial
+        @MainActor private var loadState: LoadingState = .initial
 
         private var filterPredicateConfig: FilterPredicateConfiguration?
 
