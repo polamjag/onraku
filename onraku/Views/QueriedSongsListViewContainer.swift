@@ -178,9 +178,7 @@ extension QueriedSongsListViewContainer {
         @Published @MainActor var sort: SongsSortKey = .none {
             didSet {
                 Task {
-                    await MainActor.run { self.loadState = .loading }
                     await updateSortedSongs()
-                    await MainActor.run { self.loadState = .loaded }
                 }
             }
         }
@@ -200,10 +198,8 @@ extension QueriedSongsListViewContainer {
             if self.isPropsSet { return }
 
             await MainActor.run {
-                self.loadState = .loading
                 let needsInitialization = filterPredicate != nil && songs.isEmpty
-
-                self.loadState = needsInitialization ? .initial : .loaded
+                self.loadState = needsInitialization ? .loading : .loaded
 
                 self.songs = songs
                 self.sortedSongs = songs
@@ -253,13 +249,13 @@ extension QueriedSongsListViewContainer {
                 let gotSongs = await getSongsByPredicate(predicate: predicate)
                 await MainActor.run {
                     songs = gotSongs
-                    loadState = .loaded
                 }
                 await updateSortedSongs()
             }
         }
 
         @MainActor private func updateSortedSongs() async {
+            self.loadState = .loading
             self.sortedSongs = await sortSongs(songs: self.songs, by: self.sort)
             self.loadState = .loaded
         }
