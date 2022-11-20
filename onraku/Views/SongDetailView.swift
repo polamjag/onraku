@@ -71,8 +71,8 @@ struct SongDetailView: View {
     var song: SongDetailLike
     var title: String?
 
-    @State private var relevantItems: [MPMediaItem] = []
-    @State private var relevantItems2: [MPMediaItem] = []
+    @StateObject private var relevantItems = SuperLinkViewModel()
+    @StateObject private var relevantItems2 = SuperLinkViewModel()
 
     var body: some View {
         List {
@@ -206,25 +206,26 @@ struct SongDetailView: View {
 
             Section {
                 NavigationLink {
-                    QueriedSongsListViewContainer(title: "SuperLink", songs: relevantItems)
+                    QueriedSongsListViewContainer(title: "SuperLink", songs: relevantItems.songs)
                 } label: {
                     SongsCollectionItemView(
                         title: "SuperLink", systemImage: "point.3.connected.trianglepath.dotted",
-                        itemsCount: relevantItems.count)
+                        itemsCount: relevantItems.songs.count,
+                        showLoading: relevantItems.loadingState == .loading)
                 }
 
                 NavigationLink {
-                    QueriedSongsListViewContainer(title: "SuperLink Encore", songs: relevantItems2)
+                    QueriedSongsListViewContainer(
+                        title: "SuperLink Encore", songs: relevantItems2.songs)
                 } label: {
                     SongsCollectionItemView(
                         title: "SuperLink Encore", systemImage: "move.3d",
-                        itemsCount: relevantItems2.count)
+                        itemsCount: relevantItems2.songs.count,
+                        showLoading: relevantItems2.loadingState == .loading)
                 }
             }.task {
-                relevantItems = await getRelevantItems(
-                    of: song as! MPMediaItem, includeGenre: false)
-                relevantItems2 = await getRelevantItems(
-                    of: song as! MPMediaItem, includeGenre: false, withDepth: 2)
+                await relevantItems.load(for: song as! MPMediaItem, withDepth: 1)
+                await relevantItems2.load(for: song as! MPMediaItem, withDepth: 2)
             }
         }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -234,6 +235,26 @@ struct SongDetailView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
+        }
+    }
+}
+
+extension SongDetailView {
+    class SuperLinkViewModel: ObservableObject {
+        @MainActor @Published var songs: [MPMediaItem] = []
+        @MainActor @Published var loadingState: LoadingState = .initial
+
+        @MainActor func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
+            self.loadingState = .loading
+
+            let items = Task.detached { () -> [MPMediaItem] in
+                await getRelevantItems(of: song, includeGenre: false, withDepth: linkDepth)
+            }
+
+            do {
+                self.songs = try await items.result.get()
+                self.loadingState = .loaded
+            } catch {}
         }
     }
 }

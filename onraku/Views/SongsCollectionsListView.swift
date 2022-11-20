@@ -8,10 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-enum LoadingState {
-    case initial, loading, loaded, loadingByPullToRefresh
-}
-
 struct SongsCollectionsListView: View {
     @State @MainActor var collections: [SongsCollection] = []
     @State var loadState: LoadingState = .initial

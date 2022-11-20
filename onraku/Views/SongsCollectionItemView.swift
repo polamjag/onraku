@@ -32,13 +32,13 @@ struct SongsCollectionItemView: View {
                 }
             }
             Spacer()
-            if let itemsCount = itemsCount {
+            if showLoading {
+                ProgressView()
+            } else if let itemsCount = itemsCount {
                 Text(String(itemsCount))
                     .monospacedDigit()
                     .font(.footnote)
                     .foregroundColor(.secondary)
-            } else if showLoading {
-                ProgressView()
             }
         }
     }
