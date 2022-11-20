@@ -140,3 +140,54 @@ private func loadAllUserGroupings() -> [SongsCollection] {
         )
     }
 }
+
+func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMediaItem] {
+    let task = Task.detached(priority: .high) { () -> [MPMediaItem] in
+        if predicate.forProperty == MPMediaItemPropertyUserGrouping {
+            if let s = predicate.value as? String {
+                return getSongsByUserGrouping(
+                    userGrouping: s, comparisonType: predicate.comparisonType)
+            } else {
+                return []
+            }
+        } else {
+            return
+                MPMediaQuery(
+                    filterPredicates: Set([
+                        MPMediaPropertyPredicate(
+                            value: predicate.value,
+                            forProperty: predicate.forProperty,
+                            comparisonType: predicate.comparisonType)
+                    ])
+                ).items ?? []
+        }
+    }
+
+    do {
+        return try await task.result.get().filter { $0.mediaType == MPMediaType.music }
+    } catch {
+        return []
+    }
+}
+
+private func getSongsByUserGrouping(
+    userGrouping: String, comparisonType: MPMediaPredicateComparison
+)
+    -> [MPMediaItem]
+{
+    let songs = MPMediaQuery.songs().items ?? []
+
+    switch comparisonType {
+    case .equalTo:
+        return songs.filter { ($0.userGrouping ?? "") == userGrouping }
+    case .contains:
+        return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
+    @unknown default:
+        return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
+    }
+
+}
+
+func getNowPlayingSong() -> MPMediaItem? {
+    return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
+}
