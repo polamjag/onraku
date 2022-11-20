@@ -260,7 +260,8 @@ extension QueriedSongsListViewContainer {
         }
 
         @MainActor private func updateSortedSongs() async {
-            sortedSongs = await sortSongs(songs: self.songs, by: self.sort)
+            self.sortedSongs = await sortSongs(songs: self.songs, by: self.sort)
+            self.loadState = .loaded
         }
 
         var searchHints: [MyMPMediaPropertyPredicate] {
