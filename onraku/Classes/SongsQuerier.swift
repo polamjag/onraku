@@ -282,27 +282,45 @@ private func getRelevantItemsQuery(for item: MPMediaItem, includeGenre: Bool)
     return allFilters
 }
 
-func getRelevantItems(of item: MPMediaItem, includeGenre: Bool) async
-    -> [MPMediaItem]
+private func queryMultiPredicates(predicates: [MyMPMediaPropertyPredicate]) async
+    -> [SongWithPredicate]
 {
-    let allFilters = getRelevantItemsQuery(for: item, includeGenre: includeGenre)
+    var songsWithPreds: [SongWithPredicate] = []
 
     do {
-        return try await withThrowingTaskGroup(of: [SongWithPredicate].self) { group in
-            for pred in allFilters {
+        try await withThrowingTaskGroup(of: [SongWithPredicate].self) { group in
+            for pred in predicates {
                 group.addTask(priority: .high) {
                     return await getSongsByPredicate(predicate: pred).map {
                         SongWithPredicate(song: $0, predicate: pred)
                     }
                 }
             }
-            var items: [SongWithPredicate] = []
             for try await (gotItems) in group {
-                items += gotItems
+                songsWithPreds += gotItems
             }
-            return superIntelligentSort(src: items).unique().filter { $0 != item }
         }
     } catch {
-        return []
     }
+
+    return songsWithPreds
+}
+
+func getRelevantItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth: Int = 1) async
+    -> [MPMediaItem]
+{
+    let allPredicates = getRelevantItemsQuery(for: item, includeGenre: includeGenre)
+
+    var firstResult = await queryMultiPredicates(predicates: allPredicates)
+
+    if depth > 1 {
+        for _ in 2...depth {
+            let relevantItemsQuery = firstResult.flatMap { sp in
+                getRelevantItemsQuery(for: sp.song, includeGenre: includeGenre)
+            }.unique()
+            firstResult += await queryMultiPredicates(predicates: relevantItemsQuery)
+        }
+    }
+
+    return superIntelligentSort(src: firstResult).unique().filter { $0 != item }
 }

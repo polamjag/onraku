@@ -224,7 +224,7 @@ struct SongDetailView: View {
                 relevantItems = await getRelevantItems(
                     of: song as! MPMediaItem, includeGenre: false)
                 relevantItems2 = await getRelevantItems(
-                    of: song as! MPMediaItem, includeGenre: true)
+                    of: song as! MPMediaItem, includeGenre: false, withDepth: 2)
             }
         }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
