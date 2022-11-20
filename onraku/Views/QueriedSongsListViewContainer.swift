@@ -130,7 +130,7 @@ struct QueriedSongsListViewContainer: View {
                             systemName: vm.isExactMatch
                                 ? "magnifyingglass.circle.fill"
                                 : "magnifyingglass.circle")
-                    }.disabled(!vm.exactMatchSettable)
+                    }.disabled(!vm.isExactMatchConfigurable)
 
                     Menu {
                         PlayableItemsMenuView(target: .enumSeq(vm.enumeratedSortedSongs))
@@ -172,7 +172,7 @@ extension QueriedSongsListViewContainer {
             }
         }
 
-        @MainActor var exactMatchSettable: Bool {
+        @MainActor var isExactMatchConfigurable: Bool {
             return filterPredicate != nil
         }
 
