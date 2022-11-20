@@ -8,19 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-enum SongsSortKey: String, Equatable, CaseIterable {
-    case none = "Default"
-    case title = "Title"
-    case album = "Album"
-    case artist = "Artist"
-    case genre = "Genre"
-    case userGrouping = "User Grouping"
-    case addedAt = "Date Added"
-    case bpm = "BPM"
-    case playCountDesc = "Most Played"
-    case playCountAsc = "Least Played"
-}
-
 private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey) -> String? {
     switch withHint {
     case .none, .title, .artist:
@@ -158,10 +145,26 @@ struct QueriedSongsListViewContainer: View {
     }
 }
 
+struct FilterPredicateConfiguration {
+    var filterPredicate: MyMPMediaPropertyPredicate
+    var isExactMatch: Bool
+
+    func load() async -> [MPMediaItem] {
+        return []
+    }
+}
+
 extension QueriedSongsListViewContainer {
     class ViewModel: ObservableObject {
         @Published private(set) var songs: [MPMediaItem] = []
-        private var filterPredicate: MyMPMediaPropertyPredicate?
+        @Published @MainActor var loadState: LoadingState = .initial
+
+        private var filterPredicateConfig: FilterPredicateConfiguration?
+
+        @MainActor var isExactMatchConfigurable: Bool {
+            self.filterPredicateConfig != nil
+        }
+        
         @Published @MainActor var isExactMatch: Bool = true {
             didSet {
                 if self.isPropsSet {
@@ -170,10 +173,6 @@ extension QueriedSongsListViewContainer {
                     }
                 }
             }
-        }
-
-        @MainActor var isExactMatchConfigurable: Bool {
-            return filterPredicate != nil
         }
 
         @Published @MainActor var sort: SongsSortKey = .none {
@@ -186,7 +185,6 @@ extension QueriedSongsListViewContainer {
             }
         }
 
-        @Published @MainActor var loadState: LoadingState = .initial
         @MainActor var shouldShowLoadingIndicator: Bool {
             return loadState == .loading
         }
@@ -211,9 +209,11 @@ extension QueriedSongsListViewContainer {
                 self.songs = songs
                 self.enumeratedSortedSongs = Array(songs.enumerated())
 
-                if let filterPredicate = filterPredicate {
-                    self.filterPredicate = filterPredicate
-                    self.isExactMatch = filterPredicate.comparisonType == .equalTo
+                if let filterPredicate {
+                    self.filterPredicateConfig = FilterPredicateConfiguration(
+                        filterPredicate: filterPredicate,
+                        isExactMatch: filterPredicate.comparisonType == .equalTo
+                    )
                 }
 
                 self.isPropsSet = true
@@ -221,11 +221,11 @@ extension QueriedSongsListViewContainer {
         }
 
         @MainActor var computedPredicate: MyMPMediaPropertyPredicate? {
-            if let filterPredicate = filterPredicate {
+            if let config = filterPredicateConfig {
                 return MyMPMediaPropertyPredicate(
-                    value: filterPredicate.value,
-                    forProperty: filterPredicate.forProperty,
-                    comparisonType: isExactMatch ? .equalTo : .contains
+                    value: config.filterPredicate.value,
+                    forProperty: config.filterPredicate.forProperty,
+                    comparisonType: config.isExactMatch ? .equalTo : .contains
                 )
             }
             return nil
@@ -262,47 +262,16 @@ extension QueriedSongsListViewContainer {
 
         func setSortedSongs() async {
             let sorting = await MainActor.run { () -> SongsSortKey in return self.sort }
-            let task = Task.detached(priority: .high) { [self] () -> [MPMediaItem] in
-                switch sorting {
-                case .addedAt:
-                    return songs.sorted { $0.dateAdded < $1.dateAdded }
-                case .title:
-                    return songs.sorted { $0.title ?? "" < $1.title ?? "" }
-                case .album:
-                    return songs.sorted { $0.albumTitle ?? "" < $1.albumTitle ?? "" }
-                case .artist:
-                    return songs.sorted { $0.artist ?? "" < $1.artist ?? "" }
-                case .genre:
-                    return songs.sorted { $0.genre ?? "" < $1.genre ?? "" }
-                case .userGrouping:
-                    return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
-                case .bpm:
-                    return songs.sorted {
-                        $0.beatsPerMinuteForSorting
-                            < $1.beatsPerMinuteForSorting
-                    }
-                case .playCountAsc:
-                    return songs.sorted { $0.playCount < $1.playCount }
-                case .playCountDesc:
-                    return songs.sorted { $0.playCount > $1.playCount }
-                default:
-                    return songs
-                }
-            }
+            let sortedSongs = Array((await sortSongs(songs: songs, by: sorting)).enumerated())
 
-            do {
-                let sortedSongs = try await Array(task.result.get().enumerated())
-                await MainActor.run {
-                    self.enumeratedSortedSongs = sortedSongs
-                }
-            } catch {
-
+            await MainActor.run {
+                self.enumeratedSortedSongs = sortedSongs
             }
         }
 
         var searchHints: [MyMPMediaPropertyPredicate] {
-            if let filterPredicate = filterPredicate {
-                return filterPredicate.getNextSearchHints()
+            if let filterPredicateConfig {
+                return filterPredicateConfig.filterPredicate.getNextSearchHints()
             } else {
                 return []
             }
