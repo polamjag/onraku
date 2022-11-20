@@ -7,6 +7,6 @@
 
 import Foundation
 
-enum LoadingState {
+enum LoadingState: String {
     case initial, loading, loaded, loadingByPullToRefresh
 }
