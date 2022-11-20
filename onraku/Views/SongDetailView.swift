@@ -224,8 +224,8 @@ struct SongDetailView: View {
                         showLoading: relevantItems2.loadingState == .loading)
                 }
             }.task {
-                await relevantItems.load(for: song as! MPMediaItem, withDepth: 1)
-                await relevantItems2.load(for: song as! MPMediaItem, withDepth: 2)
+                Task { await relevantItems.load(for: song as! MPMediaItem, withDepth: 1) }
+                Task { await relevantItems2.load(for: song as! MPMediaItem, withDepth: 2) }
             }
         }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
