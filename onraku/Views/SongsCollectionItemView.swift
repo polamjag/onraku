@@ -11,7 +11,7 @@ struct SongsCollectionItemView: View {
     var title: String
     var systemImage: String?
     var itemsCount: Int?
-    var showLoading: Bool = true
+    var showLoading: Bool = false
 
     var body: some View {
         HStack {
