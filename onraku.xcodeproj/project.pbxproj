@@ -114,6 +114,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6042DA8B292A3B32007B7E21 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				60C23F6527B9659000A01DCB /* ToastView.swift */,
+				60D0CD8F27BA84F6002F43BB /* FiveStarsImageView.swift */,
+				6044F06A27B7EAB60083A506 /* MultiLineTextView.swift */,
+				60A7BA6527B91ED9002451A5 /* LoadingCellView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		6042DA8C292A3B79007B7E21 /* Menus */ = {
+			isa = PBXGroup;
+			children = (
+				6092536E27B78F8800E23931 /* PlayableItemsMenuView.swift */,
+			);
+			path = Menus;
+			sourceTree = "<group>";
+		};
 		6092532927B60B7A00E23931 = {
 			isa = PBXGroup;
 			children = (
@@ -199,18 +218,15 @@
 		6092536D27B78C2800E23931 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6042DA8B292A3B32007B7E21 /* Components */,
+				6042DA8C292A3B79007B7E21 /* Menus */,
 				6092533727B60B7A00E23931 /* ContentView.swift */,
-				60C23F6527B9659000A01DCB /* ToastView.swift */,
 				6092537427B7B54E00E23931 /* SongsCollectionsListView.swift */,
-				6044F06A27B7EAB60083A506 /* MultiLineTextView.swift */,
 				6092536827B788B300E23931 /* SongsCollectionItemView.swift */,
 				6032AC6D27B7D18000686A99 /* QueriedSongsListViewContainer.swift */,
 				6092536627B7810A00E23931 /* SongItemView.swift */,
-				6092536E27B78F8800E23931 /* PlayableItemsMenuView.swift */,
 				6092537027B791A300E23931 /* SongDetailView.swift */,
 				6032AC6B27B7C89300686A99 /* NowPlayingViewContainer.swift */,
-				60A7BA6527B91ED9002451A5 /* LoadingCellView.swift */,
-				60D0CD8F27BA84F6002F43BB /* FiveStarsImageView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
