@@ -23,7 +23,10 @@ private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey) -> St
     case .bpm:
         return item.beatsPerMinute == 0 ? "-" : String(item.beatsPerMinute)
     case .playCountAsc, .playCountDesc:
-        return String(item.playCount)
+        return "\(item.playCount) plays"
+    case .playCountPerDayDesc, .playCountPerDayAsc:
+        return
+            "\(item.playCount) / \(Int(item.dateAdded.distance(to: Date()) / 60 / 60 / 24))d = \(String(format: "%.4f", Double(item.playCount) / (item.dateAdded.distance(to: Date()) / 60 / 60 / 24)))"
     }
 }
 
@@ -159,7 +162,7 @@ extension QueriedSongsListViewContainer {
         @MainActor var isExactMatchConfigurable: Bool {
             self.filterPredicateConfig != nil
         }
-        
+
         @Published @MainActor var isExactMatch: Bool = true {
             didSet {
                 if self.isPropsSet {
