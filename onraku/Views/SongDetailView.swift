@@ -187,7 +187,7 @@ struct SongDetailView: View {
                     }
                 }.lineLimit(1)
 
-                HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
+//                HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
                 HorizontalKeyValueView(key: "play count", value: String(song.playCount))
                 HorizontalKeyValueView(
                     key: "total playback time",
