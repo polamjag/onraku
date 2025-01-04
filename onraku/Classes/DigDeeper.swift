@@ -32,7 +32,7 @@ private struct SongAndPredicates {
     }
 }
 
-private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
+private func sortByItemRelevance(src: [SongWithPredicate]) -> [MPMediaItem] {
     var dic: [MPMediaEntityPersistentID: SongAndPredicates] = [:]
     for x in src {
         if dic[x.song.persistentID] != nil {
@@ -46,7 +46,7 @@ private func superIntelligentSort(src: [SongWithPredicate]) -> [MPMediaItem] {
     return dic.shuffled().sorted { $0.value.sortScore > $1.value.sortScore }.map { $0.value.song }
 }
 
-private func getRelevantItemsQuery(for item: MPMediaItem, includeGenre: Bool)
+private func getDiggingQuery(for item: MPMediaItem, includeGenre: Bool)
     -> [MyMPMediaPropertyPredicate]
 {
     var filterPreds: [MyMPMediaPropertyPredicate] =
@@ -122,21 +122,21 @@ private func queryMultiPredicates(predicates: [MyMPMediaPropertyPredicate]) asyn
     return songsWithPreds
 }
 
-func getRelevantItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth: Int = 1) async
+func getDiggedItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth: Int = 1) async
     -> [MPMediaItem]
 {
-    let allPredicates = getRelevantItemsQuery(for: item, includeGenre: includeGenre)
+    let allPredicates = getDiggingQuery(for: item, includeGenre: includeGenre)
 
     var firstResult = await queryMultiPredicates(predicates: allPredicates)
 
     if depth > 1 {
         for _ in 2...depth {
             let relevantItemsQuery = firstResult.flatMap { sp in
-                getRelevantItemsQuery(for: sp.song, includeGenre: includeGenre)
+                getDiggingQuery(for: sp.song, includeGenre: includeGenre)
             }.unique()
             firstResult += await queryMultiPredicates(predicates: relevantItemsQuery)
         }
     }
 
-    return superIntelligentSort(src: firstResult).unique().filter { $0 != item }
+    return sortByItemRelevance(src: firstResult).unique().filter { $0 != item }
 }

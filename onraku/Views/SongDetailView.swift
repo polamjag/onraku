@@ -71,8 +71,8 @@ struct SongDetailView: View {
     var song: SongDetailLike
     var title: String?
 
-    @StateObject private var digDeeperItems = SuperLinkViewModel()
-    @StateObject private var digDeepestItems = SuperLinkViewModel()
+    @StateObject private var digDeeperItems = DiggingViewModel()
+    @StateObject private var digDeepestItems = DiggingViewModel()
 
     var body: some View {
         List {
@@ -240,7 +240,7 @@ struct SongDetailView: View {
 }
 
 extension SongDetailView {
-    class SuperLinkViewModel: ObservableObject {
+    class DiggingViewModel: ObservableObject {
         @MainActor @Published var songs: [MPMediaItem] = []
         @MainActor @Published var loadingState: LoadingState = .initial
 
@@ -248,7 +248,7 @@ extension SongDetailView {
             self.loadingState = .loading
 
             let items = Task.detached { () -> [MPMediaItem] in
-                await getRelevantItems(of: song, includeGenre: false, withDepth: linkDepth)
+                await getDiggedItems(of: song, includeGenre: false, withDepth: linkDepth)
             }
 
             self.songs = await items.result.get()
