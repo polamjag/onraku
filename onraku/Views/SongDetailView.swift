@@ -71,8 +71,8 @@ struct SongDetailView: View {
     var song: SongDetailLike
     var title: String?
 
-    @StateObject private var relevantItems = SuperLinkViewModel()
-    @StateObject private var relevantItems2 = SuperLinkViewModel()
+    @StateObject private var digDeeperItems = SuperLinkViewModel()
+    @StateObject private var digDeepestItems = SuperLinkViewModel()
 
     var body: some View {
         List {
@@ -206,26 +206,26 @@ struct SongDetailView: View {
 
             Section {
                 NavigationLink {
-                    QueriedSongsListViewContainer(title: "SuperLink", songs: relevantItems.songs)
+                    QueriedSongsListViewContainer(title: "Dig Deeper", songs: digDeeperItems.songs)
                 } label: {
                     SongsCollectionItemView(
-                        title: "SuperLink", systemImage: "point.3.connected.trianglepath.dotted",
-                        itemsCount: relevantItems.songs.count,
-                        showLoading: relevantItems.loadingState == .loading)
+                        title: "Dig Deeper", systemImage: "chevron.down.dotted.2",
+                        itemsCount: digDeeperItems.songs.count,
+                        showLoading: digDeeperItems.loadingState == .loading)
                 }
 
                 NavigationLink {
                     QueriedSongsListViewContainer(
-                        title: "SuperLink Encore", songs: relevantItems2.songs)
+                        title: "Dig Deepest", songs: digDeepestItems.songs)
                 } label: {
                     SongsCollectionItemView(
-                        title: "SuperLink Encore", systemImage: "move.3d",
-                        itemsCount: relevantItems2.songs.count,
-                        showLoading: relevantItems2.loadingState == .loading)
+                        title: "Dig Deepest", systemImage: "chevron.down.2",
+                        itemsCount: digDeepestItems.songs.count,
+                        showLoading: digDeepestItems.loadingState == .loading)
                 }
             }.task {
-                Task { await relevantItems.load(for: song as! MPMediaItem, withDepth: 1) }
-                Task { await relevantItems2.load(for: song as! MPMediaItem, withDepth: 2) }
+                Task { await digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1) }
+                Task { await digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2) }
             }
         }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
