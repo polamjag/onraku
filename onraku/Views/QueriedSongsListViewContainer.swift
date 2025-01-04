@@ -65,7 +65,7 @@ struct SearchHintItemView: View {
 
 struct QueriedSongsListViewContainer: View {
   @StateObject private var vm = ViewModel()
-  @State private var isSearchHintSectionExpanded = true
+  @State private var isSearchHintSectionExpanded = false
 
   var filterPredicate: MyMPMediaPropertyPredicate?
   var title: String?
@@ -177,7 +177,7 @@ extension QueriedSongsListViewContainer {
       self.filterPredicateConfig != nil
     }
 
-    @Published @MainActor var isExactMatch: Bool = true {
+    @Published @MainActor var isExactMatch: Bool = false {
       didSet {
         if self.isPropsSet {
           Task {
