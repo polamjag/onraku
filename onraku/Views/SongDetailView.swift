@@ -209,7 +209,7 @@ struct SongDetailView: View {
                     QueriedSongsListViewContainer(title: "Dig Deeper", songs: digDeeperItems.songs)
                 } label: {
                     SongsCollectionItemView(
-                        title: "Dig Deeper", systemImage: "chevron.down.dotted.2",
+                        title: "Dig Deeper", systemImage: "square.2.layers.3d",
                         itemsCount: digDeeperItems.songs.count,
                         showLoading: digDeeperItems.loadingState == .loading)
                 }
@@ -219,7 +219,7 @@ struct SongDetailView: View {
                         title: "Dig Deepest", songs: digDeepestItems.songs)
                 } label: {
                     SongsCollectionItemView(
-                        title: "Dig Deepest", systemImage: "chevron.down.2",
+                        title: "Dig Deepest", systemImage: "square.3.layers.3d",
                         itemsCount: digDeepestItems.songs.count,
                         showLoading: digDeepestItems.loadingState == .loading)
                 }
