@@ -15,6 +15,8 @@ struct ContentView: View {
 
   @State private var selectedTab: Tab = .Library
 
+  @StateObject private var digDeeperItems = DiggingViewModel()
+
   var body: some View {
     ZStack {
       TabView(selection: $selectedTab) {
@@ -29,11 +31,17 @@ struct ContentView: View {
                 }
               }
             }
-            
+
             Section("I'm Feeling Lucky") {
-              Label("Quick Dig", systemImage: "arrow.down.circle")
-              Label("Random Playlist", systemImage: "arrow.down.circle")
-              Label("Random User Grouping", systemImage: "arrow.down.circle")
+              NavigationLink {
+                QueriedSongsListViewContainer(
+                  title: "Quick Dig",
+                  songs: digDeeperItems.songs,
+                  predicates: digDeeperItems.predicates
+                )
+              } label: {
+                Label("Quick Dig", systemImage: "square.2.layers.3d")
+              }
             }
           }.navigationTitle("Library")
             .navigationBarTitleDisplayMode(.inline)
@@ -45,6 +53,11 @@ struct ContentView: View {
               \.symbolVariants, selectedTab == .Library ? .fill : .none)
           Text("Library")
         }.tag(Tab.Library)
+          .task {
+            if let now = getNowPlayingSong() {
+              await digDeeperItems.load(for: now, withDepth: 1)
+            }
+          }
 
         NavigationView {
           NowPlayingViewContainer()

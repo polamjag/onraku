@@ -256,30 +256,27 @@ struct SongDetailView: View {
   }
 }
 
-extension SongDetailView {
-  class DiggingViewModel: ObservableObject {
-    @MainActor @Published var songs: [MPMediaItem] = []
-    @MainActor @Published var predicates: [MyMPMediaPropertyPredicate] = []
-    @MainActor @Published var loadingState: LoadingState = .initial
+class DiggingViewModel: ObservableObject {
+  @MainActor @Published var songs: [MPMediaItem] = []
+  @MainActor @Published var predicates: [MyMPMediaPropertyPredicate] = []
+  @MainActor @Published var loadingState: LoadingState = .initial
 
-    @MainActor func load(for song: MPMediaItem, withDepth linkDepth: Int) async
-    {
-      self.loadingState = .loading
+  @MainActor func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
+    self.loadingState = .loading
 
-      let items = Task.detached {
-        () -> (
-          items: [MPMediaItem],
-          predicates: [MyMPMediaPropertyPredicate]
-        ) in
-        await getDiggedItems(
-          of: song, includeGenre: false, withDepth: linkDepth)
-      }
-
-      let res = await items.result.get()
-      self.songs = res.items
-      self.predicates = res.predicates
-      self.loadingState = .loaded
+    let items = Task.detached {
+      () -> (
+        items: [MPMediaItem],
+        predicates: [MyMPMediaPropertyPredicate]
+      ) in
+      await getDiggedItems(
+        of: song, includeGenre: false, withDepth: linkDepth)
     }
+
+    let res = await items.result.get()
+    self.songs = res.items
+    self.predicates = res.predicates
+    self.loadingState = .loaded
   }
 }
 
