@@ -251,10 +251,8 @@ extension SongDetailView {
                 await getRelevantItems(of: song, includeGenre: false, withDepth: linkDepth)
             }
 
-            do {
-                self.songs = try await items.result.get()
-                self.loadingState = .loaded
-            } catch {}
+            self.songs = await items.result.get()
+            self.loadingState = .loaded
         }
     }
 }

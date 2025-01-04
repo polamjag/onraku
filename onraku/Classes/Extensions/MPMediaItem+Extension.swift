@@ -8,7 +8,7 @@
 import Foundation
 import MediaPlayer
 
-extension MPMediaItem: Identifiable {
+extension MPMediaItem: @retroactive Identifiable {
     public var id: MPMediaEntityPersistentID {
         return self.persistentID
     }

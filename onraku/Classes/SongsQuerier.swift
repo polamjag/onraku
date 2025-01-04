@@ -96,11 +96,7 @@ func loadSongsCollectionsOf(_ type: CollectionType) async -> [SongsCollection] {
         }
     }
 
-    do {
-        return try await task.result.get()
-    } catch {
-        return []
-    }
+    return await task.result.get()
 }
 
 private func loadAllCollectionsOf(_ type: CollectionType) -> [SongsCollection] {
@@ -163,11 +159,7 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async -> [MPMedi
         }
     }
 
-    do {
-        return try await task.result.get().filter { $0.mediaType == MPMediaType.music }
-    } catch {
-        return []
-    }
+    return await task.result.get().filter { $0.mediaType == MPMediaType.music }
 }
 
 private func getSongsByUserGrouping(

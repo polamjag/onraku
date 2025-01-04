@@ -64,9 +64,5 @@ func sortSongs(songs: [MPMediaItem], by key: SongsSortKey) async -> [MPMediaItem
         }
     }
 
-    do {
-        return try await task.result.get()
-    } catch {
-        return []
-    }
+    return await task.result.get()
 }
