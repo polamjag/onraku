@@ -206,7 +206,11 @@ struct SongDetailView: View {
 
             Section {
                 NavigationLink {
-                    QueriedSongsListViewContainer(title: "Dig Deeper", songs: digDeeperItems.songs)
+                  QueriedSongsListViewContainer(
+                    title: "Dig Deeper",
+                    songs: digDeeperItems.songs,
+                    predicates: digDeeperItems.predicates
+                  )
                 } label: {
                     SongsCollectionItemView(
                         title: "Dig Deeper", systemImage: "square.2.layers.3d",
@@ -216,7 +220,7 @@ struct SongDetailView: View {
 
                 NavigationLink {
                     QueriedSongsListViewContainer(
-                        title: "Dig Deepest", songs: digDeepestItems.songs)
+                      title: "Dig Deepest", songs: digDeepestItems.songs, predicates: digDeepestItems.predicates)
                 } label: {
                     SongsCollectionItemView(
                         title: "Dig Deepest", systemImage: "square.3.layers.3d",
@@ -242,16 +246,22 @@ struct SongDetailView: View {
 extension SongDetailView {
     class DiggingViewModel: ObservableObject {
         @MainActor @Published var songs: [MPMediaItem] = []
+      @MainActor @Published var predicates: [MyMPMediaPropertyPredicate] = []
         @MainActor @Published var loadingState: LoadingState = .initial
 
         @MainActor func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
             self.loadingState = .loading
 
-            let items = Task.detached { () -> [MPMediaItem] in
+          let items = Task.detached { () -> (
+            items: [MPMediaItem],
+            predicates: [MyMPMediaPropertyPredicate]
+          ) in
                 await getDiggedItems(of: song, includeGenre: false, withDepth: linkDepth)
             }
 
-            self.songs = await items.result.get()
+            let res = await items.result.get()
+          self.songs = res.items
+          self.predicates = res.predicates
             self.loadingState = .loaded
         }
     }

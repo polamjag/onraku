@@ -63,11 +63,13 @@ struct SearchHintItemView: View {
 
 struct QueriedSongsListViewContainer: View {
     @StateObject private var vm = ViewModel()
+  @State private var isSearchHintSectionExpanded = true
 
     var filterPredicate: MyMPMediaPropertyPredicate?
     var title: String?
 
     var songs: [MPMediaItem] = []
+  var predicates: [MyMPMediaPropertyPredicate] = []
 
     var computedTitle: String {
         if let title = title {
@@ -80,71 +82,80 @@ struct QueriedSongsListViewContainer: View {
     }
 
     var body: some View {
-        List {
+          List {
             if !vm.searchHints.isEmpty {
-                Section {
-                    ForEach(vm.searchHints) { searchHint in
-                        SearchHintItemView(searchHint: searchHint)
-                    }
+              Section {
+                ForEach(vm.searchHints) { searchHint in
+                  SearchHintItemView(searchHint: searchHint)
                 }
+              }
             }
-
+            
+            if !predicates.isEmpty {
+              Section("Predicates", isExpanded: $isSearchHintSectionExpanded, content: {
+                ForEach(predicates) { predicate in
+                  SearchHintItemView(searchHint: predicate)
+                }
+              })
+            }
+            
             if vm.shouldShowLoadingIndicator {
-                LoadingCellView()
+              LoadingCellView()
             } else {
-                Section(footer: Text("\(vm.songs.count) songs")) {
-                    ForEach(vm.sortedSongs) { song in
-                        NavigationLink {
-                            SongDetailView(song: song)
-                        } label: {
-                            SongItemView(
-                                title: song.title,
-                                secondaryText: song.artist,
-                                tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
-                                artwork: song.artwork
-                            ).contextMenu {
-                                PlayableItemsMenuView(target: .one(song))
-                            }
-                        }
+              Section(footer: Text("\(vm.songs.count) songs")) {
+                ForEach(vm.sortedSongs) { song in
+                  NavigationLink {
+                    SongDetailView(song: song)
+                  } label: {
+                    SongItemView(
+                      title: song.title,
+                      secondaryText: song.artist,
+                      tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
+                      artwork: song.artwork
+                    ).contextMenu {
+                      PlayableItemsMenuView(target: .one(song))
                     }
+                  }
                 }
+              }
             }
-        }.navigationTitle(computedTitle)
+          }.navigationTitle(computedTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Menu {
-                        Toggle("Filter with Exact Match", isOn: $vm.isExactMatch)
-                    } label: {
-                        Image(
-                            systemName: vm.isExactMatch
-                                ? "magnifyingglass.circle.fill"
-                                : "magnifyingglass.circle")
-                    }.disabled(!vm.isExactMatchConfigurable)
-
-                    Menu {
-                        PlayableItemsMenuView(target: .array(vm.sortedSongs))
-                        Menu {
-                            Picker("sort by", selection: $vm.sort) {
-                                ForEach(SongsSortKey.allCases, id: \.self) { value in
-                                    Text(value.rawValue).tag(value)
-                                }
-                            }
-                        } label: {
-                            Label(
-                                "Sort Order: \(vm.sort.rawValue)",
-                                systemImage: "arrow.up.arrow.down")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+              ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                  Toggle("Filter with Exact Match", isOn: $vm.isExactMatch)
+                } label: {
+                  Image(
+                    systemName: vm.isExactMatch
+                    ? "magnifyingglass.circle.fill"
+                    : "magnifyingglass.circle")
+                }.disabled(!vm.isExactMatchConfigurable)
+                
+                Menu {
+                  PlayableItemsMenuView(target: .array(vm.sortedSongs))
+                  Menu {
+                    Picker("sort by", selection: $vm.sort) {
+                      ForEach(SongsSortKey.allCases, id: \.self) { value in
+                        Text(value.rawValue).tag(value)
+                      }
                     }
+                  } label: {
+                    Label(
+                      "Sort Order: \(vm.sort.rawValue)",
+                      systemImage: "arrow.up.arrow.down")
+                  }
+                } label: {
+                  Image(systemName: "ellipsis.circle")
                 }
+              }
             }.refreshable {
-                await vm.performRefresh()
+              await vm.performRefresh()
             }.task {
-                await vm.setProps(songs: songs, filterPredicate: filterPredicate)
-                await vm.initializeIfNeeded()
-            }
+              await vm.setProps(songs: songs, filterPredicate: filterPredicate)
+              await vm.initializeIfNeeded()
+
+            }.listStyle(.sidebar)
     }
 }
 

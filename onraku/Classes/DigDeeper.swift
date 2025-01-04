@@ -123,11 +123,13 @@ private func queryMultiPredicates(predicates: [MyMPMediaPropertyPredicate]) asyn
 }
 
 func getDiggedItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth: Int = 1) async
-    -> [MPMediaItem]
+-> (items: [MPMediaItem], predicates: [MyMPMediaPropertyPredicate])
 {
     let allPredicates = getDiggingQuery(for: item, includeGenre: includeGenre)
 
     var firstResult = await queryMultiPredicates(predicates: allPredicates)
+  
+  var usedPredicates = allPredicates
 
     if depth > 1 {
         for _ in 2...depth {
@@ -135,8 +137,12 @@ func getDiggedItems(of item: MPMediaItem, includeGenre: Bool, withDepth depth: I
                 getDiggingQuery(for: sp.song, includeGenre: includeGenre)
             }.unique()
             firstResult += await queryMultiPredicates(predicates: relevantItemsQuery)
+            usedPredicates += relevantItemsQuery
         }
     }
 
-    return sortByItemRelevance(src: firstResult).unique().filter { $0 != item }
+    let sorted = sortByItemRelevance(src: firstResult).unique().filter { $0 != item }
+  
+  return (sorted, usedPredicates)
 }
+
