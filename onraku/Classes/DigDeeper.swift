@@ -137,21 +137,20 @@ func getDiggedItems(
 
   var firstResult = await queryMultiPredicates(predicates: allPredicates)
 
-  var usedPredicates = allPredicates
-
   if depth > 1 {
     for _ in 2...depth {
       let relevantItemsQuery = firstResult.flatMap { sp in
         getDiggingQuery(for: sp.song, includeGenre: includeGenre)
       }.unique()
       firstResult += await queryMultiPredicates(predicates: relevantItemsQuery)
-      usedPredicates += relevantItemsQuery
     }
   }
 
   let sorted = sortByItemRelevance(src: firstResult).unique().filter {
     $0 != item
   }
-
-  return (sorted, usedPredicates.unique())
+  
+  let usedPredicates = firstResult.map { $0.predicate }.unique()
+  
+  return (sorted, usedPredicates)
 }
