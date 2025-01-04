@@ -10,11 +10,11 @@ import MediaPlayer
 import RegexBuilder
 
 enum CollectionType: String, Equatable, CaseIterable {
-  case playlist = "Playlist"
-  case album = "Album"
-  case artist = "Artist"
-  case genre = "Genre"
-  case userGrouping = "User Grouping"
+  case playlist = "Playlists"
+  case album = "Albums"
+  case artist = "Artists"
+  case genre = "Genres"
+  case userGrouping = "User Groupings"
 
   func getQueryForType() -> MPMediaQuery? {
     switch self {
