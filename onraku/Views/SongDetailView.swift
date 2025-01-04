@@ -67,6 +67,148 @@ extension MPMediaItem: SongDetailLike {}
 private let artworkSize: CGFloat = 128
 private let formatter = DateComponentsFormatter()
 
+struct SongMetaView: View {
+  var song: SongDetailLike
+
+  var body: some View {
+    KeyValueView(key: "title", value: song.title)
+
+    NavigationLink {
+      QueriedSongsListViewContainer(
+        filterPredicate: MyMPMediaPropertyPredicate(
+          value: song.artist, forProperty: MPMediaItemPropertyArtist))
+    } label: {
+      KeyValueView(key: "artist", value: song.artist)
+    }.disabled(song.artist?.isEmpty ?? true)
+
+    NavigationLink {
+      if let song = song as? MPMediaItem {
+        QueriedSongsListViewContainer(
+          filterPredicate: MyMPMediaPropertyPredicate(
+            value: song.albumPersistentID,
+            forProperty: MPMediaItemPropertyAlbumPersistentID),
+          title: song.albumTitle)
+      } else {
+        QueriedSongsListViewContainer(
+          filterPredicate: MyMPMediaPropertyPredicate(
+            value: song.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle
+          ),
+          title: song.albumTitle)
+      }
+    } label: {
+      HStack {
+        VStack(alignment: .leading) {
+          KeyValueView(key: "album", value: song.albumTitle)
+
+          Spacer()
+
+          Divider()
+
+          VStack(alignment: .leading) {
+            Text("Track \(song.albumTrackNumber) of \(song.albumTrackCount)")
+              .font(
+                .footnote)
+            if song.discCount > 1 || song.discNumber > 1 {
+              Text("Disc \(song.discNumber) of \(song.discCount)").font(
+                .footnote)
+            }
+          }
+
+          Spacer()
+
+          if let releaseDate = song.releaseDate {
+            KeyValueView(
+              key: "released at",
+              value: releaseDate.formatted(date: .abbreviated, time: .omitted)
+            )
+          } else if let year = song.releaseYear {
+            KeyValueView(key: "released at", value: String(year))
+          }
+        }
+        Spacer()
+
+        if let image = song.artwork?.image(
+          at: CGSize(width: artworkSize, height: artworkSize))
+        {
+          Image(uiImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: artworkSize, height: artworkSize)
+            .cornerRadius(4)
+        }
+      }
+    }.disabled(song.albumTitle?.isEmpty ?? true)
+
+    NavigationLink {
+      QueriedSongsListViewContainer(
+        filterPredicate: MyMPMediaPropertyPredicate(
+          value: song.albumArtist, forProperty: MPMediaItemPropertyArtist))
+    } label: {
+      KeyValueView(key: "album artist", value: song.albumArtist)
+    }.disabled(song.albumArtist?.isEmpty ?? true)
+
+    NavigationLink {
+      QueriedSongsListViewContainer(
+        filterPredicate: MyMPMediaPropertyPredicate(
+          value: song.composer, forProperty: MPMediaItemPropertyComposer))
+    } label: {
+      KeyValueView(key: "composer", value: song.composer)
+    }.disabled(song.composer?.isEmpty ?? true)
+
+    NavigationLink {
+      QueriedSongsListViewContainer(
+        filterPredicate: MyMPMediaPropertyPredicate(
+          value: song.userGrouping,
+          forProperty: MPMediaItemPropertyUserGrouping))
+    } label: {
+      KeyValueView(key: "user grouping", value: song.userGrouping)
+    }.disabled(song.userGrouping?.isEmpty ?? true)
+
+    NavigationLink {
+      QueriedSongsListViewContainer(
+        filterPredicate: MyMPMediaPropertyPredicate(
+          value: song.genre, forProperty: MPMediaItemPropertyGenre))
+    } label: {
+      KeyValueView(key: "genre", value: song.genre)
+    }.disabled(song.genre?.isEmpty ?? true)
+
+    Group {
+      HorizontalKeyValueView(key: "bpm", value: String(song.beatsPerMinute))
+      HorizontalKeyValueView(
+        key: "playback time",
+        value: formatter.string(from: song.playbackDuration))
+
+      HStack {
+        Text("rating").font(.footnote).foregroundColor(.secondary)
+        Spacer()
+        if 0 < song.rating && song.rating <= 5 {
+          FiveStarsImageView(rating: song.rating)
+        } else {
+          Text("-").foregroundColor(.secondary)
+        }
+      }.lineLimit(1)
+
+      //                HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
+      HorizontalKeyValueView(key: "play count", value: String(song.playCount))
+      HorizontalKeyValueView(
+        key: "total playback time",
+        value: formatter.string(
+          from: song.playbackDuration * Double(song.playCount)))
+    }
+
+    Group {
+      HorizontalKeyValueView(
+        key: "last played at", value: song.lastPlayedDate?.formatted())
+
+      HorizontalKeyValueView(
+        key: "added at", value: song.dateAdded.formatted())
+
+      HorizontalKeyValueToSheetView(key: "comments", value: song.comments)
+      HorizontalKeyValueToSheetView(key: "lyrics", value: song.lyrics)
+    }
+  }
+}
+
 struct SongDetailView: View {
   var song: SongDetailLike
   var title: String?
@@ -74,143 +216,11 @@ struct SongDetailView: View {
   @StateObject private var digDeeperItems = DiggingViewModel()
   @StateObject private var digDeepestItems = DiggingViewModel()
 
+  @StateObject private var playlistsOfSong = PlaylistsBySongViewModel()
+
   var body: some View {
     List {
-      KeyValueView(key: "title", value: song.title)
-
-      NavigationLink {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.artist, forProperty: MPMediaItemPropertyArtist))
-      } label: {
-        KeyValueView(key: "artist", value: song.artist)
-      }.disabled(song.artist?.isEmpty ?? true)
-
-      NavigationLink {
-        if let song = song as? MPMediaItem {
-          QueriedSongsListViewContainer(
-            filterPredicate: MyMPMediaPropertyPredicate(
-              value: song.albumPersistentID,
-              forProperty: MPMediaItemPropertyAlbumPersistentID),
-            title: song.albumTitle)
-        } else {
-          QueriedSongsListViewContainer(
-            filterPredicate: MyMPMediaPropertyPredicate(
-              value: song.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle
-            ),
-            title: song.albumTitle)
-        }
-      } label: {
-        HStack {
-          VStack(alignment: .leading) {
-            KeyValueView(key: "album", value: song.albumTitle)
-
-            Spacer()
-
-            Divider()
-
-            VStack(alignment: .leading) {
-              Text("Track \(song.albumTrackNumber) of \(song.albumTrackCount)")
-                .font(
-                  .footnote)
-              if song.discCount > 1 || song.discNumber > 1 {
-                Text("Disc \(song.discNumber) of \(song.discCount)").font(
-                  .footnote)
-              }
-            }
-
-            Spacer()
-
-            if let releaseDate = song.releaseDate {
-              KeyValueView(
-                key: "released at",
-                value: releaseDate.formatted(date: .abbreviated, time: .omitted)
-              )
-            } else if let year = song.releaseYear {
-              KeyValueView(key: "released at", value: String(year))
-            }
-          }
-          Spacer()
-
-          if let image = song.artwork?.image(
-            at: CGSize(width: artworkSize, height: artworkSize))
-          {
-            Image(uiImage: image)
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: artworkSize, height: artworkSize)
-              .cornerRadius(4)
-          }
-        }
-      }.disabled(song.albumTitle?.isEmpty ?? true)
-
-      NavigationLink {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.albumArtist, forProperty: MPMediaItemPropertyArtist))
-      } label: {
-        KeyValueView(key: "album artist", value: song.albumArtist)
-      }.disabled(song.albumArtist?.isEmpty ?? true)
-
-      NavigationLink {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.composer, forProperty: MPMediaItemPropertyComposer))
-      } label: {
-        KeyValueView(key: "composer", value: song.composer)
-      }.disabled(song.composer?.isEmpty ?? true)
-
-      NavigationLink {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.userGrouping,
-            forProperty: MPMediaItemPropertyUserGrouping))
-      } label: {
-        KeyValueView(key: "user grouping", value: song.userGrouping)
-      }.disabled(song.userGrouping?.isEmpty ?? true)
-
-      NavigationLink {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.genre, forProperty: MPMediaItemPropertyGenre))
-      } label: {
-        KeyValueView(key: "genre", value: song.genre)
-      }.disabled(song.genre?.isEmpty ?? true)
-
-      Group {
-        HorizontalKeyValueView(key: "bpm", value: String(song.beatsPerMinute))
-        HorizontalKeyValueView(
-          key: "playback time",
-          value: formatter.string(from: song.playbackDuration))
-
-        HStack {
-          Text("rating").font(.footnote).foregroundColor(.secondary)
-          Spacer()
-          if 0 < song.rating && song.rating <= 5 {
-            FiveStarsImageView(rating: song.rating)
-          } else {
-            Text("-").foregroundColor(.secondary)
-          }
-        }.lineLimit(1)
-
-        //                HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
-        HorizontalKeyValueView(key: "play count", value: String(song.playCount))
-        HorizontalKeyValueView(
-          key: "total playback time",
-          value: formatter.string(
-            from: song.playbackDuration * Double(song.playCount)))
-      }
-
-      Group {
-        HorizontalKeyValueView(
-          key: "last played at", value: song.lastPlayedDate?.formatted())
-
-        HorizontalKeyValueView(
-          key: "added at", value: song.dateAdded.formatted())
-
-        HorizontalKeyValueToSheetView(key: "comments", value: song.comments)
-        HorizontalKeyValueToSheetView(key: "lyrics", value: song.lyrics)
-      }
+      SongMetaView(song: song)
 
       Section {
         NavigationLink {
@@ -223,26 +233,25 @@ struct SongDetailView: View {
           SongsCollectionItemView(
             title: "Dig Deeper", systemImage: "square.2.layers.3d",
             itemsCount: digDeeperItems.songs.count,
-            showLoading: digDeeperItems.loadingState == .loading)
+            showLoading: digDeeperItems.loadingState.isLoading)
         }
 
         NavigationLink {
           QueriedSongsListViewContainer(
-            title: "Dig Deepest", songs: digDeepestItems.songs,
-            predicates: digDeepestItems.predicates)
+            title: "Dig Deepest",
+            songs: digDeepestItems.songs,
+            predicates: digDeepestItems.predicates
+          )
         } label: {
           SongsCollectionItemView(
             title: "Dig Deepest", systemImage: "square.3.layers.3d",
             itemsCount: digDeepestItems.songs.count,
-            showLoading: digDeepestItems.loadingState == .loading)
+            showLoading: digDeepestItems.loadingState.isLoading)
         }
-      }.task {
-        Task {
-          await digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1)
-        }
-        Task {
-          await digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2)
-        }
+      }
+
+      Section("Show in Playlist") {
+        playlistsView()
       }
     }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
       ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -252,7 +261,56 @@ struct SongDetailView: View {
           Image(systemName: "ellipsis.circle")
         }
       }
+    }.task {
+      _ = await [
+        digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1),
+        digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2),
+        playlistsOfSong.load(for: song as! MPMediaItem),
+      ]
     }
+  }
+
+  private func playlistsView() -> some View {
+    Group {
+      if playlistsOfSong.loadingState.isLoading {
+        HStack (alignment: .center) {
+          ProgressView()
+        }
+      } else {
+        if playlistsOfSong.playlists.isEmpty {
+          Text("no playlists").foregroundStyle(.secondary)
+        } else {
+          ForEach(playlistsOfSong.playlists) { playlist in
+            NavigationLink {
+              QueriedSongsListViewContainer(
+                title: playlist.name, songs: playlist.items ?? []
+              )
+            } label: {
+              SongsCollectionItemView(
+                title: playlist.name
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+class PlaylistsBySongViewModel: ObservableObject {
+  @MainActor @Published var playlists: [SongsCollection] = []
+  @MainActor @Published var loadingState: LoadingState = .initial
+
+  @MainActor func load(for song: MPMediaItem) async {
+    self.loadingState = .loading
+
+    let items = Task.detached {
+      () -> [SongsCollection] in await getPlaylistsBySong(song)
+    }
+
+    let res = await items.result.get()
+    self.playlists = res
+    self.loadingState = .loaded
   }
 }
 

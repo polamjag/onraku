@@ -132,3 +132,38 @@ private func getSongsByUserGrouping(
 func getNowPlayingSong() -> MPMediaItem? {
   return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
 }
+
+func getPlaylistsBySong(_ song: MPMediaItem) async -> [SongsCollection] {
+  let playlists = loadAllCollectionsOf(.playlist)
+
+  let res = await withTaskGroup(of: Optional<SongsCollection>.self) { group in
+    for playlist in playlists {
+      group.addTask {
+        if let predicate = playlist.getFilterPredicate() {
+          let songs = await getSongsByPredicate(predicate: predicate)
+          if songs.contains(song) {
+            return SongsCollection(
+              name: playlist.name,
+              id: playlist.id,
+              type: .playlist,
+              items: songs
+            )
+          }
+        }
+        
+        return nil
+      }
+    }
+
+    var ret: [SongsCollection] = []
+
+    for await result in group {
+      if let result {
+        ret.append(result)
+      }
+    }
+
+    return ret
+  }
+  return res.sorted { $0.name < $1.name }
+}

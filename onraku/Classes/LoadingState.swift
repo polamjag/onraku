@@ -9,4 +9,8 @@ import Foundation
 
 enum LoadingState: String {
   case initial, loading, loaded, loadingByPullToRefresh
+  
+  public var isLoading: Bool {
+    self == .loading
+  }
 }
