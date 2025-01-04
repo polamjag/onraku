@@ -30,6 +30,7 @@ struct ContentView: View {
           }.navigationTitle("Library")
             .navigationBarTitleDisplayMode(.inline)
             .listStyle(.insetGrouped)
+            .navigationViewStyle(StackNavigationViewStyle())
         }.tabItem {
           Image(systemName: "books.vertical")
             .environment(
