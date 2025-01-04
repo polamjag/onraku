@@ -127,7 +127,6 @@ private func getSongsByUserGrouping(
   @unknown default:
     return songs.filter { $0.userGrouping?.contains(userGrouping) ?? false }
   }
-
 }
 
 func getNowPlayingSong() -> MPMediaItem? {
