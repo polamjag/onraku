@@ -67,7 +67,7 @@ extension String {
       .flatMap { $0.components(separatedBy: " Feat. ") }
       .flatMap { $0.split { s in s == "(" || s == ")" } }
       .flatMap {
-        $0.split { s in s == "," || s == "&" || s == "/" || s == "・" || s == "×"
+        $0.split { s in s == "," || s == "&" || s == "/" || s == "×"
         }
       }
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
