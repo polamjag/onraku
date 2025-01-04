@@ -273,7 +273,7 @@ struct SongDetailView: View {
   private func playlistsView() -> some View {
     Group {
       if playlistsOfSong.loadingState.isLoading {
-        HStack (alignment: .center) {
+        HStack(alignment: .center) {
           ProgressView()
         }
       } else {
