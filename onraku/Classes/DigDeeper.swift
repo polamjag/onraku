@@ -153,5 +153,5 @@ func getDiggedItems(
     $0 != item
   }
 
-  return (sorted, usedPredicates)
+  return (sorted, usedPredicates.unique())
 }
