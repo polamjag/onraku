@@ -9,29 +9,36 @@ import SwiftUI
 
 struct SongsCollectionItemView: View {
   var title: String
+  var secondaryText: String?
   var systemImage: String?
   var itemsCount: Int?
   var showLoading: Bool = false
 
   var body: some View {
     HStack {
-      if title.isEmpty {
-        Group {
-          if let systemImage = systemImage {
-            Label("(no value)", systemImage: systemImage)
+      VStack {
+        Label {
+          if title.isEmpty {
+            Text("(no value)").foregroundStyle(.secondary)
           } else {
-            Text("(no value)")
+            Text(title)
           }
-        }.foregroundColor(.secondary)
 
-      } else {
-        if let systemImage = systemImage {
-          Label(title, systemImage: systemImage)
-        } else {
-          Text(title)
+          if let secondaryText {
+            Text(secondaryText)
+              .foregroundColor(.secondary)
+              .font(.footnote)
+              .lineLimit(1)
+          }
+        } icon: {
+          if let systemImage {
+            Image(systemName: systemImage)
+          }
         }
       }
+
       Spacer()
+
       if showLoading {
         ProgressView()
       } else if let itemsCount = itemsCount {
@@ -48,9 +55,30 @@ struct SongsCollectionItemView_Previews: PreviewProvider {
   static var previews: some View {
     List {
       SongsCollectionItemView(
+        title: "", itemsCount: nil, showLoading: false)
+
+      SongsCollectionItemView(
+        title: "", secondaryText: "Secondary Text",
+        itemsCount: nil,
+        showLoading: false)
+
+      SongsCollectionItemView(
         title: "Gorgeous Label", itemsCount: nil, showLoading: false)
       SongsCollectionItemView(
         title: "Gorgeous Label", itemsCount: 42, showLoading: false)
+      SongsCollectionItemView(
+        title: "Gorgeous Label", secondaryText: "Secondary Text",
+        itemsCount: 42, showLoading: false)
+
+      SongsCollectionItemView(
+        title: "Gorgeous Label", secondaryText: "Secondary Text",
+        systemImage: "car.side.rear.and.exclamationmark.and.car.side.front.off",
+        itemsCount: 42, showLoading: false)
+
+      SongsCollectionItemView(
+        title: "Gorgeous Label", systemImage: "checkmark.seal", itemsCount: 42,
+        showLoading: false)
+
       SongsCollectionItemView(
         title: "Gorgeous Label", itemsCount: nil, showLoading: true)
     }
