@@ -95,7 +95,7 @@ struct QueriedSongsListViewContainer: View {
 
       if !predicates.isEmpty {
         Section(
-          "Predicates", isExpanded: $isSearchHintSectionExpanded,
+          "Current Search Criteria", isExpanded: $isSearchHintSectionExpanded,
           content: {
             ForEach(predicates) { predicate in
               SearchHintItemView(searchHint: predicate)
