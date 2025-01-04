@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1320"
+   LastUpgradeVersion = "1620"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "6092533127B60B7A00E23931"
-               BuildableName = "onraku.app"
-               BlueprintName = "onraku"
+               BuildableName = "Bohren.app"
+               BlueprintName = "Bohren"
                ReferencedContainer = "container:onraku.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -65,8 +65,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6092533127B60B7A00E23931"
-            BuildableName = "onraku.app"
-            BlueprintName = "onraku"
+            BuildableName = "Bohren.app"
+            BlueprintName = "Bohren"
             ReferencedContainer = "container:onraku.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -82,8 +82,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6092533127B60B7A00E23931"
-            BuildableName = "onraku.app"
-            BlueprintName = "onraku"
+            BuildableName = "Bohren.app"
+            BlueprintName = "Bohren"
             ReferencedContainer = "container:onraku.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

@@ -8,22 +8,24 @@
 import SwiftUI
 
 struct MultiLineTextView: View {
-    var text: String
+  var text: String
 
-    var body: some View {
-        ScrollView {
-            Text(text)
-                .padding()
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                .multilineTextAlignment(.leading)
-        }
-        .frame(maxWidth: UIScreen.main.bounds.width, maxHeight: UIScreen.main.bounds.height)
+  var body: some View {
+    ScrollView {
+      Text(text)
+        .padding()
+        .textSelection(.enabled)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .multilineTextAlignment(.leading)
     }
+    .frame(
+      maxWidth: UIScreen.main.bounds.width,
+      maxHeight: UIScreen.main.bounds.height)
+  }
 }
 
 struct MultiLineTextView_Previews: PreviewProvider {
-    static var previews: some View {
-        MultiLineTextView(text: "Lolem ipsum\ndot sitor\namet")
-    }
+  static var previews: some View {
+    MultiLineTextView(text: "Lolem ipsum\ndot sitor\namet")
+  }
 }
