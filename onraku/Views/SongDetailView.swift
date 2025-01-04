@@ -343,34 +343,34 @@ private struct HorizontalKeyValueToSheetView: View {
   }
 }
 
-struct SongDetailView_Previews: PreviewProvider {
-  static var previews: some View {
-    SongDetailView(
-      song: DummySongDetail(
-        albumArtist: "some album artist",
-        albumTitle: "ultra album",
-        albumTrackCount: 12,
-        albumTrackNumber: 3,
-        artist: "super artist",
-        artwork: MPMediaItemArtwork.init(
-          boundsSize: CGSize(width: 48, height: 48),
-          requestHandler: { _ in UIImage.checkmark }),
-        beatsPerMinute: 124,
-        comments: "hello this is comments",
-        isCompilation: false,
-        composer: "old composer",
-        dateAdded: Date(timeIntervalSince1970: 1_644_649_595),
-        discCount: 5,
-        discNumber: 3,
-        genre: "Super Dance Music",
-        lyrics: "Lorem ipsum",
-        playCount: 123,
-        rating: 4,
-        releaseDate: Date(timeIntervalSince1970: 1_644_649_595),
-        skipCount: 12,
-        title: "Super Song",
-        userGrouping: "Ultra Grouping",
-        playbackDuration: TimeInterval(120)
-      ))
-  }
-}
+//struct SongDetailView_Previews: PreviewProvider {
+//  static var previews: some View {
+//    SongDetailView(
+//      song: DummySongDetail(
+//        albumArtist: "some album artist",
+//        albumTitle: "ultra album",
+//        albumTrackCount: 12,
+//        albumTrackNumber: 3,
+//        artist: "super artist",
+//        artwork: MPMediaItemArtwork.init(
+//          boundsSize: CGSize(width: 48, height: 48),
+//          requestHandler: { _ in UIImage.checkmark }),
+//        beatsPerMinute: 124,
+//        comments: "hello this is comments",
+//        isCompilation: false,
+//        composer: "old composer",
+//        dateAdded: Date(timeIntervalSince1970: 1_644_649_595),
+//        discCount: 5,
+//        discNumber: 3,
+//        genre: "Super Dance Music",
+//        lyrics: "Lorem ipsum",
+//        playCount: 123,
+//        rating: 4,
+//        releaseDate: Date(timeIntervalSince1970: 1_644_649_595),
+//        skipCount: 12,
+//        title: "Super Song",
+//        userGrouping: "Ultra Grouping",
+//        playbackDuration: TimeInterval(120)
+//      ))
+//  }
+//}
