@@ -98,10 +98,21 @@ struct QueriedSongsListViewContainer: View {
 
       if !predicates.isEmpty {
         Section(
-          "Current Search Criteria (\(predicates.count))", isExpanded: $isSearchHintSectionExpanded,
           content: {
-            ForEach(predicates) { predicate in
-              SearchHintItemView(searchHint: predicate)
+            Button(action: {
+              withAnimation { isSearchHintSectionExpanded.toggle() }
+            }) {
+              Text(
+                isSearchHintSectionExpanded
+                  ? "Hide Search Criteria"
+                  : "Show \(predicates.count) Search Criteria"
+              )
+            }
+
+            if isSearchHintSectionExpanded {
+              ForEach(predicates) { predicate in
+                SearchHintItemView(searchHint: predicate)
+              }
             }
           })
       }
@@ -161,8 +172,7 @@ struct QueriedSongsListViewContainer: View {
       }.task {
         await vm.setProps(songs: songs, filterPredicate: filterPredicate)
         await vm.initializeIfNeeded()
-
-      }.listStyle(.sidebar)
+      }
   }
 }
 
