@@ -20,12 +20,20 @@ struct ContentView: View {
       TabView(selection: $selectedTab) {
         NavigationView {
           List {
-            ForEach(CollectionType.allCases, id: \.self) { type in
-              NavigationLink {
-                SongsCollectionsListView(type: type, title: type.rawValue)
-              } label: {
-                Label(type.rawValue, systemImage: type.systemImageName)
+            Section {
+              ForEach(CollectionType.allCases, id: \.self) { type in
+                NavigationLink {
+                  SongsCollectionsListView(type: type, title: type.rawValue)
+                } label: {
+                  Label(type.rawValue, systemImage: type.systemImageName)
+                }
               }
+            }
+            
+            Section("I'm Feeling Lucky") {
+              Label("Quick Dig", systemImage: "arrow.down.circle")
+              Label("Random Playlist", systemImage: "arrow.down.circle")
+              Label("Random User Grouping", systemImage: "arrow.down.circle")
             }
           }.navigationTitle("Library")
             .navigationBarTitleDisplayMode(.inline)
