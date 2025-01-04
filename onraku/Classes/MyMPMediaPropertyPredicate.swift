@@ -45,6 +45,48 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
         + String(comparisonType.hashValue)
     }
   }
+  
+  var systemImageNameForProperty: String? {
+    switch self.forProperty {
+    case MPMediaItemPropertyAlbumTitle:
+      return "square.stack"
+    case MPMediaItemPropertyGenre:
+      return "guitars"
+    case MPMediaItemPropertyArtist:
+      return "music.microphone"
+    case MPMediaItemPropertyAlbumArtist:
+      return "music.microphone"
+    case MPMediaItemPropertyTitle:
+      return "music.note"
+    case MPMediaItemPropertyComposer:
+      return "music.quarternote.3"
+    case MPMediaItemPropertyUserGrouping:
+      return "latch.2.case"
+    default:
+      return nil
+    }
+  }
+  
+  var humanReadableForProperty: String {
+    switch self.forProperty {
+    case MPMediaItemPropertyAlbumTitle:
+      return "Album"
+    case MPMediaItemPropertyGenre:
+      return "Genre"
+    case MPMediaItemPropertyArtist:
+      return "Artist"
+    case MPMediaItemPropertyAlbumArtist:
+      return "Album Artist"
+    case MPMediaItemPropertyTitle:
+      return "Title"
+    case MPMediaItemPropertyComposer:
+      return "Composer"
+    case MPMediaItemPropertyUserGrouping:
+      return "User Grouping"
+    default:
+      return self.forProperty
+    }
+  }
 
   func getNextSearchHints() -> [MyMPMediaPropertyPredicate] {
     switch self.forProperty {

@@ -17,17 +17,18 @@ struct SongsCollectionItemView: View {
   var body: some View {
     HStack {
       Label {
-        if title.isEmpty {
-          Text("(no value)").foregroundStyle(.secondary)
-        } else {
-          Text(title)
-        }
-
-        if let secondaryText {
-          Text(secondaryText)
-            .foregroundColor(.secondary)
-            .font(.footnote)
-            .lineLimit(1)
+        VStack(alignment: .leading) {
+          if title.isEmpty {
+            Text("(no value)").foregroundStyle(.secondary)
+          } else {
+            Text(title)
+          }
+          
+          if let secondaryText {
+            Text(secondaryText)
+              .foregroundColor(.secondary)
+              .font(.footnote)
+          }
         }
       } icon: {
         if let systemImage {

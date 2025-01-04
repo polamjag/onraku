@@ -35,6 +35,7 @@ private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey)
 struct SearchHintItemView: View {
   var searchHint: MyMPMediaPropertyPredicate
   @State var resultCount: Int?
+
   var shouldBeDisabled: Bool {
     if let resultCount = resultCount {
       return resultCount == 0
@@ -51,8 +52,10 @@ struct SearchHintItemView: View {
         )
       } label: {
         SongsCollectionItemView(
-          title: searchHint.someFriendlyLabel,
-          systemImage: "magnifyingglass",
+          title: searchHint.value as? String ?? "<unknown>",
+          secondaryText: searchHint.humanReadableForProperty,
+
+          systemImage: searchHint.systemImageNameForProperty,
           itemsCount: resultCount
         )
       }.disabled(shouldBeDisabled).task {
@@ -95,7 +98,7 @@ struct QueriedSongsListViewContainer: View {
 
       if !predicates.isEmpty {
         Section(
-          "Current Search Criteria", isExpanded: $isSearchHintSectionExpanded,
+          "Current Search Criteria (\(predicates.count))", isExpanded: $isSearchHintSectionExpanded,
           content: {
             ForEach(predicates) { predicate in
               SearchHintItemView(searchHint: predicate)
@@ -129,11 +132,12 @@ struct QueriedSongsListViewContainer: View {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
           Menu {
             Toggle(
-              "Filter with Exact Match", systemImage: "text.magnifyingglass",
+              "Filter with Exact Match",
+              systemImage: "line.3.horizontal.decrease",
               isOn: $vm.isExactMatch
             )
             .disabled(!vm.isExactMatchConfigurable)
-            
+
             Divider()
 
             PlayableItemsMenuView(target: .array(vm.sortedSongs))
