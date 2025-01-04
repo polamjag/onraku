@@ -16,24 +16,22 @@ struct SongsCollectionItemView: View {
 
   var body: some View {
     HStack {
-      VStack {
-        Label {
-          if title.isEmpty {
-            Text("(no value)").foregroundStyle(.secondary)
-          } else {
-            Text(title)
-          }
+      Label {
+        if title.isEmpty {
+          Text("(no value)").foregroundStyle(.secondary)
+        } else {
+          Text(title)
+        }
 
-          if let secondaryText {
-            Text(secondaryText)
-              .foregroundColor(.secondary)
-              .font(.footnote)
-              .lineLimit(1)
-          }
-        } icon: {
-          if let systemImage {
-            Image(systemName: systemImage)
-          }
+        if let secondaryText {
+          Text(secondaryText)
+            .foregroundColor(.secondary)
+            .font(.footnote)
+            .lineLimit(1)
+        }
+      } icon: {
+        if let systemImage {
+          Image(systemName: systemImage)
         }
       }
 
