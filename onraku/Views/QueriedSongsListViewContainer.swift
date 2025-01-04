@@ -128,15 +128,14 @@ struct QueriedSongsListViewContainer: View {
       .toolbar {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
           Menu {
-            Toggle("Filter with Exact Match", isOn: $vm.isExactMatch)
-          } label: {
-            Image(
-              systemName: vm.isExactMatch
-                ? "magnifyingglass.circle.fill"
-                : "magnifyingglass.circle")
-          }.disabled(!vm.isExactMatchConfigurable)
+            Toggle(
+              "Filter with Exact Match", systemImage: "text.magnifyingglass",
+              isOn: $vm.isExactMatch
+            )
+            .disabled(!vm.isExactMatchConfigurable)
+            
+            Divider()
 
-          Menu {
             PlayableItemsMenuView(target: .array(vm.sortedSongs))
             Menu {
               Picker("sort by", selection: $vm.sort) {
