@@ -8,11 +8,11 @@
 import Foundation
 
 extension Array {
-    func thisAndAbove(at: Int) -> Array {
-        return Array(self[0...at])
-    }
+  func thisAndAbove(at: Int) -> Array {
+    return Array(self[0...at])
+  }
 
-    func thisAndBelow(at: Int) -> Array {
-        return Array(self[at...])
-    }
+  func thisAndBelow(at: Int) -> Array {
+    return Array(self[at...])
+  }
 }

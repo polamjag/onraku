@@ -8,5 +8,5 @@
 import Foundation
 
 enum LoadingState: String {
-    case initial, loading, loaded, loadingByPullToRefresh
+  case initial, loading, loaded, loadingByPullToRefresh
 }
