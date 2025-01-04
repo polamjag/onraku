@@ -7,6 +7,7 @@
 
 import Foundation
 import MediaPlayer
+import RegexBuilder
 
 enum CollectionType: String, Equatable, CaseIterable {
   case playlist = "Playlist"
@@ -132,7 +133,6 @@ private func loadAllUserGroupings() -> [SongsCollection] {
       id: $0,
       type: .userGrouping,
       items: songsByGrouping?[$0] ?? []
-
     )
   }
 }
@@ -149,7 +149,7 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async
         return []
       }
     } else {
-      return
+      let items =
         MPMediaQuery(
           filterPredicates: Set([
             MPMediaPropertyPredicate(
@@ -158,6 +158,25 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async
               comparisonType: predicate.comparisonType)
           ])
         ).items ?? []
+
+      if items.isEmpty {
+        return []
+      }
+
+      let regex = Regex {
+        /\b/
+        predicate.value as! String
+        /\b/
+      }
+
+      return
+        items
+        .filter {
+          let val = $0.value(forProperty: predicate.forProperty) as! String
+
+          let matches = val.matches(of: regex)
+          return !matches.isEmpty
+        }
     }
   }
 
