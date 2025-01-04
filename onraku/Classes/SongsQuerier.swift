@@ -163,20 +163,25 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async
         return []
       }
 
-      let regex = Regex {
-        /\b/
-        predicate.value as! String
-        /\b/
+      if let stringPredicateValue = predicate.value as? String {
+        let regex = Regex {
+          /\b/
+          stringPredicateValue
+          /\b/
+        }
+
+        return
+          items
+          .filter {
+            let val = $0.value(forProperty: predicate.forProperty) as! String
+
+            let matches = val.matches(of: regex)
+            return !matches.isEmpty
+          }
+      } else {
+        return items
       }
 
-      return
-        items
-        .filter {
-          let val = $0.value(forProperty: predicate.forProperty) as! String
-
-          let matches = val.matches(of: regex)
-          return !matches.isEmpty
-        }
     }
   }
 
