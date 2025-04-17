@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "6092533127B60B7A00E23931"
-               BuildableName = "Bohren.app"
-               BlueprintName = "Bohren"
+               BuildableName = "onraku.app"
+               BlueprintName = "onraku"
                ReferencedContainer = "container:onraku.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -65,8 +65,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6092533127B60B7A00E23931"
-            BuildableName = "Bohren.app"
-            BlueprintName = "Bohren"
+            BuildableName = "onraku.app"
+            BlueprintName = "onraku"
             ReferencedContainer = "container:onraku.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -82,8 +82,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6092533127B60B7A00E23931"
-            BuildableName = "Bohren.app"
-            BlueprintName = "Bohren"
+            BuildableName = "onraku.app"
+            BlueprintName = "onraku"
             ReferencedContainer = "container:onraku.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

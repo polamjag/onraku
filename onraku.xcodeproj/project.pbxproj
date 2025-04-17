@@ -68,7 +68,7 @@
 		6044F06A27B7EAB60083A506 /* MultiLineTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiLineTextView.swift; sourceTree = "<group>"; };
 		6044F06C27B7FDF00083A506 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
 		6061CF5927CCEAB70040B4C4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		6092533227B60B7A00E23931 /* Bohren.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bohren.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6092533227B60B7A00E23931 /* onraku.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = onraku.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6092533527B60B7A00E23931 /* onrakuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = onrakuApp.swift; sourceTree = "<group>"; };
 		6092533727B60B7A00E23931 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		6092533927B60B7B00E23931 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -169,7 +169,7 @@
 		6092533327B60B7A00E23931 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6092533227B60B7A00E23931 /* Bohren.app */,
+				6092533227B60B7A00E23931 /* onraku.app */,
 				6092534227B60B7B00E23931 /* onrakuTests.xctest */,
 				6092534C27B60B7B00E23931 /* onrakuUITests.xctest */,
 			);
@@ -256,9 +256,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6092533127B60B7A00E23931 /* Bohren */ = {
+		6092533127B60B7A00E23931 /* onraku */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6092535627B60B7B00E23931 /* Build configuration list for PBXNativeTarget "Bohren" */;
+			buildConfigurationList = 6092535627B60B7B00E23931 /* Build configuration list for PBXNativeTarget "onraku" */;
 			buildPhases = (
 				6092532E27B60B7A00E23931 /* Sources */,
 				6092532F27B60B7A00E23931 /* Frameworks */,
@@ -268,9 +268,9 @@
 			);
 			dependencies = (
 			);
-			name = Bohren;
+			name = onraku;
 			productName = onraku;
-			productReference = 6092533227B60B7A00E23931 /* Bohren.app */;
+			productReference = 6092533227B60B7A00E23931 /* onraku.app */;
 			productType = "com.apple.product-type.application";
 		};
 		6092534127B60B7B00E23931 /* onrakuTests */ = {
@@ -345,7 +345,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6092533127B60B7A00E23931 /* Bohren */,
+				6092533127B60B7A00E23931 /* onraku */,
 				6092534127B60B7B00E23931 /* onrakuTests */,
 				6092534B27B60B7B00E23931 /* onrakuUITests */,
 			);
@@ -436,12 +436,12 @@
 /* Begin PBXTargetDependency section */
 		6092534427B60B7B00E23931 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6092533127B60B7A00E23931 /* Bohren */;
+			target = 6092533127B60B7A00E23931 /* onraku */;
 			targetProxy = 6092534327B60B7B00E23931 /* PBXContainerItemProxy */;
 		};
 		6092534E27B60B7B00E23931 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6092533127B60B7A00E23931 /* Bohren */;
+			target = 6092533127B60B7A00E23931 /* onraku */;
 			targetProxy = 6092534D27B60B7B00E23931 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -719,7 +719,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6092535627B60B7B00E23931 /* Build configuration list for PBXNativeTarget "Bohren" */ = {
+		6092535627B60B7B00E23931 /* Build configuration list for PBXNativeTarget "onraku" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6092535727B60B7B00E23931 /* Debug */,
