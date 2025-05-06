@@ -97,42 +97,53 @@ struct SongDetailView: View {
 }
 
 class PlaylistsBySongViewModel: ObservableObject {
+  var currentSong: MPMediaItem?
   @MainActor @Published var playlists: [SongsCollection] = []
   @MainActor @Published var loadingState: LoadingState = .initial
-
+  
   @MainActor func load(for song: MPMediaItem) async {
-    self.loadingState = .loading
-
-    let items = Task.detached {
-      () -> [SongsCollection] in await getPlaylistsBySong(song)
+    if (song != currentSong) {
+      self.loadingState = .loading
+      self.currentSong = song
+      
+      let items = Task.detached {
+        () -> [SongsCollection] in await getPlaylistsBySong(song)
+      }
+      
+      let res = await items.result.get()
+      self.playlists = res
+      self.loadingState = .loaded
     }
 
-    let res = await items.result.get()
-    self.playlists = res
-    self.loadingState = .loaded
   }
 }
 
 class DiggingViewModel: ObservableObject {
+  var currentSong: MPMediaItem?
   @MainActor @Published var songs: [MPMediaItem] = []
   @MainActor @Published var predicates: [MyMPMediaPropertyPredicate] = []
   @MainActor @Published var loadingState: LoadingState = .initial
 
   @MainActor func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
-    self.loadingState = .loading
-
-    let items = Task.detached {
-      () -> (
-        items: [MPMediaItem],
-        predicates: [MyMPMediaPropertyPredicate]
-      ) in
-      await getDiggedItems(
-        of: song, includeGenre: false, withDepth: linkDepth)
+    
+    if (song != currentSong) {
+      self.loadingState = .loading
+      self.currentSong = song
+      
+      let items = Task.detached {
+        () -> (
+          items: [MPMediaItem],
+          predicates: [MyMPMediaPropertyPredicate]
+        ) in
+        await getDiggedItems(
+          of: song, includeGenre: false, withDepth: linkDepth)
+      }
+      
+      let res = await items.result.get()
+      self.songs = res.items
+      self.predicates = res.predicates
+      
+      self.loadingState = .loaded
     }
-
-    let res = await items.result.get()
-    self.songs = res.items
-    self.predicates = res.predicates
-    self.loadingState = .loaded
   }
 }
