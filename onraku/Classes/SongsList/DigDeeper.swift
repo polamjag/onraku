@@ -92,7 +92,7 @@ private func getDiggingQuery(for item: MPMediaItem, includeGenre: Bool)
   }
 
   let allFilters: [MyMPMediaPropertyPredicate] =
-    (filterPreds.flatMap { [$0] + $0.getNextSearchHints() }).filter {
+    (filterPreds.flatMap { [$0] + $0.getNextSearchHintPredicates() }).filter {
       if let s = $0.value as? String, !s.isEmpty {
         return true
       } else {
