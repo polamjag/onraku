@@ -61,10 +61,7 @@ struct SongDetailView: View {
         }
       }
     }.task {
-      async let d1 = digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1)
-      async let d2 = digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2)
-      async let p = playlistsOfSong.load(for: song as! MPMediaItem)
-      _ = await (d1, d2, p)
+      _ = await (digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1), digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2), playlistsOfSong.load(for: song as! MPMediaItem))
     }.id(song.refreshingIdentifier)
   }
 
