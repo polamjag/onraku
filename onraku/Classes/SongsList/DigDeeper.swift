@@ -77,7 +77,6 @@ private func getDiggingQuery(for item: MPMediaItem, includeGenre: Bool)
       MyMPMediaPropertyPredicate(
         value: item.albumArtist, forProperty: MPMediaItemPropertyAlbumArtist,
         comparisonType: .contains),
-
     ]
 
   if includeGenre {
