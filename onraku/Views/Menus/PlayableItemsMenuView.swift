@@ -48,6 +48,7 @@ struct PlayableItemsMenuView: View {
       }
     }) {
       Label(target.count > 1 ? "Play All Now" : "Play Now", systemImage: "play")
+      Color.clear
     }
     if target.count > 1 {
       Button(action: {

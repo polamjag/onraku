@@ -61,12 +61,11 @@ struct SongDetailView: View {
         }
       }
     }.task {
-      _ = await [
-        digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1),
-        digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2),
-        playlistsOfSong.load(for: song as! MPMediaItem),
-      ]
-    }
+      async let d1 = digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1)
+      async let d2 = digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2)
+      async let p = playlistsOfSong.load(for: song as! MPMediaItem)
+      _ = await (d1, d2, p)
+    }.id(song.refreshingIdentifier)
   }
 
   private func playlistsView() -> some View {
@@ -96,54 +95,60 @@ struct SongDetailView: View {
   }
 }
 
-class PlaylistsBySongViewModel: ObservableObject {
-  var currentSong: MPMediaItem?
-  @MainActor @Published var playlists: [SongsCollection] = []
-  @MainActor @Published var loadingState: LoadingState = .initial
-  
-  @MainActor func load(for song: MPMediaItem) async {
-    if (song != currentSong) {
-      self.loadingState = .loading
-      self.currentSong = song
-      
-      let items = Task.detached {
-        () -> [SongsCollection] in await getPlaylistsBySong(song)
+@MainActor
+final class PlaylistsBySongViewModel: ObservableObject {
+  private var currentSong: MPMediaItem?
+  @Published private(set) var playlists: [SongsCollection] = []
+  @Published private(set) var loadingState: LoadingState = .initial
+  private var loadTask: Task<Void, Never>?
+
+  func load(for song: MPMediaItem) async {
+    guard song != currentSong else { return }
+    loadingState = .loading
+    currentSong = song
+
+    loadTask?.cancel()
+    let requestedSong = song
+
+    loadTask = Task { [weak self] in
+      let res = await getPlaylistsBySong(requestedSong)
+      guard let self, !Task.isCancelled, requestedSong == self.currentSong else { return }
+      await MainActor.run {
+        self.playlists = res
+        self.loadingState = .loaded
       }
-      
-      let res = await items.result.get()
-      self.playlists = res
-      self.loadingState = .loaded
     }
 
+    await loadTask?.value
   }
 }
 
-class DiggingViewModel: ObservableObject {
-  var currentSong: MPMediaItem?
-  @MainActor @Published var songs: [MPMediaItem] = []
-  @MainActor @Published var predicates: [MyMPMediaPropertyPredicate] = []
-  @MainActor @Published var loadingState: LoadingState = .initial
+@MainActor
+final class DiggingViewModel: ObservableObject {
+  private var currentSong: MPMediaItem?
+  @Published private(set) var songs: [MPMediaItem] = []
+  @Published private(set) var predicates: [MyMPMediaPropertyPredicate] = []
+  @Published private(set) var loadingState: LoadingState = .initial
+  private var loadTask: Task<Void, Never>?
 
-  @MainActor func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
-    
-    if (song != currentSong) {
-      self.loadingState = .loading
-      self.currentSong = song
-      
-      let items = Task.detached {
-        () -> (
-          items: [MPMediaItem],
-          predicates: [MyMPMediaPropertyPredicate]
-        ) in
-        await getDiggedItems(
-          of: song, includeGenre: false, withDepth: linkDepth)
+  func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
+    guard song != currentSong else { return }
+    loadingState = .loading
+    currentSong = song
+
+    loadTask?.cancel()
+    let requestedSong = song
+
+    loadTask = Task { [weak self] in
+      let res = await getDiggedItems(of: requestedSong, includeGenre: false, withDepth: linkDepth)
+      guard let self, !Task.isCancelled, requestedSong == self.currentSong else { return }
+      await MainActor.run {
+        self.songs = res.items
+        self.predicates = res.predicates
+        self.loadingState = .loaded
       }
-      
-      let res = await items.result.get()
-      self.songs = res.items
-      self.predicates = res.predicates
-      
-      self.loadingState = .loaded
     }
+
+    await loadTask?.value
   }
 }

@@ -32,6 +32,7 @@ protocol SongDetailLike {
   var title: String? { get }
   var userGrouping: String? { get }
   var playbackDuration: TimeInterval { get }
+  var refreshingIdentifier: String { get }
 }
 
 struct DummySongDetail: SongDetailLike {
@@ -59,6 +60,7 @@ struct DummySongDetail: SongDetailLike {
   var title: String?
   var userGrouping: String?
   var playbackDuration: TimeInterval
+  var refreshingIdentifier: String
 }
 
 extension MPMediaItem: SongDetailLike {}

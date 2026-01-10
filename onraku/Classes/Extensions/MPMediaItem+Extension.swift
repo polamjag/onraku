@@ -29,4 +29,10 @@ extension MPMediaItem: @retroactive Identifiable {
     }
     return nil
   }
+  
+  public var refreshingIdentifier: String {
+    let lastPlayed = self.lastPlayedDate?.formatted(.iso8601) ?? "0"
+    return "\(self.persistentID)__\(lastPlayed)"
+  }
 }
+

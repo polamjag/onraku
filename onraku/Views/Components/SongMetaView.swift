@@ -241,7 +241,8 @@ struct SongMetaView_Previews: PreviewProvider {
           skipCount: 12,
           title: "Super Song",
           userGrouping: "Ultra Grouping",
-          playbackDuration: TimeInterval(120)
+          playbackDuration: TimeInterval(120),
+          refreshingIdentifier: "dummy"
         ))
     }
   }
