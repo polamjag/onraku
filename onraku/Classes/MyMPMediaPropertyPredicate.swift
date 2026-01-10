@@ -88,7 +88,7 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
     }
   }
 
-  func getNextSearchHints() -> [MyMPMediaPropertyPredicate] {
+  func getNextSearchHintPredicates() -> [MyMPMediaPropertyPredicate] {
     switch self.forProperty {
     case MPMediaItemPropertyGenre:
       return getNextSearchHintsOfSubGenreLike(from: self)

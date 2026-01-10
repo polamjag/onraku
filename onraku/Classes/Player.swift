@@ -25,3 +25,7 @@ func prependMediaItems(items: [MPMediaItem]) {
   let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
   MPMusicPlayerController.systemMusicPlayer.prepend(qd)
 }
+
+func getNowPlayingSong() -> MPMediaItem? {
+  return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
+}

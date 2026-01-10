@@ -32,7 +32,7 @@ private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey)
   }
 }
 
-struct SearchHintItemView: View {
+struct PredicateItemView: View {
   var searchHint: MyMPMediaPropertyPredicate
   @State var resultCount: Int?
 
@@ -88,10 +88,10 @@ struct QueriedSongsListViewContainer: View {
 
   var body: some View {
     List {
-      if !vm.searchHints.isEmpty {
+      if !vm.predicates.isEmpty {
         Section {
-          ForEach(vm.searchHints) { searchHint in
-            SearchHintItemView(searchHint: searchHint)
+          ForEach(vm.predicates) { searchHint in
+            PredicateItemView(searchHint: searchHint)
           }
         }
       }
@@ -111,7 +111,7 @@ struct QueriedSongsListViewContainer: View {
 
             if isSearchHintSectionExpanded {
               ForEach(predicates) { predicate in
-                SearchHintItemView(searchHint: predicate)
+                PredicateItemView(searchHint: predicate)
               }
             }
           })
@@ -286,9 +286,10 @@ extension QueriedSongsListViewContainer {
       self.loadState = .loaded
     }
 
-    var searchHints: [MyMPMediaPropertyPredicate] {
+    var predicates: [MyMPMediaPropertyPredicate] {
       if let filterPredicateConfig {
-        return filterPredicateConfig.filterPredicate.getNextSearchHints()
+        return filterPredicateConfig.filterPredicate
+          .getNextSearchHintPredicates()
       } else {
         return []
       }
