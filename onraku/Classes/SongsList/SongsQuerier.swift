@@ -9,7 +9,7 @@ import Foundation
 import MediaPlayer
 import RegexBuilder
 
-func loadSongsCollectionsOf(_ type: CollectionType) async -> [SongsCollection] {
+func loadSongsCollectionsOf(_ type: CollectionTypes) async -> [SongsCollection] {
   let task = Task.detached(priority: .high) { () -> [SongsCollection] in
     switch type {
     case .playlist, .genre, .artist, .album:
@@ -22,7 +22,7 @@ func loadSongsCollectionsOf(_ type: CollectionType) async -> [SongsCollection] {
   return await task.result.get()
 }
 
-private func loadAllCollectionsOf(_ type: CollectionType) -> [SongsCollection] {
+private func loadAllCollectionsOf(_ type: CollectionTypes) -> [SongsCollection] {
   if let collections = type.getQueryForType()?.collections {
     return collections.map {
       SongsCollection(

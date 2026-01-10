@@ -12,7 +12,7 @@ struct SongsCollectionsListView: View {
   @State @MainActor var collections: [SongsCollection] = []
   @State var loadState: LoadingState = .initial
 
-  var type: CollectionType
+  var type: CollectionTypes
   var title: String
 
   func loadCollections() async {

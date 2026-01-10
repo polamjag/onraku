@@ -13,7 +13,7 @@ private struct SongWithPredicate {
   let predicate: MyMPMediaPropertyPredicate
 }
 
-private struct SongAndPredicates {
+private struct SongWithMatchedPredicates {
   let song: MPMediaItem
   var predicates: [MyMPMediaPropertyPredicate]
 
@@ -33,12 +33,12 @@ private struct SongAndPredicates {
 }
 
 private func sortByItemRelevance(src: [SongWithPredicate]) -> [MPMediaItem] {
-  var dic: [MPMediaEntityPersistentID: SongAndPredicates] = [:]
+  var dic: [MPMediaEntityPersistentID: SongWithMatchedPredicates] = [:]
   for x in src {
     if dic[x.song.persistentID] != nil {
       dic[x.song.persistentID]?.predicates.append(x.predicate)
     } else {
-      dic[x.song.persistentID] = SongAndPredicates(
+      dic[x.song.persistentID] = SongWithMatchedPredicates(
         song: x.song, predicates: [x.predicate])
     }
   }

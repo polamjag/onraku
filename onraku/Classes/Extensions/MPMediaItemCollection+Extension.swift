@@ -9,7 +9,7 @@ import Foundation
 import MediaPlayer
 
 extension MPMediaItemCollection {
-  func getCollectionName(as type: CollectionType) -> String? {
+  func getCollectionName(as type: CollectionTypes) -> String? {
     switch type {
     case .playlist:
       if let ret = self.value(forProperty: MPMediaPlaylistPropertyName)

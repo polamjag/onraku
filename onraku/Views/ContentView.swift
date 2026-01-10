@@ -23,7 +23,7 @@ struct ContentView: View {
         NavigationView {
           List {
             Section {
-              ForEach(CollectionType.allCases, id: \.self) { type in
+              ForEach(CollectionTypes.allCases, id: \.self) { type in
                 NavigationLink {
                   SongsCollectionsListView(type: type, title: type.rawValue)
                 } label: {

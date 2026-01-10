@@ -7,7 +7,7 @@
 
 import MediaPlayer
 
-enum CollectionType: String, Equatable, CaseIterable {
+enum CollectionTypes: String, Equatable, CaseIterable {
   case playlist = "Playlists"
   case album = "Albums"
   case artist = "Artists"
@@ -70,7 +70,7 @@ struct SongsCollection: Identifiable, Hashable {
 
   let name: String
   let id: String
-  let type: CollectionType
+  let type: CollectionTypes
   let items: [MPMediaItem]?
 
   func getFilterPredicate() -> MyMPMediaPropertyPredicate? {
