@@ -33,7 +33,7 @@ private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey)
 }
 
 struct PredicateItemView: View {
-  var searchHint: MyMPMediaPropertyPredicate
+  var predicate: MyMPMediaPropertyPredicate
   @State var resultCount: Int?
 
   var shouldBeDisabled: Bool {
@@ -47,19 +47,17 @@ struct PredicateItemView: View {
   var body: some View {
     if !shouldBeDisabled {
       NavigationLink {
-        QueriedSongsListViewContainer(
-          filterPredicate: searchHint
-        )
+        QueriedSongsListViewContainer(songsList: predicateToSongsList(predicate))
       } label: {
         SongsCollectionItemView(
-          title: searchHint.value as? String ?? "<unknown>",
-          secondaryText: searchHint.humanReadableForProperty,
+          title: predicate.value as? String ?? "<unknown>",
+          secondaryText: predicate.humanReadableForProperty,
 
-          systemImage: searchHint.systemImageNameForProperty,
+          systemImage: predicate.systemImageNameForProperty,
           itemsCount: resultCount
         )
       }.disabled(shouldBeDisabled).task {
-        let res = await getSongsByPredicate(predicate: searchHint)
+        let res = await getSongsByPredicate(predicate: predicate)
         resultCount = res.count
       }
     }
@@ -67,36 +65,15 @@ struct PredicateItemView: View {
 }
 
 struct QueriedSongsListViewContainer: View {
-  @StateObject private var vm = ViewModel()
-  @State private var isSearchHintSectionExpanded = false
-
-  var filterPredicate: MyMPMediaPropertyPredicate?
-  var title: String?
-
-  var songs: [MPMediaItem] = []
-  var predicates: [MyMPMediaPropertyPredicate] = []
-
-  var computedTitle: String {
-    if let title = title {
-      return title
-    } else if let s = filterPredicate?.value as? String {
-      return s
-    } else {
-      return ""
-    }
-  }
-
+  var songsList: SongsList
+  
+  @State var sortOrder: SongsSortKey = .none
+  
+  @State var isSearchHintSectionExpanded: Bool = false
+  
   var body: some View {
     List {
-      if !vm.predicates.isEmpty {
-        Section {
-          ForEach(vm.predicates) { searchHint in
-            PredicateItemView(searchHint: searchHint)
-          }
-        }
-      }
-
-      if !predicates.isEmpty {
+      if songsList.shouldShowSearchCriteria {
         Section(
           content: {
             Button(action: {
@@ -104,31 +81,31 @@ struct QueriedSongsListViewContainer: View {
             }) {
               Text(
                 isSearchHintSectionExpanded
-                  ? "Hide Search Criteria"
-                  : "Show \(predicates.count) Search Criteria"
+                ? "Hide Search Criteria"
+                : "Show \(songsList.searchCriteria()?.count ?? 0) Search Criteria"
               )
             }
-
+            
             if isSearchHintSectionExpanded {
-              ForEach(predicates) { predicate in
-                PredicateItemView(searchHint: predicate)
+              ForEach(songsList.searchCriteria() ?? []) { predicate in
+                PredicateItemView(predicate: predicate, resultCount: 0)
               }
             }
           })
       }
-
-      if vm.shouldShowLoadingIndicator {
+      
+      if songsList.songs().isEmpty {
         LoadingCellView()
       } else {
-        Section(footer: Text("\(vm.songs.count) songs")) {
-          ForEach(vm.sortedSongs) { song in
+        Section(footer: Text("\(songsList.songs().count) songs")) {
+          ForEach(songsList.songs()) { song in
             NavigationLink {
               SongDetailView(song: song)
             } label: {
               SongItemView(
                 title: song.title,
                 secondaryText: song.artist,
-                tertiaryText: getTertiaryInfo(of: song, withHint: vm.sort),
+                tertiaryText: getTertiaryInfo(of: song, withHint: sortOrder),
                 artwork: song.artwork
               ).contextMenu {
                 PlayableItemsMenuView(target: .one(song))
@@ -137,168 +114,39 @@ struct QueriedSongsListViewContainer: View {
           }
         }
       }
-    }.navigationTitle(computedTitle)
+    }.navigationTitle(songsList.title)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
           Menu {
-            Toggle(
-              "Filter with Exact Match",
-              systemImage: "line.3.horizontal.decrease",
-              isOn: $vm.isExactMatch
-            )
-            .disabled(!vm.isExactMatchConfigurable)
-
             Divider()
-
-            PlayableItemsMenuView(target: .array(vm.sortedSongs))
+            
+            // todo: sort
+            PlayableItemsMenuView(target: .array(songsList.songs()))
+            
             Menu {
-              Picker("sort by", selection: $vm.sort) {
+              Picker("sort by", selection: $sortOrder) {
                 ForEach(SongsSortKey.allCases, id: \.self) { value in
                   Text(value.rawValue).tag(value)
                 }
               }
             } label: {
               Label(
-                "Sort Order: \(vm.sort.rawValue)",
+                "Sort Order: \(sortOrder.rawValue)",
                 systemImage: "arrow.up.arrow.down")
             }
           } label: {
             Image(systemName: "ellipsis.circle")
           }
         }
-      }.refreshable {
-        await vm.performRefresh()
-      }.task {
-        await vm.setProps(songs: songs, filterPredicate: filterPredicate)
-        await vm.initializeIfNeeded()
       }
-  }
-}
-
-struct FilterPredicateConfiguration {
-  var filterPredicate: MyMPMediaPropertyPredicate
-}
-
-extension QueriedSongsListViewContainer {
-  class ViewModel: ObservableObject {
-    @Published private(set) var songs: [MPMediaItem] = []
-    @MainActor private var loadState: LoadingState = .initial
-
-    private var filterPredicateConfig: FilterPredicateConfiguration?
-
-    @MainActor var isExactMatchConfigurable: Bool {
-      self.filterPredicateConfig != nil
-    }
-
-    @Published @MainActor var isExactMatch: Bool = false {
-      didSet {
-        if self.isPropsSet {
-          Task {
-            await execQuery()
-          }
-        }
-      }
-    }
-
-    @Published @MainActor var sort: SongsSortKey = .none {
-      didSet {
-        Task {
-          await updateSortedSongs()
-        }
-      }
-    }
-
-    @MainActor var shouldShowLoadingIndicator: Bool {
-      return loadState == .loading
-    }
-
-    @Published @MainActor var sortedSongs: [MPMediaItem] = []
-
-    private var isPropsSet = false
-
-    func setProps(
-      songs: [MPMediaItem],
-      filterPredicate: MyMPMediaPropertyPredicate?
-    ) async {
-      if self.isPropsSet { return }
-
-      await MainActor.run {
-        let needsInitialization = filterPredicate != nil && songs.isEmpty
-        self.loadState = needsInitialization ? .loading : .loaded
-
-        self.songs = songs
-        self.sortedSongs = songs
-
-        if let filterPredicate {
-          self.filterPredicateConfig = FilterPredicateConfiguration(
-            filterPredicate: filterPredicate
-          )
-        }
-
-        self.isPropsSet = true
-      }
-    }
-
-    @MainActor var computedPredicate: MyMPMediaPropertyPredicate? {
-      if let config = filterPredicateConfig {
-        return MyMPMediaPropertyPredicate(
-          value: config.filterPredicate.value,
-          forProperty: config.filterPredicate.forProperty,
-          comparisonType: isExactMatch ? .equalTo : .contains
-        )
-      }
-      return nil
-    }
-
-    @MainActor func initializeIfNeeded() async {
-      if songs.isEmpty || loadState == .initial {
-        await execQuery()
-      }
-    }
-
-    func performRefresh() async {
-      return await query(loadingState: .loadingByPullToRefresh)
-    }
-
-    func execQuery() async {
-      return await query(loadingState: .loading)
-    }
-
-    @MainActor private func query(loadingState: LoadingState) async {
-      if let computedPredicate = computedPredicate {
-        let predicate = await MainActor.run {
-          () -> MyMPMediaPropertyPredicate in
-          loadState = loadingState
-          return computedPredicate
-        }
-        let gotSongs = await getSongsByPredicate(predicate: predicate)
-        await MainActor.run {
-          songs = gotSongs
-        }
-        await updateSortedSongs()
-      }
-    }
-
-    @MainActor private func updateSortedSongs() async {
-      self.loadState = .loading
-      self.sortedSongs = await sortSongs(songs: self.songs, by: self.sort)
-      self.loadState = .loaded
-    }
-
-    var predicates: [MyMPMediaPropertyPredicate] {
-      if let filterPredicateConfig {
-        return filterPredicateConfig.filterPredicate
-          .getNextSearchHintPredicates()
-      } else {
-        return []
-      }
-    }
   }
 }
 
 struct QueriedSongsListViewContainer_Previews: PreviewProvider {
   static var previews: some View {
-    QueriedSongsListViewContainer()
+    QueriedSongsListViewContainer(
+      songsList: SongsListFixed(fixedSongs: [], title: "dummy"),
+    )
   }
 }

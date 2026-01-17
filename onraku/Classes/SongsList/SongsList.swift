@@ -10,8 +10,9 @@ import MediaPlayer
 protocol SongsList {
   func songs() -> [MPMediaItem]
   var title: String { get }
+  
   var shouldShowSearchCriteria: Bool { get }
-  var canConfigureExactMatch: Bool { get }
+  func searchCriteria() -> [MyMPMediaPropertyPredicate]?
 }
 
 struct SongsListFixed: SongsList {
@@ -22,7 +23,9 @@ struct SongsListFixed: SongsList {
     self.fixedSongs
   }
   var shouldShowSearchCriteria: Bool { false }
-  var canConfigureExactMatch: Bool { false }
+  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
+    nil
+  }
 }
 
 struct SongsListFromPlaylist: SongsList {
@@ -37,7 +40,10 @@ struct SongsListFromPlaylist: SongsList {
   }
   
   var shouldShowSearchCriteria: Bool { false }
-  var canConfigureExactMatch: Bool { false }
+  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
+//    [playlist]
+    []
+  }
 }
 
 struct SongsListFromPredicates : SongsList {
@@ -54,7 +60,12 @@ struct SongsListFromPredicates : SongsList {
   var shouldShowSearchCriteria: Bool {
     predicates.count > 1
   }
-  var canConfigureExactMatch: Bool {
-    predicates.count == 1
+  
+  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
+    predicates
   }
+}
+
+func predicateToSongsList(_ predicate: MyMPMediaPropertyPredicate) -> SongsList {
+  return SongsListFixed(fixedSongs: [], title: "")
 }

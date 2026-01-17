@@ -26,7 +26,6 @@ private struct SongWithMatchedPredicates {
         return 0.2 + res
       default:
         return 1 + res
-
       }
     }
   }
