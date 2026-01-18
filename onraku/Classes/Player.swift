@@ -10,8 +10,10 @@ import MediaPlayer
 
 func playMediaItems(items: [MPMediaItem]) {
   let collection = MPMediaItemCollection.init(items: items)
+  let currentRepeatMode = MPMusicPlayerController.systemMusicPlayer.repeatMode
   MPMusicPlayerController.systemMusicPlayer.setQueue(with: collection)
   MPMusicPlayerController.systemMusicPlayer.play()
+  MPMusicPlayerController.systemMusicPlayer.repeatMode = currentRepeatMode
 }
 
 func appendMediaItems(items: [MPMediaItem]) {

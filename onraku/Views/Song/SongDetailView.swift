@@ -24,9 +24,7 @@ struct SongDetailView: View {
       Section {
         NavigationLink {
           QueriedSongsListViewContainer(
-            title: "Dig Deeper",
-            songs: digDeeperItems.songs,
-            predicates: digDeeperItems.predicates
+            songsList: SongsListFixed(fixedSongs: digDeeperItems.songs, title: "Dig Deeper"),
           )
         } label: {
           SongsCollectionItemView(
@@ -37,9 +35,7 @@ struct SongDetailView: View {
 
         NavigationLink {
           QueriedSongsListViewContainer(
-            title: "Dig Deepest",
-            songs: digDeepestItems.songs,
-            predicates: digDeepestItems.predicates
+            songsList: SongsListFixed(fixedSongs: digDeepestItems.songs, title: "Dig Deepest"),
           )
         } label: {
           SongsCollectionItemView(
@@ -68,24 +64,32 @@ struct SongDetailView: View {
   private func playlistsView() -> some View {
     Group {
       if playlistsOfSong.loadingState.isLoading {
-        HStack(alignment: .center) {
-          ProgressView()
-        }
+        AnyView(
+          HStack(alignment: .center) {
+            Spacer()
+            ProgressView()
+            Spacer()
+          }
+        )
       } else {
         if playlistsOfSong.playlists.isEmpty {
-          Text("no playlists").foregroundStyle(.secondary)
+          AnyView(
+            Text("no playlists").foregroundStyle(.secondary)
+          )
         } else {
-          ForEach(playlistsOfSong.playlists) { playlist in
-            NavigationLink {
-              QueriedSongsListViewContainer(
-                title: playlist.name, songs: playlist.items ?? []
-              )
-            } label: {
-              SongsCollectionItemView(
-                title: playlist.name
-              )
+          AnyView(
+            ForEach(playlistsOfSong.playlists) { playlist in
+              NavigationLink {
+                QueriedSongsListViewContainer(
+                  title: playlist.name, songs: playlist.items ?? []
+                )
+              } label: {
+                SongsCollectionItemView(
+                  title: playlist.name
+                )
+              }
             }
-          }
+          )
         }
       }
     }
@@ -149,3 +153,4 @@ final class DiggingViewModel: ObservableObject {
     await loadTask?.value
   }
 }
+

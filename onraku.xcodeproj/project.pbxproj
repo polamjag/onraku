@@ -86,6 +86,7 @@
 		601750692F1229E7007925CC /* SongsList */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SongsList; sourceTree = "<group>"; };
 		6017506A2F122A0D007925CC /* Song */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Song; sourceTree = "<group>"; };
 		6017506B2F122A5B007925CC /* SongsList */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SongsList; sourceTree = "<group>"; };
+		60DA10F02F1CA97B0053F81E /* SongsCollection */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SongsCollection; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -219,6 +220,7 @@
 				6042DA8E292A3F2F007B7E21 /* LoadingState.swift */,
 				6086ABC62DC9E86D0089C7E1 /* SongDetailLike.swift */,
 				6092536A27B78AFA00E23931 /* Player.swift */,
+				60DA10F02F1CA97B0053F81E /* SongsCollection */,
 				6017506B2F122A5B007925CC /* SongsList */,
 				60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */,
 			);
@@ -259,6 +261,7 @@
 				601750692F1229E7007925CC /* SongsList */,
 				6017506A2F122A0D007925CC /* Song */,
 				6017506B2F122A5B007925CC /* SongsList */,
+				60DA10F02F1CA97B0053F81E /* SongsCollection */,
 			);
 			name = onraku;
 			productName = onraku;
