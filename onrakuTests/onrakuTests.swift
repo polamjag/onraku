@@ -6,9 +6,45 @@
 //
 
 import MediaPlayer
+import SwiftUI
 import XCTest
 
 @testable import onraku
+
+private final class FakePlaybackNotificationManager:
+  PlaybackNotificationManaging
+{
+  private(set) var beginCallCount = 0
+  private(set) var endCallCount = 0
+
+  func beginGeneratingPlaybackNotifications() {
+    beginCallCount += 1
+  }
+
+  func endGeneratingPlaybackNotifications() {
+    endCallCount += 1
+  }
+}
+
+private final class FakeQuickDigLoader: QuickDigLoading {
+  private(set) var loadCallCount = 0
+  var result: QuickDigData?
+
+  func loadQuickDig() async -> QuickDigData? {
+    loadCallCount += 1
+    return result
+  }
+}
+
+private final class FakeNowPlayingLoader: NowPlayingLoading {
+  private(set) var loadCallCount = 0
+  var result: MPMediaItem?
+
+  func loadNowPlayingSong() async -> MPMediaItem? {
+    loadCallCount += 1
+    return result
+  }
+}
 
 class onrakuTests: XCTestCase {
 
@@ -133,6 +169,69 @@ class onrakuTests: XCTestCase {
 
     XCTAssertEqual(sut.searchCriteria, predicates)
     XCTAssertTrue(sut.shouldShowSearchCriteria)
+  }
+
+  @MainActor
+  func testContentViewModelStartsAndStopsPlaybackNotificationsOnlyOnce() async throws {
+    let playbackNotificationManager = FakePlaybackNotificationManager()
+    let quickDigLoader = FakeQuickDigLoader()
+    let sut = ContentViewModel(
+      playbackNotificationManager: playbackNotificationManager,
+      quickDigLoader: quickDigLoader
+    )
+
+    sut.onAppear()
+    sut.onAppear()
+    XCTAssertEqual(playbackNotificationManager.beginCallCount, 1)
+
+    sut.onDisappear()
+    sut.onDisappear()
+    XCTAssertEqual(playbackNotificationManager.endCallCount, 1)
+  }
+
+  @MainActor
+  func testContentViewModelRefreshesQuickDigWhenActivated() async throws {
+    let playbackNotificationManager = FakePlaybackNotificationManager()
+    let quickDigLoader = FakeQuickDigLoader()
+    let sut = ContentViewModel(
+      playbackNotificationManager: playbackNotificationManager,
+      quickDigLoader: quickDigLoader
+    )
+
+    await sut.handleScenePhaseChange(.active)
+
+    XCTAssertEqual(playbackNotificationManager.beginCallCount, 1)
+    XCTAssertEqual(quickDigLoader.loadCallCount, 1)
+  }
+
+  @MainActor
+  func testNowPlayingViewModelOnlyRefreshesNotificationWhileAppearing() async throws {
+    let nowPlayingLoader = FakeNowPlayingLoader()
+    let sut = NowPlayingViewModel(nowPlayingLoader: nowPlayingLoader)
+
+    await sut.handleNowPlayingItemDidChange()
+    XCTAssertEqual(nowPlayingLoader.loadCallCount, 0)
+
+    sut.onAppear()
+    await sut.handleNowPlayingItemDidChange()
+    XCTAssertEqual(nowPlayingLoader.loadCallCount, 1)
+
+    sut.onDisappear()
+    await sut.handleNowPlayingItemDidChange()
+    XCTAssertEqual(nowPlayingLoader.loadCallCount, 1)
+  }
+
+  @MainActor
+  func testNowPlayingViewModelRefreshesWhenSceneBecomesActive() async throws {
+    let nowPlayingLoader = FakeNowPlayingLoader()
+    let sut = NowPlayingViewModel(nowPlayingLoader: nowPlayingLoader)
+
+    await sut.handleScenePhaseChange(.background)
+    XCTAssertEqual(nowPlayingLoader.loadCallCount, 0)
+
+    await sut.handleScenePhaseChange(.active)
+    XCTAssertEqual(nowPlayingLoader.loadCallCount, 1)
+    XCTAssertEqual(sut.loadingState, .loaded)
   }
 
   //    func testPerformanceExample() throws {

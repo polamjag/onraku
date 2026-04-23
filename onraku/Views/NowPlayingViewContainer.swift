@@ -11,50 +11,38 @@ import SwiftUI
 struct NowPlayingViewContainer: View {
   @Environment(\.scenePhase) private var scenePhase
 
-  @MainActor @State var nowPlayingItem: MPMediaItem?
-  @MainActor @State var loadingState: LoadingState = .initial
-
-  @MainActor @State var isAppearing = false
-
-  @MainActor func refreshNowPlayingSong() async {
-    await MainActor.run {
-      loadingState = .loading
-      nowPlayingItem = getNowPlayingSong()
-      loadingState = .loaded
-    }
-  }
+  @StateObject private var viewModel = NowPlayingViewModel()
 
   var body: some View {
     Group {
-      if loadingState == .loading {
+      if viewModel.loadingState == .loading {
         ProgressView()
-      } else if let nowPlayingItem = nowPlayingItem {
+      } else if let nowPlayingItem = viewModel.nowPlayingItem {
         SongDetailView(song: nowPlayingItem, title: "Now Playing")
       } else {
         NotPlayingView()
       }
     }
     .task {
-      await refreshNowPlayingSong()
+      await viewModel.refreshNowPlayingSong()
     }
     .refreshable {
-      await refreshNowPlayingSong()
+      await viewModel.refreshNowPlayingSong()
     }
     .onReceive(
       NotificationCenter.default.publisher(for: .musicPlayerNowPlayingItemDidChange),
       perform: { _ in
-        Task { if isAppearing { await refreshNowPlayingSong() } }
+        Task { await viewModel.handleNowPlayingItemDidChange() }
       }
     )
     .onChange(of: scenePhase) { _, newPhase in
-      guard newPhase == .active else { return }
-      Task { await refreshNowPlayingSong() }
+      Task { await viewModel.handleScenePhaseChange(newPhase) }
     }
     .onAppear {
-      isAppearing = true
+      viewModel.onAppear()
     }
     .onDisappear {
-      isAppearing = false
+      viewModel.onDisappear()
     }
   }
 }

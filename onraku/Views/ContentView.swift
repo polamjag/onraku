@@ -16,29 +16,8 @@ struct ContentView: View {
   }
 
   @State private var selectedTab: Tab = .Library
-  @State private var isGeneratingPlaybackNotifications = false
 
-  @StateObject private var digDeeperItems = DiggingViewModel()
-
-  @MainActor
-  private func startPlaybackNotificationsIfNeeded() {
-    guard !isGeneratingPlaybackNotifications else { return }
-    MPMusicPlayerController.systemMusicPlayer.beginGeneratingPlaybackNotifications()
-    isGeneratingPlaybackNotifications = true
-  }
-
-  @MainActor
-  private func stopPlaybackNotificationsIfNeeded() {
-    guard isGeneratingPlaybackNotifications else { return }
-    MPMusicPlayerController.systemMusicPlayer.endGeneratingPlaybackNotifications()
-    isGeneratingPlaybackNotifications = false
-  }
-
-  private func refreshQuickDig() async {
-    if let now = getNowPlayingSong() {
-      await digDeeperItems.load(for: now, withDepth: 1)
-    }
-  }
+  @StateObject private var viewModel = ContentViewModel()
 
   var body: some View {
     ZStack {
@@ -59,8 +38,8 @@ struct ContentView: View {
               NavigationLink {
                 QueriedSongsListViewContainer(
                   title: "Quick Dig",
-                  songs: digDeeperItems.songs,
-                  predicates: digDeeperItems.predicates
+                  songs: viewModel.quickDigSongs,
+                  predicates: viewModel.quickDigPredicates
                 )
               } label: {
                 Label("Quick Dig", systemImage: "square.2.layers.3d")
@@ -78,12 +57,12 @@ struct ContentView: View {
         }
         .tag(Tab.Library)
         .task {
-          await refreshQuickDig()
+          await viewModel.handleNowPlayingItemDidChange()
         }
         .onReceive(
           NotificationCenter.default.publisher(for: .musicPlayerNowPlayingItemDidChange)
         ) { _ in
-          Task { await refreshQuickDig() }
+          Task { await viewModel.handleNowPlayingItemDidChange() }
         }
 
         NavigationView {
@@ -100,19 +79,13 @@ struct ContentView: View {
       ToastView()
     }
     .onAppear {
-      startPlaybackNotificationsIfNeeded()
+      viewModel.onAppear()
     }
     .onDisappear {
-      stopPlaybackNotificationsIfNeeded()
+      viewModel.onDisappear()
     }
     .onChange(of: scenePhase) { _, newPhase in
-      switch newPhase {
-      case .active:
-        startPlaybackNotificationsIfNeeded()
-        Task { await refreshQuickDig() }
-      default:
-        stopPlaybackNotificationsIfNeeded()
-      }
+      Task { await viewModel.handleScenePhaseChange(newPhase) }
     }
   }
 }
