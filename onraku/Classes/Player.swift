@@ -161,16 +161,18 @@ final class NowPlayingViewModel: ObservableObject {
 
   func handleNowPlayingItemDidChange() async {
     guard isAppearing else { return }
-    await refreshNowPlayingSong()
+    await refreshNowPlayingSong(showLoading: false)
   }
 
   func handleScenePhaseChange(_ newPhase: ScenePhase) async {
     guard newPhase == .active else { return }
-    await refreshNowPlayingSong()
+    await refreshNowPlayingSong(showLoading: nowPlayingItem == nil)
   }
 
-  func refreshNowPlayingSong() async {
-    loadingState = .loading
+  func refreshNowPlayingSong(showLoading: Bool = true) async {
+    if showLoading || nowPlayingItem == nil {
+      loadingState = .loading
+    }
     nowPlayingItem = await nowPlayingLoader.loadNowPlayingSong()
     loadingState = .loaded
   }

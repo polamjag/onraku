@@ -15,10 +15,10 @@ struct NowPlayingViewContainer: View {
 
   var body: some View {
     Group {
-      if viewModel.loadingState == .loading {
-        ProgressView()
-      } else if let nowPlayingItem = viewModel.nowPlayingItem {
+      if let nowPlayingItem = viewModel.nowPlayingItem {
         SongDetailView(song: nowPlayingItem, title: "Now Playing")
+      } else if viewModel.loadingState == .loading {
+        ProgressView()
       } else {
         NotPlayingView()
       }
