@@ -25,7 +25,7 @@ struct ToastView: View {
   @State var message: String = ""
   @State var systemImage: String = ""
   @State var isShown: Bool = false
-  @State var opacity: Double = 0
+  @State private var dismissTask: Task<Void, Never>?
 
   var body: some View {
     Group {
@@ -42,26 +42,32 @@ struct ToastView: View {
           let gotMessage = userInfo["message"] as? String,
           let systemImage = userInfo["systemImage"] as? String
         {
-          Task {
-            await MainActor.run {
-              self.message = gotMessage
-              self.systemImage = systemImage
+          dismissTask?.cancel()
+          message = gotMessage
+          self.systemImage = systemImage
 
-              withAnimation(.easeIn(duration: 0.15)) {
-                self.isShown = true
+          withAnimation(.easeIn(duration: 0.15)) {
+            isShown = true
+          }
+
+          dismissTask = Task {
+            try? await Task.sleep(nanoseconds: 1_700_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+              withAnimation(.easeOut(duration: 0.25)) {
+                isShown = false
               }
-              DispatchQueue.main.asyncAfter(
-                deadline: .now() + 1.7,
-                execute: {
-                  withAnimation(.easeOut(duration: 0.25)) {
-                    self.isShown = false
-                  }
-                })
+              dismissTask = nil
             }
           }
         }
       }
-    ).allowsHitTesting(false)
+    )
+    .onDisappear {
+      dismissTask?.cancel()
+      dismissTask = nil
+    }
+    .allowsHitTesting(false)
   }
 }
 

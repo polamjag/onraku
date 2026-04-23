@@ -17,48 +17,61 @@ struct SongDetailView: View {
 
   @StateObject private var playlistsOfSong = PlaylistsBySongViewModel()
 
+  private var mediaItem: MPMediaItem? {
+    song as? MPMediaItem
+  }
+
   var body: some View {
     List {
       SongMetaView(song: song)
 
-      Section {
-        NavigationLink {
-          QueriedSongsListViewContainer(
-            songsList: SongsListFixed(fixedSongs: digDeeperItems.songs, title: "Dig Deeper"),
-          )
-        } label: {
-          SongsCollectionItemView(
-            title: "Dig Deeper", systemImage: "square.2.layers.3d",
-            itemsCount: digDeeperItems.songs.count,
-            showLoading: digDeeperItems.loadingState.isLoading)
+      if mediaItem != nil {
+        Section {
+          NavigationLink {
+            QueriedSongsListViewContainer(
+              songsList: SongsListFixed(fixedSongs: digDeeperItems.songs, title: "Dig Deeper"),
+            )
+          } label: {
+            SongsCollectionItemView(
+              title: "Dig Deeper", systemImage: "square.2.layers.3d",
+              itemsCount: digDeeperItems.songs.count,
+              showLoading: digDeeperItems.loadingState.isLoading)
+          }.disabled(digDeeperItems.loadingState.isLoading || digDeeperItems.songs.isEmpty)
+
+          NavigationLink {
+            QueriedSongsListViewContainer(
+              songsList: SongsListFixed(fixedSongs: digDeepestItems.songs, title: "Dig Deepest"),
+            )
+          } label: {
+            SongsCollectionItemView(
+              title: "Dig Deepest", systemImage: "square.3.layers.3d",
+              itemsCount: digDeepestItems.songs.count,
+              showLoading: digDeepestItems.loadingState.isLoading)
+          }.disabled(digDeepestItems.loadingState.isLoading || digDeepestItems.songs.isEmpty)
         }
 
-        NavigationLink {
-          QueriedSongsListViewContainer(
-            songsList: SongsListFixed(fixedSongs: digDeepestItems.songs, title: "Dig Deepest"),
-          )
-        } label: {
-          SongsCollectionItemView(
-            title: "Dig Deepest", systemImage: "square.3.layers.3d",
-            itemsCount: digDeepestItems.songs.count,
-            showLoading: digDeepestItems.loadingState.isLoading)
+        Section("Show in Playlist") {
+          playlistsView()
         }
-      }
-
-      Section("Show in Playlist") {
-        playlistsView()
       }
     }.navigationTitle(title ?? song.title ?? "Song Detail").toolbar {
-      ToolbarItemGroup(placement: .navigationBarTrailing) {
-        Menu {
-          PlayableItemsMenuView(target: .array([song as! MPMediaItem]))
-        } label: {
-          Image(systemName: "ellipsis.circle")
+      if let mediaItem {
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+          Menu {
+            PlayableItemsMenuView(target: .array([mediaItem]))
+          } label: {
+            Image(systemName: "ellipsis.circle")
+          }
         }
       }
-    }.task {
-      _ = await (digDeeperItems.load(for: song as! MPMediaItem, withDepth: 1), digDeepestItems.load(for: song as! MPMediaItem, withDepth: 2), playlistsOfSong.load(for: song as! MPMediaItem))
-    }.id(song.refreshingIdentifier)
+    }.task(id: mediaItem?.refreshingIdentifier ?? song.refreshingIdentifier) {
+      guard let mediaItem else { return }
+      _ = await (
+        digDeeperItems.load(for: mediaItem, withDepth: 1),
+        digDeepestItems.load(for: mediaItem, withDepth: 2),
+        playlistsOfSong.load(for: mediaItem)
+      )
+    }
   }
 
   @ViewBuilder
@@ -98,8 +111,13 @@ final class PlaylistsBySongViewModel: ObservableObject {
   @Published private(set) var loadingState: LoadingState = .initial
   private var loadTask: Task<Void, Never>?
 
+  deinit {
+    loadTask?.cancel()
+  }
+
   func load(for song: MPMediaItem) async {
     guard song != currentSong else { return }
+    playlists = []
     loadingState = .loading
     currentSong = song
 
@@ -127,8 +145,14 @@ final class DiggingViewModel: ObservableObject {
   @Published private(set) var loadingState: LoadingState = .initial
   private var loadTask: Task<Void, Never>?
 
+  deinit {
+    loadTask?.cancel()
+  }
+
   func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
     guard song != currentSong else { return }
+    songs = []
+    predicates = []
     loadingState = .loading
     currentSong = song
 

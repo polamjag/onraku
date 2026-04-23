@@ -9,6 +9,8 @@ import MediaPlayer
 import SwiftUI
 
 struct NowPlayingViewContainer: View {
+  @Environment(\.scenePhase) private var scenePhase
+
   @MainActor @State var nowPlayingItem: MPMediaItem?
   @MainActor @State var loadingState: LoadingState = .initial
 
@@ -31,22 +33,27 @@ struct NowPlayingViewContainer: View {
       } else {
         NotPlayingView()
       }
-    }.task {
+    }
+    .task {
       await refreshNowPlayingSong()
-    }.refreshable {
+    }
+    .refreshable {
       await refreshNowPlayingSong()
-    }.onReceive(
-      // https://dishware.sakura.ne.jp/swift/archives/484
-      NotificationCenter.default.publisher(
-        for: Notification.Name(
-          "MPMusicPlayerControllerNowPlayingItemDidChangeNotification")
-      ),
+    }
+    .onReceive(
+      NotificationCenter.default.publisher(for: .musicPlayerNowPlayingItemDidChange),
       perform: { _ in
         Task { if isAppearing { await refreshNowPlayingSong() } }
       }
-    ).onAppear {
+    )
+    .onChange(of: scenePhase) { _, newPhase in
+      guard newPhase == .active else { return }
+      Task { await refreshNowPlayingSong() }
+    }
+    .onAppear {
       isAppearing = true
-    }.onDisappear {
+    }
+    .onDisappear {
       isAppearing = false
     }
   }

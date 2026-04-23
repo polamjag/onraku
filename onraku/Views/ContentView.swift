@@ -9,13 +9,36 @@ import MediaPlayer
 import SwiftUI
 
 struct ContentView: View {
+  @Environment(\.scenePhase) private var scenePhase
+
   private enum Tab {
     case Library, NowPlaying
   }
 
   @State private var selectedTab: Tab = .Library
+  @State private var isGeneratingPlaybackNotifications = false
 
   @StateObject private var digDeeperItems = DiggingViewModel()
+
+  @MainActor
+  private func startPlaybackNotificationsIfNeeded() {
+    guard !isGeneratingPlaybackNotifications else { return }
+    MPMusicPlayerController.systemMusicPlayer.beginGeneratingPlaybackNotifications()
+    isGeneratingPlaybackNotifications = true
+  }
+
+  @MainActor
+  private func stopPlaybackNotificationsIfNeeded() {
+    guard isGeneratingPlaybackNotifications else { return }
+    MPMusicPlayerController.systemMusicPlayer.endGeneratingPlaybackNotifications()
+    isGeneratingPlaybackNotifications = false
+  }
+
+  private func refreshQuickDig() async {
+    if let now = getNowPlayingSong() {
+      await digDeeperItems.load(for: now, withDepth: 1)
+    }
+  }
 
   var body: some View {
     ZStack {
@@ -52,12 +75,16 @@ struct ContentView: View {
             .environment(
               \.symbolVariants, selectedTab == .Library ? .fill : .none)
           Text("Library")
-        }.tag(Tab.Library)
-          .task {
-            if let now = getNowPlayingSong() {
-              await digDeeperItems.load(for: now, withDepth: 1)
-            }
-          }
+        }
+        .tag(Tab.Library)
+        .task {
+          await refreshQuickDig()
+        }
+        .onReceive(
+          NotificationCenter.default.publisher(for: .musicPlayerNowPlayingItemDidChange)
+        ) { _ in
+          Task { await refreshQuickDig() }
+        }
 
         NavigationView {
           NowPlayingViewContainer()
@@ -71,6 +98,21 @@ struct ContentView: View {
         }.tag(Tab.NowPlaying)
       }
       ToastView()
+    }
+    .onAppear {
+      startPlaybackNotificationsIfNeeded()
+    }
+    .onDisappear {
+      stopPlaybackNotificationsIfNeeded()
+    }
+    .onChange(of: scenePhase) { _, newPhase in
+      switch newPhase {
+      case .active:
+        startPlaybackNotificationsIfNeeded()
+        Task { await refreshQuickDig() }
+      default:
+        stopPlaybackNotificationsIfNeeded()
+      }
     }
   }
 }

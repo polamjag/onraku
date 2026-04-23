@@ -8,6 +8,11 @@
 import Foundation
 import MediaPlayer
 
+extension Notification.Name {
+  static let musicPlayerNowPlayingItemDidChange = Notification.Name(
+    "MPMusicPlayerControllerNowPlayingItemDidChangeNotification")
+}
+
 func playMediaItems(items: [MPMediaItem]) {
   let collection = MPMediaItemCollection.init(items: items)
   let currentRepeatMode = MPMusicPlayerController.systemMusicPlayer.repeatMode
