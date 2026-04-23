@@ -8,23 +8,27 @@
 import MediaPlayer
 
 protocol SongsList {
-  func songs() -> [MPMediaItem]
   var title: String { get }
-  
-  var shouldShowSearchCriteria: Bool { get }
-  func searchCriteria() -> [MyMPMediaPropertyPredicate]?
+  var searchCriteria: [MyMPMediaPropertyPredicate] { get }
+  func loadSongs() async -> [MPMediaItem]
+}
+
+extension SongsList {
+  var shouldShowSearchCriteria: Bool {
+    searchCriteria.count > 1
+  }
 }
 
 struct SongsListFixed: SongsList {
   let fixedSongs: [MPMediaItem]
   let title: String
-  
-  func songs() -> [MPMediaItem] {
-    self.fixedSongs
+
+  var searchCriteria: [MyMPMediaPropertyPredicate] {
+    []
   }
-  var shouldShowSearchCriteria: Bool { false }
-  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
-    nil
+
+  func loadSongs() async -> [MPMediaItem] {
+    fixedSongs
   }
 }
 
@@ -33,57 +37,45 @@ struct SongsListLoaded: SongsList {
   let title: String
   let predicates: [MyMPMediaPropertyPredicate]
 
-  func songs() -> [MPMediaItem] {
+  var searchCriteria: [MyMPMediaPropertyPredicate] {
+    predicates
+  }
+
+  func loadSongs() async -> [MPMediaItem] {
     loadedSongs
-  }
-
-  var shouldShowSearchCriteria: Bool {
-    predicates.count > 1
-  }
-
-  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
-    predicates.isEmpty ? nil : predicates
   }
 }
 
 struct SongsListFromPlaylist: SongsList {
   let playlist: MPMediaPlaylist
-  
+
   var title: String {
     self.playlist.name ?? ""
   }
-  
-  func songs() -> [MPMediaItem] {
-    playlist.items
-  }
-  
-  var shouldShowSearchCriteria: Bool { false }
-  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
-//    [playlist]
+
+  var searchCriteria: [MyMPMediaPropertyPredicate] {
     []
+  }
+
+  func loadSongs() async -> [MPMediaItem] {
+    playlist.items
   }
 }
 
-struct SongsListFromPredicates : SongsList {
+struct SongsListFromPredicates: SongsList {
   let predicates: [MyMPMediaPropertyPredicate]
   var customTitle: String?
-  
+
   var title: String {
     customTitle ?? "Search Result"
   }
-  
-  func songs() -> [MPMediaItem] {
+
+  var searchCriteria: [MyMPMediaPropertyPredicate] {
     predicates
-      .flatMap { getSongsByPredicateNow(predicate: $0) }
-      .unique()
   }
-  
-  var shouldShowSearchCriteria: Bool {
-    predicates.count > 1
-  }
-  
-  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
-    predicates
+
+  func loadSongs() async -> [MPMediaItem] {
+    await getSongsByPredicates(predicates)
   }
 }
 
@@ -92,4 +84,24 @@ func predicateToSongsList(_ predicate: MyMPMediaPropertyPredicate) -> SongsList 
     predicates: [predicate],
     customTitle: predicate.value as? String
   )
+}
+
+func getSongsByPredicates(_ predicates: [MyMPMediaPropertyPredicate]) async
+  -> [MPMediaItem]
+{
+  let songs = await withTaskGroup(of: [MPMediaItem].self) { group in
+    for predicate in predicates {
+      group.addTask {
+        await getSongsByPredicate(predicate: predicate)
+      }
+    }
+
+    var loadedSongs: [MPMediaItem] = []
+    for await result in group {
+      loadedSongs += result
+    }
+    return loadedSongs
+  }
+
+  return songs.unique()
 }

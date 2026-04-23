@@ -65,14 +65,16 @@ struct PredicateItemView: View {
 }
 
 struct QueriedSongsListViewContainer: View {
-  var songsList: SongsList
-  
+  @StateObject private var viewModel: QueriedSongsListViewModel
+
   @State var sortOrder: SongsSortKey = .none
-  
+
   @State var isSearchHintSectionExpanded: Bool = false
 
   init(songsList: SongsList) {
-    self.songsList = songsList
+    _viewModel = StateObject(
+      wrappedValue: QueriedSongsListViewModel(songsList: songsList)
+    )
   }
 
   init(
@@ -80,23 +82,27 @@ struct QueriedSongsListViewContainer: View {
     songs: [MPMediaItem],
     predicates: [MyMPMediaPropertyPredicate] = []
   ) {
-    self.songsList = SongsListLoaded(
-      loadedSongs: songs,
-      title: title ?? "Search Result",
-      predicates: predicates
+    self.init(
+      songsList: SongsListLoaded(
+        loadedSongs: songs,
+        title: title ?? "Search Result",
+        predicates: predicates
+      )
     )
   }
 
   init(filterPredicate: MyMPMediaPropertyPredicate, title: String? = nil) {
-    self.songsList = SongsListFromPredicates(
-      predicates: [filterPredicate],
-      customTitle: title ?? (filterPredicate.value as? String)
+    self.init(
+      songsList: SongsListFromPredicates(
+        predicates: [filterPredicate],
+        customTitle: title ?? (filterPredicate.value as? String)
+      )
     )
   }
-  
+
   var body: some View {
     List {
-      if songsList.shouldShowSearchCriteria {
+      if viewModel.shouldShowSearchCriteria {
         Section(
           content: {
             Button(action: {
@@ -104,24 +110,24 @@ struct QueriedSongsListViewContainer: View {
             }) {
               Text(
                 isSearchHintSectionExpanded
-                ? "Hide Search Criteria"
-                : "Show \(songsList.searchCriteria()?.count ?? 0) Search Criteria"
+                  ? "Hide Search Criteria"
+                  : "Show \(viewModel.searchCriteria.count) Search Criteria"
               )
             }
-            
+
             if isSearchHintSectionExpanded {
-              ForEach(songsList.searchCriteria() ?? []) { predicate in
+              ForEach(viewModel.searchCriteria) { predicate in
                 PredicateItemView(predicate: predicate, resultCount: 0)
               }
             }
           })
       }
-      
-      if songsList.songs().isEmpty {
+
+      if viewModel.loadingState == .initial || viewModel.loadingState.isLoading {
         LoadingCellView()
       } else {
-        Section(footer: Text("\(songsList.songs().count) songs")) {
-          ForEach(songsList.songs()) { song in
+        Section(footer: Text("\(viewModel.songs.count) songs")) {
+          ForEach(viewModel.songs) { song in
             NavigationLink {
               SongDetailView(song: song)
             } label: {
@@ -137,32 +143,39 @@ struct QueriedSongsListViewContainer: View {
           }
         }
       }
-    }.navigationTitle(songsList.title)
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItemGroup(placement: .navigationBarTrailing) {
+    }
+    .task {
+      await viewModel.loadIfNeeded()
+    }
+    .refreshable {
+      await viewModel.reload()
+    }
+    .navigationTitle(viewModel.title)
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItemGroup(placement: .navigationBarTrailing) {
+        Menu {
+          Divider()
+
+          // todo: sort
+          PlayableItemsMenuView(target: .array(viewModel.songs))
+
           Menu {
-            Divider()
-            
-            // todo: sort
-            PlayableItemsMenuView(target: .array(songsList.songs()))
-            
-            Menu {
-              Picker("sort by", selection: $sortOrder) {
-                ForEach(SongsSortKey.allCases, id: \.self) { value in
-                  Text(value.rawValue).tag(value)
-                }
+            Picker("sort by", selection: $sortOrder) {
+              ForEach(SongsSortKey.allCases, id: \.self) { value in
+                Text(value.rawValue).tag(value)
               }
-            } label: {
-              Label(
-                "Sort Order: \(sortOrder.rawValue)",
-                systemImage: "arrow.up.arrow.down")
             }
           } label: {
-            Image(systemName: "ellipsis.circle")
+            Label(
+              "Sort Order: \(sortOrder.rawValue)",
+              systemImage: "arrow.up.arrow.down")
           }
+        } label: {
+          Image(systemName: "ellipsis.circle")
         }
       }
+    }
   }
 }
 

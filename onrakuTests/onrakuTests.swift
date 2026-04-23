@@ -5,6 +5,7 @@
 //  Created by Satoru Abe on 2022/02/11.
 //
 
+import MediaPlayer
 import XCTest
 
 @testable import onraku
@@ -83,6 +84,55 @@ class onrakuTests: XCTestCase {
     XCTAssertEqual(
       "hoge (fuga / piyo)".intelligentlySplitIntoSubGenres(),
       ["hoge", "fuga", "piyo"])
+  }
+
+  @MainActor
+  func testQueriedSongsListViewModelLoadsOnlyOnceUntilReloaded() async throws {
+    var loadCount = 0
+    let sut = QueriedSongsListViewModel(
+      title: "Search Result",
+      searchCriteria: []
+    ) {
+      loadCount += 1
+      return []
+    }
+
+    XCTAssertEqual(sut.loadingState, .initial)
+    XCTAssertTrue(sut.songs.isEmpty)
+
+    await sut.loadIfNeeded()
+    XCTAssertEqual(loadCount, 1)
+    XCTAssertEqual(sut.loadingState, .loaded)
+
+    await sut.loadIfNeeded()
+    XCTAssertEqual(loadCount, 1)
+
+    await sut.reload()
+    XCTAssertEqual(loadCount, 2)
+    XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
+  func testQueriedSongsListViewModelExposesSearchCriteriaState() async throws {
+    let predicates = [
+      MyMPMediaPropertyPredicate(
+        value: "Artist A",
+        forProperty: MPMediaItemPropertyArtist
+      ),
+      MyMPMediaPropertyPredicate(
+        value: "Genre A",
+        forProperty: MPMediaItemPropertyGenre
+      ),
+    ]
+    let sut = QueriedSongsListViewModel(
+      title: "Search Result",
+      searchCriteria: predicates
+    ) {
+      []
+    }
+
+    XCTAssertEqual(sut.searchCriteria, predicates)
+    XCTAssertTrue(sut.shouldShowSearchCriteria)
   }
 
   //    func testPerformanceExample() throws {
