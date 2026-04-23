@@ -17,18 +17,25 @@ struct SongDetailView: View {
 
   @StateObject private var playlistsOfSong: PlaylistsBySongViewModel
 
+  @MainActor
   init(
     song: SongDetailLike,
     title: String? = nil,
-    digDeeperItems: DiggingViewModel = DiggingViewModel(),
-    digDeepestItems: DiggingViewModel = DiggingViewModel(),
-    playlistsOfSong: PlaylistsBySongViewModel = PlaylistsBySongViewModel()
+    digDeeperItems: DiggingViewModel? = nil,
+    digDeepestItems: DiggingViewModel? = nil,
+    playlistsOfSong: PlaylistsBySongViewModel? = nil
   ) {
     self.song = song
     self.title = title
-    _digDeeperItems = StateObject(wrappedValue: digDeeperItems)
-    _digDeepestItems = StateObject(wrappedValue: digDeepestItems)
-    _playlistsOfSong = StateObject(wrappedValue: playlistsOfSong)
+    _digDeeperItems = StateObject(
+      wrappedValue: digDeeperItems ?? DiggingViewModel()
+    )
+    _digDeepestItems = StateObject(
+      wrappedValue: digDeepestItems ?? DiggingViewModel()
+    )
+    _playlistsOfSong = StateObject(
+      wrappedValue: playlistsOfSong ?? PlaylistsBySongViewModel()
+    )
   }
 
   private var mediaItem: MPMediaItem? {

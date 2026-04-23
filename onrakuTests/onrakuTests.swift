@@ -29,9 +29,13 @@ private final class FakePlaybackNotificationManager:
 private final class FakeQuickDigLoader: QuickDigLoading {
   private(set) var loadCallCount = 0
   var result: QuickDigData?
+  var queuedResults: [QuickDigData?] = []
 
   func loadQuickDig() async -> QuickDigData? {
     loadCallCount += 1
+    if !queuedResults.isEmpty {
+      return queuedResults.removeFirst()
+    }
     return result
   }
 }
@@ -63,9 +67,13 @@ private final class FakeDiggingLoader: DiggingLoading {
 private final class FakeSongPlaylistLoader: SongPlaylistLoading {
   private(set) var requestedIdentifiers: [String] = []
   var result: [SongsCollection] = []
+  var queuedResults: [[SongsCollection]] = []
 
   func loadPlaylists(for song: SongDetailLike) async -> [SongsCollection] {
     requestedIdentifiers.append(song.refreshingIdentifier)
+    if !queuedResults.isEmpty {
+      return queuedResults.removeFirst()
+    }
     return result
   }
 }
@@ -73,11 +81,48 @@ private final class FakeSongPlaylistLoader: SongPlaylistLoading {
 private final class FakeSongsCollectionsLoader: SongsCollectionsLoading {
   private(set) var requestedTypes: [CollectionTypes] = []
   var result: [SongsCollection] = []
+  var queuedResults: [[SongsCollection]] = []
 
   func loadCollections(of type: CollectionTypes) async -> [SongsCollection] {
     requestedTypes.append(type)
+    if !queuedResults.isEmpty {
+      return queuedResults.removeFirst()
+    }
     return result
   }
+}
+
+private func makeDummySong(
+  refreshingIdentifier: String,
+  title: String = "Song"
+) -> DummySongDetail {
+  DummySongDetail(
+    albumArtist: nil,
+    albumTitle: nil,
+    albumTrackCount: 0,
+    albumTrackNumber: 0,
+    artist: nil,
+    artwork: nil,
+    beatsPerMinute: 0,
+    comments: nil,
+    isCompilation: false,
+    composer: nil,
+    dateAdded: .now,
+    discCount: 0,
+    discNumber: 0,
+    genre: nil,
+    lastPlayedDate: nil,
+    lyrics: nil,
+    playCount: 0,
+    rating: 0,
+    releaseDate: nil,
+    releaseYear: nil,
+    skipCount: 0,
+    title: title,
+    userGrouping: nil,
+    playbackDuration: 0,
+    refreshingIdentifier: refreshingIdentifier
+  )
 }
 
 class onrakuTests: XCTestCase {
@@ -156,6 +201,217 @@ class onrakuTests: XCTestCase {
       ["hoge", "fuga", "piyo"])
   }
 
+  func testPredicateFriendlyLabelFallsBackInPriorityOrder() throws {
+    let custom = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist,
+      friendryLabel: "Custom Label"
+    )
+    XCTAssertEqual(custom.someFriendlyLabel, "Custom Label")
+
+    let stringValue = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+    XCTAssertEqual(
+      stringValue.someFriendlyLabel,
+      "\(MPMediaItemPropertyArtist): Artist A"
+    )
+
+    let unknown = MyMPMediaPropertyPredicate(
+      value: nil,
+      forProperty: MPMediaItemPropertyArtist
+    )
+    XCTAssertEqual(unknown.someFriendlyLabel, "<unknown>")
+  }
+
+  func testPredicateIdentityDependsOnValuePropertyAndComparisonType() throws {
+    let base = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+    let same = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+    let differentComparison = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist,
+      comparisonType: .contains
+    )
+    let numeric = MyMPMediaPropertyPredicate(
+      value: UInt64(42),
+      forProperty: MPMediaItemPropertyAlbumPersistentID
+    )
+
+    XCTAssertEqual(base, same)
+    XCTAssertNotEqual(base, differentComparison)
+    XCTAssertFalse(numeric.id.isEmpty)
+  }
+
+  func testPredicatePropertyMetadataMatchesExpectedLabels() throws {
+    XCTAssertEqual(
+      MyMPMediaPropertyPredicate(
+        value: "Album",
+        forProperty: MPMediaItemPropertyAlbumTitle
+      ).humanReadableForProperty,
+      "Album"
+    )
+    XCTAssertEqual(
+      MyMPMediaPropertyPredicate(
+        value: "Album",
+        forProperty: MPMediaItemPropertyAlbumTitle
+      ).systemImageNameForProperty,
+      "square.stack"
+    )
+    XCTAssertEqual(
+      MyMPMediaPropertyPredicate(
+        value: "Unknown",
+        forProperty: "custom.property"
+      ).humanReadableForProperty,
+      "custom.property"
+    )
+    XCTAssertNil(
+      MyMPMediaPropertyPredicate(
+        value: "Unknown",
+        forProperty: "custom.property"
+      ).systemImageNameForProperty
+    )
+  }
+
+  func testGenrePredicateExpandsIntoContainsSearchHints() throws {
+    let predicate = MyMPMediaPropertyPredicate(
+      value: "House / Disco",
+      forProperty: MPMediaItemPropertyGenre
+    )
+
+    let hints = predicate.getNextSearchHintPredicates()
+
+    XCTAssertEqual(hints.map(\.value as? String), ["House", "Disco"])
+    XCTAssertTrue(hints.allSatisfy { $0.forProperty == MPMediaItemPropertyGenre })
+    XCTAssertTrue(hints.allSatisfy { $0.comparisonType == .contains })
+  }
+
+  func testArtistPredicateExpandsIntoArtistTitleAndComposerHints() throws {
+    let predicate = MyMPMediaPropertyPredicate(
+      value: "Lead Artist feat. Guest One",
+      forProperty: MPMediaItemPropertyArtist
+    )
+
+    let hints = predicate.getNextSearchHintPredicates()
+
+    XCTAssertEqual(
+      hints.filter { $0.forProperty == MPMediaItemPropertyArtist }.count,
+      2
+    )
+    XCTAssertEqual(
+      hints.filter { $0.forProperty == MPMediaItemPropertyTitle }.count,
+      2
+    )
+    XCTAssertEqual(
+      hints.filter { $0.forProperty == MPMediaItemPropertyComposer }.count,
+      2
+    )
+  }
+
+  func testComposerPredicateExpandsIntoComposerAndArtistHints() throws {
+    let predicate = MyMPMediaPropertyPredicate(
+      value: "Alpha & Beta",
+      forProperty: MPMediaItemPropertyComposer
+    )
+
+    let hints = predicate.getNextSearchHintPredicates()
+
+    XCTAssertEqual(
+      hints.filter { $0.forProperty == MPMediaItemPropertyComposer }.count,
+      2
+    )
+    XCTAssertEqual(
+      hints.filter { $0.forProperty == MPMediaItemPropertyArtist }.count,
+      2
+    )
+  }
+
+  func testCollectionTypesExposeExpectedMetadata() throws {
+    XCTAssertEqual(CollectionTypes.playlist.systemImageName, "list.dash")
+    XCTAssertEqual(CollectionTypes.album.systemImageName, "square.stack")
+    XCTAssertEqual(CollectionTypes.artist.queryPredicateType, MPMediaItemPropertyArtist)
+    XCTAssertEqual(CollectionTypes.genre.queryPredicateType, MPMediaItemPropertyGenre)
+    XCTAssertEqual(
+      CollectionTypes.userGrouping.queryPredicateType,
+      MPMediaItemPropertyUserGrouping
+    )
+  }
+
+  func testSongsCollectionBuildsFilterPredicateFromTypeMetadata() throws {
+    let collection = SongsCollection(
+      name: "Playlist A",
+      id: "playlist-a",
+      type: .playlist,
+      items: nil
+    )
+
+    let predicate = try XCTUnwrap(collection.getFilterPredicate())
+
+    XCTAssertEqual(predicate.value as? String, "Playlist A")
+    XCTAssertEqual(predicate.forProperty, MPMediaPlaylistPropertyName)
+    XCTAssertEqual(predicate.comparisonType, .equalTo)
+  }
+
+  @MainActor
+  func testSongsListFixedExposesStaticContract() async throws {
+    let sut = SongsListFixed(fixedSongs: [], title: "Fixed")
+
+    XCTAssertEqual(sut.title, "Fixed")
+    XCTAssertEqual(sut.searchCriteria, [])
+    XCTAssertFalse(sut.shouldShowSearchCriteria)
+    XCTAssertEqual(await sut.loadSongs().count, 0)
+  }
+
+  @MainActor
+  func testSongsListLoadedExposesPredicatesAndLoadedSongsContract() async throws {
+    let predicates = [
+      MyMPMediaPropertyPredicate(
+        value: "Artist A",
+        forProperty: MPMediaItemPropertyArtist
+      ),
+      MyMPMediaPropertyPredicate(
+        value: "Genre A",
+        forProperty: MPMediaItemPropertyGenre
+      ),
+    ]
+    let sut = SongsListLoaded(loadedSongs: [], title: "Loaded", predicates: predicates)
+
+    XCTAssertEqual(sut.title, "Loaded")
+    XCTAssertEqual(sut.searchCriteria, predicates)
+    XCTAssertTrue(sut.shouldShowSearchCriteria)
+    XCTAssertEqual(await sut.loadSongs().count, 0)
+  }
+
+  func testSongsListFromPredicatesUsesCustomAndDefaultTitles() throws {
+    let predicate = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+
+    let defaultTitle = SongsListFromPredicates(predicates: [predicate], customTitle: nil)
+    let customTitle = SongsListFromPredicates(
+      predicates: [predicate, predicate],
+      customTitle: "Custom"
+    )
+
+    XCTAssertEqual(defaultTitle.title, "Search Result")
+    XCTAssertFalse(defaultTitle.shouldShowSearchCriteria)
+    XCTAssertEqual(customTitle.title, "Custom")
+    XCTAssertTrue(customTitle.shouldShowSearchCriteria)
+  }
+
+  @MainActor
+  func testGetSongsByPredicatesReturnsEmptyForNoPredicates() async throws {
+    let songs = await getSongsByPredicates([])
+    XCTAssertTrue(songs.isEmpty)
+  }
+
   @MainActor
   func testQueriedSongsListViewModelLoadsOnlyOnceUntilReloaded() async throws {
     var loadCount = 0
@@ -206,6 +462,23 @@ class onrakuTests: XCTestCase {
   }
 
   @MainActor
+  func testQueriedSongsListViewModelDoesNotShowSingleSearchCriterion() async throws {
+    let sut = QueriedSongsListViewModel(
+      title: "Search Result",
+      searchCriteria: [
+        MyMPMediaPropertyPredicate(
+          value: "Artist A",
+          forProperty: MPMediaItemPropertyArtist
+        )
+      ]
+    ) {
+      []
+    }
+
+    XCTAssertFalse(sut.shouldShowSearchCriteria)
+  }
+
+  @MainActor
   func testContentViewModelStartsAndStopsPlaybackNotificationsOnlyOnce() async throws {
     let playbackNotificationManager = FakePlaybackNotificationManager()
     let quickDigLoader = FakeQuickDigLoader()
@@ -239,6 +512,76 @@ class onrakuTests: XCTestCase {
   }
 
   @MainActor
+  func testContentViewModelStopsNotificationsOutsideActiveScene() async throws {
+    let playbackNotificationManager = FakePlaybackNotificationManager()
+    let quickDigLoader = FakeQuickDigLoader()
+    let sut = ContentViewModel(
+      playbackNotificationManager: playbackNotificationManager,
+      quickDigLoader: quickDigLoader
+    )
+
+    sut.onAppear()
+    await sut.handleScenePhaseChange(.background)
+
+    XCTAssertEqual(playbackNotificationManager.beginCallCount, 1)
+    XCTAssertEqual(playbackNotificationManager.endCallCount, 1)
+    XCTAssertEqual(quickDigLoader.loadCallCount, 0)
+  }
+
+  @MainActor
+  func testContentViewModelUpdatesQuickDigPredicatesFromLoader() async throws {
+    let quickDigLoader = FakeQuickDigLoader()
+    quickDigLoader.result = QuickDigData(
+      songs: [],
+      predicates: [
+        MyMPMediaPropertyPredicate(
+          value: "Genre A",
+          forProperty: MPMediaItemPropertyGenre
+        )
+      ]
+    )
+    let sut = ContentViewModel(
+      playbackNotificationManager: FakePlaybackNotificationManager(),
+      quickDigLoader: quickDigLoader
+    )
+
+    await sut.handleNowPlayingItemDidChange()
+
+    XCTAssertEqual(sut.quickDigPredicates.count, 1)
+    XCTAssertEqual(
+      sut.quickDigPredicates.first?.forProperty,
+      MPMediaItemPropertyGenre
+    )
+  }
+
+  @MainActor
+  func testContentViewModelKeepsExistingQuickDigWhenLoaderReturnsNil() async throws {
+    let quickDigLoader = FakeQuickDigLoader()
+    quickDigLoader.queuedResults = [
+      QuickDigData(
+        songs: [],
+        predicates: [
+          MyMPMediaPropertyPredicate(
+            value: "Genre A",
+            forProperty: MPMediaItemPropertyGenre
+          )
+        ]
+      ),
+      nil,
+    ]
+    let sut = ContentViewModel(
+      playbackNotificationManager: FakePlaybackNotificationManager(),
+      quickDigLoader: quickDigLoader
+    )
+
+    await sut.handleNowPlayingItemDidChange()
+    await sut.handleNowPlayingItemDidChange()
+
+    XCTAssertEqual(sut.quickDigPredicates.count, 1)
+    XCTAssertEqual(quickDigLoader.loadCallCount, 2)
+  }
+
+  @MainActor
   func testNowPlayingViewModelOnlyRefreshesNotificationWhileAppearing() async throws {
     let nowPlayingLoader = FakeNowPlayingLoader()
     let sut = NowPlayingViewModel(nowPlayingLoader: nowPlayingLoader)
@@ -269,36 +612,21 @@ class onrakuTests: XCTestCase {
   }
 
   @MainActor
+  func testNowPlayingViewModelRefreshableLoadsEvenWithoutAppearance() async throws {
+    let nowPlayingLoader = FakeNowPlayingLoader()
+    let sut = NowPlayingViewModel(nowPlayingLoader: nowPlayingLoader)
+
+    await sut.refreshNowPlayingSong()
+
+    XCTAssertEqual(nowPlayingLoader.loadCallCount, 1)
+    XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
   func testDiggingViewModelLoadsOncePerSongIdentifier() async throws {
     let loader = FakeDiggingLoader()
     let sut = DiggingViewModel(loader: loader)
-    let song = DummySongDetail(
-      albumArtist: nil,
-      albumTitle: nil,
-      albumTrackCount: 0,
-      albumTrackNumber: 0,
-      artist: nil,
-      artwork: nil,
-      beatsPerMinute: 0,
-      comments: nil,
-      isCompilation: false,
-      composer: nil,
-      dateAdded: .now,
-      discCount: 0,
-      discNumber: 0,
-      genre: nil,
-      lastPlayedDate: nil,
-      lyrics: nil,
-      playCount: 0,
-      rating: 0,
-      releaseDate: nil,
-      releaseYear: nil,
-      skipCount: 0,
-      title: "Song",
-      userGrouping: nil,
-      playbackDuration: 0,
-      refreshingIdentifier: "song-1"
-    )
+    let song = makeDummySong(refreshingIdentifier: "song-1")
 
     await sut.load(for: song, withDepth: 2)
     await sut.load(for: song, withDepth: 2)
@@ -309,41 +637,53 @@ class onrakuTests: XCTestCase {
   }
 
   @MainActor
+  func testDiggingViewModelReloadsWhenSongIdentifierChanges() async throws {
+    let loader = FakeDiggingLoader()
+    loader.result = DiggingLoadResult(
+      songs: [],
+      predicates: [
+        MyMPMediaPropertyPredicate(
+          value: "Genre A",
+          forProperty: MPMediaItemPropertyGenre
+        )
+      ]
+    )
+    let sut = DiggingViewModel(loader: loader)
+
+    await sut.load(for: makeDummySong(refreshingIdentifier: "song-1"), withDepth: 1)
+    await sut.load(for: makeDummySong(refreshingIdentifier: "song-2"), withDepth: 3)
+
+    XCTAssertEqual(loader.requestedIdentifiers, ["song-1", "song-2"])
+    XCTAssertEqual(loader.requestedDepths, [1, 3])
+    XCTAssertEqual(sut.predicates.count, 1)
+  }
+
+  @MainActor
   func testPlaylistsBySongViewModelLoadsForDummySong() async throws {
     let loader = FakeSongPlaylistLoader()
+    loader.result = [
+      SongsCollection(name: "Playlist A", id: "1", type: .playlist, items: nil)
+    ]
     let sut = PlaylistsBySongViewModel(loader: loader)
-    let song = DummySongDetail(
-      albumArtist: nil,
-      albumTitle: nil,
-      albumTrackCount: 0,
-      albumTrackNumber: 0,
-      artist: nil,
-      artwork: nil,
-      beatsPerMinute: 0,
-      comments: nil,
-      isCompilation: false,
-      composer: nil,
-      dateAdded: .now,
-      discCount: 0,
-      discNumber: 0,
-      genre: nil,
-      lastPlayedDate: nil,
-      lyrics: nil,
-      playCount: 0,
-      rating: 0,
-      releaseDate: nil,
-      releaseYear: nil,
-      skipCount: 0,
-      title: "Song",
-      userGrouping: nil,
-      playbackDuration: 0,
-      refreshingIdentifier: "song-2"
-    )
+    let song = makeDummySong(refreshingIdentifier: "song-2")
 
     await sut.load(for: song)
 
     XCTAssertEqual(loader.requestedIdentifiers, ["song-2"])
+    XCTAssertEqual(sut.playlists.count, 1)
     XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
+  func testPlaylistsBySongViewModelSkipsRepeatedSongIdentifier() async throws {
+    let loader = FakeSongPlaylistLoader()
+    let sut = PlaylistsBySongViewModel(loader: loader)
+    let song = makeDummySong(refreshingIdentifier: "song-2")
+
+    await sut.load(for: song)
+    await sut.load(for: song)
+
+    XCTAssertEqual(loader.requestedIdentifiers, ["song-2"])
   }
 
   @MainActor
@@ -363,6 +703,19 @@ class onrakuTests: XCTestCase {
 
     await sut.reload()
     XCTAssertEqual(loader.requestedTypes, [.playlist, .playlist])
+  }
+
+  @MainActor
+  func testSongsCollectionsListViewModelLoadsEmptyResults() async throws {
+    let loader = FakeSongsCollectionsLoader()
+    loader.result = []
+    let sut = SongsCollectionsListViewModel(type: .genre, loader: loader)
+
+    await sut.loadIfNeeded()
+
+    XCTAssertEqual(loader.requestedTypes, [.genre])
+    XCTAssertTrue(sut.collections.isEmpty)
+    XCTAssertEqual(sut.loadState, .loaded)
   }
 
   //    func testPerformanceExample() throws {
