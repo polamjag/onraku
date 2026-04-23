@@ -137,7 +137,7 @@ struct QueriedSongsListViewContainer: View {
                 tertiaryText: getTertiaryInfo(of: song, withHint: sortOrder),
                 artwork: song.artwork
               ).contextMenu {
-                PlayableItemsMenuView(target: .one(song))
+                PlayableItemsMenuView(item: song)
               }
             }
           }
@@ -158,7 +158,9 @@ struct QueriedSongsListViewContainer: View {
           Divider()
 
           // todo: sort
-          PlayableItemsMenuView(target: .array(viewModel.songs))
+          PlayableItemsMenuView(itemsCount: viewModel.songs.count) {
+            viewModel.songs
+          }
 
           Menu {
             Picker("sort by", selection: $sortOrder) {

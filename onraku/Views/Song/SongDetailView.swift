@@ -79,7 +79,7 @@ struct SongDetailView: View {
       if let mediaItem {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
           Menu {
-            PlayableItemsMenuView(target: .array([mediaItem]))
+            PlayableItemsMenuView(item: mediaItem)
           } label: {
             Image(systemName: "ellipsis.circle")
           }
