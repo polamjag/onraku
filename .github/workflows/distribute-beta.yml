@@ -36,7 +36,8 @@ concurrency:
 jobs:
   distribute:
     runs-on: macos-latest
-    timeout-minutes: 60
+    environment: beta
+    timeout-minutes: 30
     env:
       PROJECT_PATH: onraku.xcodeproj
       SCHEME: onraku
