@@ -12,10 +12,24 @@ struct SongDetailView: View {
   var song: SongDetailLike
   var title: String?
 
-  @StateObject private var digDeeperItems = DiggingViewModel()
-  @StateObject private var digDeepestItems = DiggingViewModel()
+  @StateObject private var digDeeperItems: DiggingViewModel
+  @StateObject private var digDeepestItems: DiggingViewModel
 
-  @StateObject private var playlistsOfSong = PlaylistsBySongViewModel()
+  @StateObject private var playlistsOfSong: PlaylistsBySongViewModel
+
+  init(
+    song: SongDetailLike,
+    title: String? = nil,
+    digDeeperItems: DiggingViewModel = DiggingViewModel(),
+    digDeepestItems: DiggingViewModel = DiggingViewModel(),
+    playlistsOfSong: PlaylistsBySongViewModel = PlaylistsBySongViewModel()
+  ) {
+    self.song = song
+    self.title = title
+    _digDeeperItems = StateObject(wrappedValue: digDeeperItems)
+    _digDeepestItems = StateObject(wrappedValue: digDeepestItems)
+    _playlistsOfSong = StateObject(wrappedValue: playlistsOfSong)
+  }
 
   private var mediaItem: MPMediaItem? {
     song as? MPMediaItem
@@ -65,11 +79,10 @@ struct SongDetailView: View {
         }
       }
     }.task(id: mediaItem?.refreshingIdentifier ?? song.refreshingIdentifier) {
-      guard let mediaItem else { return }
       _ = await (
-        digDeeperItems.load(for: mediaItem, withDepth: 1),
-        digDeepestItems.load(for: mediaItem, withDepth: 2),
-        playlistsOfSong.load(for: mediaItem)
+        digDeeperItems.load(for: song, withDepth: 1),
+        digDeepestItems.load(for: song, withDepth: 2),
+        playlistsOfSong.load(for: song)
       )
     }
   }
@@ -101,74 +114,5 @@ struct SongDetailView: View {
         }
       }
     }
-  }
-}
-
-@MainActor
-final class PlaylistsBySongViewModel: ObservableObject {
-  private var currentSong: MPMediaItem?
-  @Published private(set) var playlists: [SongsCollection] = []
-  @Published private(set) var loadingState: LoadingState = .initial
-  private var loadTask: Task<Void, Never>?
-
-  deinit {
-    loadTask?.cancel()
-  }
-
-  func load(for song: MPMediaItem) async {
-    guard song != currentSong else { return }
-    playlists = []
-    loadingState = .loading
-    currentSong = song
-
-    loadTask?.cancel()
-    let requestedSong = song
-
-    loadTask = Task { [weak self] in
-      let res = await getPlaylistsBySong(requestedSong)
-      guard let self, !Task.isCancelled, requestedSong == self.currentSong else { return }
-      await MainActor.run {
-        self.playlists = res
-        self.loadingState = .loaded
-      }
-    }
-
-    await loadTask?.value
-  }
-}
-
-@MainActor
-final class DiggingViewModel: ObservableObject {
-  private var currentSong: MPMediaItem?
-  @Published private(set) var songs: [MPMediaItem] = []
-  @Published private(set) var predicates: [MyMPMediaPropertyPredicate] = []
-  @Published private(set) var loadingState: LoadingState = .initial
-  private var loadTask: Task<Void, Never>?
-
-  deinit {
-    loadTask?.cancel()
-  }
-
-  func load(for song: MPMediaItem, withDepth linkDepth: Int) async {
-    guard song != currentSong else { return }
-    songs = []
-    predicates = []
-    loadingState = .loading
-    currentSong = song
-
-    loadTask?.cancel()
-    let requestedSong = song
-
-    loadTask = Task { [weak self] in
-      let res = await getDiggedItems(of: requestedSong, includeGenre: false, withDepth: linkDepth)
-      guard let self, !Task.isCancelled, requestedSong == self.currentSong else { return }
-      await MainActor.run {
-        self.songs = res.items
-        self.predicates = res.predicates
-        self.loadingState = .loaded
-      }
-    }
-
-    await loadTask?.value
   }
 }

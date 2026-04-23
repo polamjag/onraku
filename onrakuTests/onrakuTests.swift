@@ -46,6 +46,30 @@ private final class FakeNowPlayingLoader: NowPlayingLoading {
   }
 }
 
+private final class FakeDiggingLoader: DiggingLoading {
+  private(set) var requestedIdentifiers: [String] = []
+  private(set) var requestedDepths: [Int] = []
+  var result = DiggingLoadResult(songs: [], predicates: [])
+
+  func loadDiggingItems(for song: SongDetailLike, withDepth depth: Int) async
+    -> DiggingLoadResult
+  {
+    requestedIdentifiers.append(song.refreshingIdentifier)
+    requestedDepths.append(depth)
+    return result
+  }
+}
+
+private final class FakeSongPlaylistLoader: SongPlaylistLoading {
+  private(set) var requestedIdentifiers: [String] = []
+  var result: [SongsCollection] = []
+
+  func loadPlaylists(for song: SongDetailLike) async -> [SongsCollection] {
+    requestedIdentifiers.append(song.refreshingIdentifier)
+    return result
+  }
+}
+
 class onrakuTests: XCTestCase {
 
   override func setUpWithError() throws {
@@ -231,6 +255,84 @@ class onrakuTests: XCTestCase {
 
     await sut.handleScenePhaseChange(.active)
     XCTAssertEqual(nowPlayingLoader.loadCallCount, 1)
+    XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
+  func testDiggingViewModelLoadsOncePerSongIdentifier() async throws {
+    let loader = FakeDiggingLoader()
+    let sut = DiggingViewModel(loader: loader)
+    let song = DummySongDetail(
+      albumArtist: nil,
+      albumTitle: nil,
+      albumTrackCount: 0,
+      albumTrackNumber: 0,
+      artist: nil,
+      artwork: nil,
+      beatsPerMinute: 0,
+      comments: nil,
+      isCompilation: false,
+      composer: nil,
+      dateAdded: .now,
+      discCount: 0,
+      discNumber: 0,
+      genre: nil,
+      lastPlayedDate: nil,
+      lyrics: nil,
+      playCount: 0,
+      rating: 0,
+      releaseDate: nil,
+      releaseYear: nil,
+      skipCount: 0,
+      title: "Song",
+      userGrouping: nil,
+      playbackDuration: 0,
+      refreshingIdentifier: "song-1"
+    )
+
+    await sut.load(for: song, withDepth: 2)
+    await sut.load(for: song, withDepth: 2)
+
+    XCTAssertEqual(loader.requestedIdentifiers, ["song-1"])
+    XCTAssertEqual(loader.requestedDepths, [2])
+    XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
+  func testPlaylistsBySongViewModelLoadsForDummySong() async throws {
+    let loader = FakeSongPlaylistLoader()
+    let sut = PlaylistsBySongViewModel(loader: loader)
+    let song = DummySongDetail(
+      albumArtist: nil,
+      albumTitle: nil,
+      albumTrackCount: 0,
+      albumTrackNumber: 0,
+      artist: nil,
+      artwork: nil,
+      beatsPerMinute: 0,
+      comments: nil,
+      isCompilation: false,
+      composer: nil,
+      dateAdded: .now,
+      discCount: 0,
+      discNumber: 0,
+      genre: nil,
+      lastPlayedDate: nil,
+      lyrics: nil,
+      playCount: 0,
+      rating: 0,
+      releaseDate: nil,
+      releaseYear: nil,
+      skipCount: 0,
+      title: "Song",
+      userGrouping: nil,
+      playbackDuration: 0,
+      refreshingIdentifier: "song-2"
+    )
+
+    await sut.load(for: song)
+
+    XCTAssertEqual(loader.requestedIdentifiers, ["song-2"])
     XCTAssertEqual(sut.loadingState, .loaded)
   }
 
