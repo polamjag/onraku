@@ -9,30 +9,27 @@ import MediaPlayer
 import SwiftUI
 
 struct SongsCollectionsListView: View {
-  @State @MainActor var collections: [SongsCollection] = []
-  @State var loadState: LoadingState = .initial
-
-  var type: CollectionTypes
   var title: String
+  @StateObject private var viewModel: SongsCollectionsListViewModel
 
-  func loadCollections() async {
-    await MainActor.run {
-      loadState = .loading
-    }
-    let gotCollections = await loadSongsCollectionsOf(type)
-    await MainActor.run {
-      collections = gotCollections
-      loadState = .loaded
-    }
+  init(
+    type: CollectionTypes,
+    title: String,
+    viewModel: SongsCollectionsListViewModel? = nil
+  ) {
+    self.title = title
+    _viewModel = StateObject(
+      wrappedValue: viewModel ?? SongsCollectionsListViewModel(type: type)
+    )
   }
 
   var body: some View {
     List {
-      if loadState == .loading || loadState == .initial {
+      if viewModel.loadState == .loading || viewModel.loadState == .initial {
         LoadingCellView()
       }
 
-      ForEach(collections) { collection in
+      ForEach(viewModel.collections) { collection in
         NavigationLink {
           QueriedSongsListViewContainer(
             songsList: SongsListFromPredicates(predicates: [collection.getFilterPredicate()!])
@@ -49,11 +46,9 @@ struct SongsCollectionsListView: View {
       .navigationTitle(title)
       .navigationBarTitleDisplayMode(.inline)
     }.task {
-      if collections.isEmpty {
-        await loadCollections()
-      }
+      await viewModel.loadIfNeeded()
     }.refreshable {
-      await loadCollections()
+      await viewModel.reload()
     }
   }
 }

@@ -70,6 +70,16 @@ private final class FakeSongPlaylistLoader: SongPlaylistLoading {
   }
 }
 
+private final class FakeSongsCollectionsLoader: SongsCollectionsLoading {
+  private(set) var requestedTypes: [CollectionTypes] = []
+  var result: [SongsCollection] = []
+
+  func loadCollections(of type: CollectionTypes) async -> [SongsCollection] {
+    requestedTypes.append(type)
+    return result
+  }
+}
+
 class onrakuTests: XCTestCase {
 
   override func setUpWithError() throws {
@@ -334,6 +344,25 @@ class onrakuTests: XCTestCase {
 
     XCTAssertEqual(loader.requestedIdentifiers, ["song-2"])
     XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
+  func testSongsCollectionsListViewModelLoadsOnlyOnceUntilReloaded() async throws {
+    let loader = FakeSongsCollectionsLoader()
+    loader.result = [
+      SongsCollection(name: "Playlist A", id: "1", type: .playlist, items: nil)
+    ]
+    let sut = SongsCollectionsListViewModel(type: .playlist, loader: loader)
+
+    await sut.loadIfNeeded()
+    await sut.loadIfNeeded()
+
+    XCTAssertEqual(loader.requestedTypes, [.playlist])
+    XCTAssertEqual(sut.collections.count, 1)
+    XCTAssertEqual(sut.loadState, .loaded)
+
+    await sut.reload()
+    XCTAssertEqual(loader.requestedTypes, [.playlist, .playlist])
   }
 
   //    func testPerformanceExample() throws {
