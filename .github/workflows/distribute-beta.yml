@@ -1,0 +1,162 @@
+name: Distribute Beta
+
+# Required repository secrets:
+# - APPSTORE_CERTIFICATES_FILE_BASE64
+# - APPSTORE_CERTIFICATES_PASSWORD
+# - APPSTORE_API_PRIVATE_KEY
+#
+# Required repository variables:
+# - APPSTORE_ISSUER_ID
+# - APPSTORE_API_KEY_ID
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "Override CFBundleVersion. Defaults to this workflow run number."
+        required: false
+        type: string
+      release_notes:
+        description: "Optional TestFlight release notes."
+        required: false
+        type: string
+      internal_only:
+        description: "Limit this build to internal TestFlight testing only."
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: distribute-beta
+  cancel-in-progress: false
+
+jobs:
+  distribute:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      PROJECT_PATH: onraku.xcodeproj
+      SCHEME: onraku
+      CONFIGURATION: Release
+      APP_BUNDLE_ID: info.polamjag.onraku
+      TEAM_ID: LWW9E66T79
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Resolve build number
+        id: build-number
+        env:
+          INPUT_BUILD_NUMBER: ${{ github.event.inputs.build_number }}
+        run: |
+          if [ -n "$INPUT_BUILD_NUMBER" ]; then
+            BUILD_NUMBER="$INPUT_BUILD_NUMBER"
+          else
+            BUILD_NUMBER="$GITHUB_RUN_NUMBER"
+          fi
+
+          echo "value=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Import distribution certificate
+        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466 # v7.0.0
+        with:
+          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+
+      - name: Download App Store provisioning profile
+        uses: apple-actions/download-provisioning-profiles@7fa56f793274ba880be33b875dae5fe62519bc11 # v4.0.1
+        with:
+          bundle-id: ${{ env.APP_BUNDLE_ID }}
+          profile-type: IOS_APP_STORE
+          issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+
+      - name: Archive app
+        run: |
+          xcodebuild \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/$SCHEME.xcarchive" \
+            CURRENT_PROJECT_VERSION="${{ steps.build-number.outputs.value }}" \
+            clean archive
+
+      - name: Create export options
+        run: |
+          {
+            cat <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${TEAM_ID}</string>
+          PLIST
+
+            if [ "$INTERNAL_ONLY" = "true" ]; then
+              cat <<PLIST
+            <key>testFlightInternalTestingOnly</key>
+            <true/>
+          PLIST
+            fi
+
+            cat <<PLIST
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+          } > "$RUNNER_TEMP/ExportOptions.plist"
+        env:
+          TEAM_ID: ${{ env.TEAM_ID }}
+          INTERNAL_ONLY: ${{ github.event.inputs.internal_only }}
+
+      - name: Export ipa
+        run: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$RUNNER_TEMP/$SCHEME.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+
+      - name: Resolve ipa path
+        id: exported-ipa
+        run: |
+          IPA_PATH="$(find "$RUNNER_TEMP/export" -maxdepth 1 -name '*.ipa' -print -quit)"
+          if [ -z "$IPA_PATH" ]; then
+            echo "No ipa was exported" >&2
+            exit 1
+          fi
+
+          echo "path=$IPA_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: onraku-beta-${{ steps.build-number.outputs.value }}
+          path: |
+            ${{ steps.exported-ipa.outputs.path }}
+            ${{ runner.temp }}/onraku.xcarchive
+          if-no-files-found: error
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@b5270248e0ee7f200475125bddf7c0e5616386b5 # v4.1.0
+        with:
+          app-path: ${{ steps.exported-ipa.outputs.path }}
+          issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          release-notes: ${{ github.event.inputs.release_notes }}
+          uses-non-exempt-encryption: "false"
