@@ -1,1 +1,22 @@
+# macOS
+.DS_Store
+
+# Xcode build products
+build/
+DerivedData/
 .derivedData/
+
+# Xcode user-specific data
+*.xcuserstate
+xcuserdata/
+
+# Keep shared Xcode settings under version control
+!**/xcshareddata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Xcode source control metadata
+*.xccheckout
+*.xcscmblueprint
