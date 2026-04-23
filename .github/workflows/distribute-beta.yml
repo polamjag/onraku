@@ -23,7 +23,7 @@ on:
       internal_only:
         description: "Limit this build to internal TestFlight testing only."
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
