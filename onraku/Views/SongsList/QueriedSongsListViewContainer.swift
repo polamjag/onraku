@@ -70,6 +70,29 @@ struct QueriedSongsListViewContainer: View {
   @State var sortOrder: SongsSortKey = .none
   
   @State var isSearchHintSectionExpanded: Bool = false
+
+  init(songsList: SongsList) {
+    self.songsList = songsList
+  }
+
+  init(
+    title: String? = nil,
+    songs: [MPMediaItem],
+    predicates: [MyMPMediaPropertyPredicate] = []
+  ) {
+    self.songsList = SongsListLoaded(
+      loadedSongs: songs,
+      title: title ?? "Search Result",
+      predicates: predicates
+    )
+  }
+
+  init(filterPredicate: MyMPMediaPropertyPredicate, title: String? = nil) {
+    self.songsList = SongsListFromPredicates(
+      predicates: [filterPredicate],
+      customTitle: title ?? (filterPredicate.value as? String)
+    )
+  }
   
   var body: some View {
     List {

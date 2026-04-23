@@ -61,34 +61,29 @@ struct SongDetailView: View {
     }.id(song.refreshingIdentifier)
   }
 
+  @ViewBuilder
   private func playlistsView() -> some View {
-    Group {
-      if playlistsOfSong.loadingState.isLoading {
-        AnyView(
-          HStack(alignment: .center) {
-            Spacer()
-            ProgressView()
-            Spacer()
-          }
-        )
-      } else {
-        if playlistsOfSong.playlists.isEmpty {
-          AnyView(
-            Text("no playlists").foregroundStyle(.secondary)
+    if playlistsOfSong.loadingState.isLoading {
+      HStack(alignment: .center) {
+        Spacer()
+        ProgressView()
+        Spacer()
+      }
+    } else if playlistsOfSong.playlists.isEmpty {
+      Text("no playlists").foregroundStyle(.secondary)
+    } else {
+      ForEach(playlistsOfSong.playlists) { playlist in
+        NavigationLink {
+          QueriedSongsListViewContainer(
+            songsList: SongsListLoaded(
+              loadedSongs: playlist.items ?? [],
+              title: playlist.name,
+              predicates: []
+            )
           )
-        } else {
-          AnyView(
-            ForEach(playlistsOfSong.playlists) { playlist in
-              NavigationLink {
-                QueriedSongsListViewContainer(
-                  title: playlist.name, songs: playlist.items ?? []
-                )
-              } label: {
-                SongsCollectionItemView(
-                  title: playlist.name
-                )
-              }
-            }
+        } label: {
+          SongsCollectionItemView(
+            title: playlist.name
           )
         }
       }
@@ -153,4 +148,3 @@ final class DiggingViewModel: ObservableObject {
     await loadTask?.value
   }
 }
-

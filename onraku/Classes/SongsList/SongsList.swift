@@ -28,6 +28,24 @@ struct SongsListFixed: SongsList {
   }
 }
 
+struct SongsListLoaded: SongsList {
+  let loadedSongs: [MPMediaItem]
+  let title: String
+  let predicates: [MyMPMediaPropertyPredicate]
+
+  func songs() -> [MPMediaItem] {
+    loadedSongs
+  }
+
+  var shouldShowSearchCriteria: Bool {
+    predicates.count > 1
+  }
+
+  func searchCriteria() -> [MyMPMediaPropertyPredicate]? {
+    predicates.isEmpty ? nil : predicates
+  }
+}
+
 struct SongsListFromPlaylist: SongsList {
   let playlist: MPMediaPlaylist
   
@@ -36,7 +54,7 @@ struct SongsListFromPlaylist: SongsList {
   }
   
   func songs() -> [MPMediaItem] {
-    []
+    playlist.items
   }
   
   var shouldShowSearchCriteria: Bool { false }
@@ -48,13 +66,16 @@ struct SongsListFromPlaylist: SongsList {
 
 struct SongsListFromPredicates : SongsList {
   let predicates: [MyMPMediaPropertyPredicate]
+  var customTitle: String?
   
   var title: String {
-    "Search Result"
+    customTitle ?? "Search Result"
   }
   
   func songs() -> [MPMediaItem] {
-    []
+    predicates
+      .flatMap { getSongsByPredicateNow(predicate: $0) }
+      .unique()
   }
   
   var shouldShowSearchCriteria: Bool {
@@ -67,5 +88,8 @@ struct SongsListFromPredicates : SongsList {
 }
 
 func predicateToSongsList(_ predicate: MyMPMediaPropertyPredicate) -> SongsList {
-  return SongsListFixed(fixedSongs: [], title: "")
+  SongsListFromPredicates(
+    predicates: [predicate],
+    customTitle: predicate.value as? String
+  )
 }
