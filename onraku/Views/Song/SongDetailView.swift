@@ -16,6 +16,7 @@ struct SongDetailView: View {
   @StateObject private var digDeepestItems: DiggingViewModel
 
   @StateObject private var playlistsOfSong: PlaylistsBySongViewModel
+  @StateObject private var titleCredits: TitleCreditExtractionViewModel
 
   @MainActor
   init(
@@ -23,7 +24,8 @@ struct SongDetailView: View {
     title: String? = nil,
     digDeeperItems: DiggingViewModel? = nil,
     digDeepestItems: DiggingViewModel? = nil,
-    playlistsOfSong: PlaylistsBySongViewModel? = nil
+    playlistsOfSong: PlaylistsBySongViewModel? = nil,
+    titleCredits: TitleCreditExtractionViewModel? = nil
   ) {
     self.song = song
     self.title = title
@@ -36,6 +38,9 @@ struct SongDetailView: View {
     _playlistsOfSong = StateObject(
       wrappedValue: playlistsOfSong ?? PlaylistsBySongViewModel()
     )
+    _titleCredits = StateObject(
+      wrappedValue: titleCredits ?? TitleCreditExtractionViewModel()
+    )
   }
 
   private var mediaItem: MPMediaItem? {
@@ -47,6 +52,10 @@ struct SongDetailView: View {
       SongMetaView(song: song)
 
       if mediaItem != nil {
+        Section("AI Credit Analysis") {
+          aiCreditAnalysisView()
+        }
+
         Section {
           NavigationLink {
             QueriedSongsListViewContainer(
@@ -86,11 +95,70 @@ struct SongDetailView: View {
         }
       }
     }.task(id: mediaItem?.refreshingIdentifier ?? song.refreshingIdentifier) {
+      titleCredits.reset()
       _ = await (
         digDeeperItems.load(for: song, withDepth: 1),
         digDeepestItems.load(for: song, withDepth: 2),
         playlistsOfSong.load(for: song)
       )
+    }
+  }
+
+  @ViewBuilder
+  private func aiCreditAnalysisView() -> some View {
+    Button {
+      Task {
+        await titleCredits.extractCredits(for: song)
+      }
+    } label: {
+      Label("Analyze Credits with AI", systemImage: "sparkles")
+    }
+    .disabled(isAnalyzingCredits)
+
+    switch titleCredits.state {
+    case .idle:
+      EmptyView()
+    case .loading:
+      HStack {
+        Spacer()
+        ProgressView()
+        Spacer()
+      }
+    case .loaded(let result):
+      if result.isEmpty {
+        Text("No explicit credits found.").foregroundStyle(.secondary)
+      } else {
+        creditLinks(title: "remixer", artists: result.remixers)
+        creditLinks(title: "featured", artists: result.featuredArtists)
+      }
+    case .unavailable(let reason), .failed(let reason):
+      Text(reason).foregroundStyle(.secondary)
+    }
+  }
+
+  private var isAnalyzingCredits: Bool {
+    if case .loading = titleCredits.state {
+      return true
+    }
+    return false
+  }
+
+  @ViewBuilder
+  private func creditLinks(title: String, artists: [String]) -> some View {
+    ForEach(artists, id: \.self) { artist in
+      NavigationLink {
+        QueriedSongsListViewContainer(
+          filterPredicate: MyMPMediaPropertyPredicate(
+            value: artist, forProperty: MPMediaItemPropertyArtist,
+            comparisonType: .contains),
+          title: artist)
+      } label: {
+        HStack {
+          Text(title).font(.footnote).foregroundColor(.secondary)
+          Spacer()
+          Text(artist)
+        }
+      }
     }
   }
 
