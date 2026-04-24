@@ -103,6 +103,14 @@ final class DiggingViewModel: ObservableObject {
     self.loader = loader
   }
 
+  func songsList(title: String) -> SongsList {
+    SongsListLoaded(
+      loadedSongs: songs,
+      title: title,
+      predicates: predicates
+    )
+  }
+
   deinit {
     loadTask?.cancel()
   }

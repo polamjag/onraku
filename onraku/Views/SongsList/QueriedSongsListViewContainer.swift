@@ -117,7 +117,7 @@ struct QueriedSongsListViewContainer: View {
 
             if isSearchHintSectionExpanded {
               ForEach(viewModel.searchCriteria) { predicate in
-                PredicateItemView(predicate: predicate, resultCount: 0)
+                PredicateItemView(predicate: predicate)
               }
             }
           })

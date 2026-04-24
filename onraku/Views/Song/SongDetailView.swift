@@ -50,7 +50,7 @@ struct SongDetailView: View {
         Section {
           NavigationLink {
             QueriedSongsListViewContainer(
-              songsList: SongsListFixed(fixedSongs: digDeeperItems.songs, title: "Dig Deeper"),
+              songsList: digDeeperItems.songsList(title: "Dig Deeper"),
             )
           } label: {
             SongsCollectionItemView(
@@ -61,7 +61,7 @@ struct SongDetailView: View {
 
           NavigationLink {
             QueriedSongsListViewContainer(
-              songsList: SongsListFixed(fixedSongs: digDeepestItems.songs, title: "Dig Deepest"),
+              songsList: digDeepestItems.songsList(title: "Dig Deepest"),
             )
           } label: {
             SongsCollectionItemView(

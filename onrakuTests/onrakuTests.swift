@@ -746,6 +746,31 @@ class onrakuTests: XCTestCase {
   }
 
   @MainActor
+  func testDiggingViewModelBuildsSongsListWithSearchCriteria() async throws {
+    let loader = FakeDiggingLoader()
+    let predicates = [
+      MyMPMediaPropertyPredicate(
+        value: "Artist A",
+        forProperty: MPMediaItemPropertyArtist
+      ),
+      MyMPMediaPropertyPredicate(
+        value: "Composer A",
+        forProperty: MPMediaItemPropertyComposer
+      ),
+    ]
+    loader.result = DiggingLoadResult(songs: [], predicates: predicates)
+    let sut = DiggingViewModel(loader: loader)
+
+    await sut.load(for: makeDummySong(refreshingIdentifier: "song-1"), withDepth: 1)
+
+    let songsList = sut.songsList(title: "Dig Deeper")
+
+    XCTAssertEqual(songsList.title, "Dig Deeper")
+    XCTAssertEqual(songsList.searchCriteria, predicates)
+    XCTAssertTrue(songsList.shouldShowSearchCriteria)
+  }
+
+  @MainActor
   func testDiggingViewModelReloadsWhenSongIdentifierChanges() async throws {
     let loader = FakeDiggingLoader()
     loader.queuedResults = [
