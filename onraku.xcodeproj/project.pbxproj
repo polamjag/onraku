@@ -24,6 +24,10 @@
 		6092536B27B78AFA00E23931 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536A27B78AFA00E23931 /* Player.swift */; };
 		6092536F27B78F8800E23931 /* PlayableItemsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6092536E27B78F8800E23931 /* PlayableItemsMenuView.swift */; };
 		61C0DE012F30000100ABCDEF /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0DE002F30000100ABCDEF /* TestSupport.swift */; };
+		61C0DE112F30000100ABCDEF /* CoreModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0DE102F30000100ABCDEF /* CoreModelTests.swift */; };
+		61C0DE132F30000100ABCDEF /* SongMetaSearchLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0DE122F30000100ABCDEF /* SongMetaSearchLinkTests.swift */; };
+		61C0DE152F30000100ABCDEF /* SongsListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0DE142F30000100ABCDEF /* SongsListTests.swift */; };
+		61C0DE172F30000100ABCDEF /* ViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0DE162F30000100ABCDEF /* ViewModelTests.swift */; };
 		60A7BA5B27B8C191002451A5 /* MPMediaItem+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA5A27B8C191002451A5 /* MPMediaItem+Extension.swift */; };
 		60A7BA6027B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */; };
 		60A7BA6227B904C5002451A5 /* MPMediaItemCollection+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */; };
@@ -73,6 +77,10 @@
 		6092536A27B78AFA00E23931 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		6092536E27B78F8800E23931 /* PlayableItemsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayableItemsMenuView.swift; sourceTree = "<group>"; };
 		61C0DE002F30000100ABCDEF /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
+		61C0DE102F30000100ABCDEF /* CoreModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreModelTests.swift; sourceTree = "<group>"; };
+		61C0DE122F30000100ABCDEF /* SongMetaSearchLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongMetaSearchLinkTests.swift; sourceTree = "<group>"; };
+		61C0DE142F30000100ABCDEF /* SongsListTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsListTests.swift; sourceTree = "<group>"; };
+		61C0DE162F30000100ABCDEF /* ViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelTests.swift; sourceTree = "<group>"; };
 		60A7BA5A27B8C191002451A5 /* MPMediaItem+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MPMediaItem+Extension.swift"; sourceTree = "<group>"; };
 		60A7BA5F27B8DEAE002451A5 /* MyMPMediaPropertyPredicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyMPMediaPropertyPredicate.swift; sourceTree = "<group>"; };
 		60A7BA6127B904C5002451A5 /* MPMediaItemCollection+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MPMediaItemCollection+Extension.swift"; sourceTree = "<group>"; };
@@ -194,7 +202,11 @@
 			isa = PBXGroup;
 			children = (
 				6092534627B60B7B00E23931 /* onrakuTests.swift */,
+				61C0DE102F30000100ABCDEF /* CoreModelTests.swift */,
+				61C0DE122F30000100ABCDEF /* SongMetaSearchLinkTests.swift */,
+				61C0DE142F30000100ABCDEF /* SongsListTests.swift */,
 				61C0DE002F30000100ABCDEF /* TestSupport.swift */,
+				61C0DE162F30000100ABCDEF /* ViewModelTests.swift */,
 			);
 			path = onrakuTests;
 			sourceTree = "<group>";
@@ -409,6 +421,10 @@
 				60E04A732D2935F000F601AE /* MPMediaPlaylist+Extension.swift in Sources */,
 				6092534727B60B7B00E23931 /* onrakuTests.swift in Sources */,
 				61C0DE012F30000100ABCDEF /* TestSupport.swift in Sources */,
+				61C0DE112F30000100ABCDEF /* CoreModelTests.swift in Sources */,
+				61C0DE132F30000100ABCDEF /* SongMetaSearchLinkTests.swift in Sources */,
+				61C0DE152F30000100ABCDEF /* SongsListTests.swift in Sources */,
+				61C0DE172F30000100ABCDEF /* ViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
