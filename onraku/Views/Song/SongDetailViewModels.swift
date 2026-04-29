@@ -46,13 +46,28 @@ struct MediaItemSongPlaylistLoader: SongPlaylistLoading {
   }
 }
 
+struct SongScopedLoadTracker {
+  private(set) var currentSongIdentifier: String?
+
+  mutating func beginLoad(for song: SongDetailLike) -> String? {
+    let identifier = song.refreshingIdentifier
+    guard identifier != currentSongIdentifier else { return nil }
+    currentSongIdentifier = identifier
+    return identifier
+  }
+
+  func matchesCurrentLoad(_ identifier: String) -> Bool {
+    identifier == currentSongIdentifier
+  }
+}
+
 @MainActor
 final class PlaylistsBySongViewModel: ObservableObject {
   @Published private(set) var playlists: [SongsCollection] = []
   @Published private(set) var loadingState: LoadingState = .initial
 
   private let loader: SongPlaylistLoading
-  private var currentSongIdentifier: String?
+  private var loadTracker = SongScopedLoadTracker()
   private var loadTask: Task<Void, Never>?
 
   init(loader: SongPlaylistLoading = MediaItemSongPlaylistLoader()) {
@@ -64,19 +79,19 @@ final class PlaylistsBySongViewModel: ObservableObject {
   }
 
   func load(for song: SongDetailLike) async {
-    guard song.refreshingIdentifier != currentSongIdentifier else { return }
+    guard let requestedSongIdentifier = loadTracker.beginLoad(for: song) else {
+      return
+    }
     playlists = []
     loadingState = .loading
-    currentSongIdentifier = song.refreshingIdentifier
 
     loadTask?.cancel()
     let requestedSong = song
-    let requestedSongIdentifier = song.refreshingIdentifier
 
     loadTask = Task { [weak self] in
       let result = await self?.loader.loadPlaylists(for: requestedSong) ?? []
       guard let self, !Task.isCancelled,
-        requestedSongIdentifier == self.currentSongIdentifier
+        self.loadTracker.matchesCurrentLoad(requestedSongIdentifier)
       else { return }
 
       await MainActor.run {
@@ -96,7 +111,7 @@ final class DiggingViewModel: ObservableObject {
   @Published private(set) var loadingState: LoadingState = .initial
 
   private let loader: DiggingLoading
-  private var currentSongIdentifier: String?
+  private var loadTracker = SongScopedLoadTracker()
   private var loadTask: Task<Void, Never>?
 
   init(loader: DiggingLoading = MediaItemDiggingLoader()) {
@@ -116,15 +131,15 @@ final class DiggingViewModel: ObservableObject {
   }
 
   func load(for song: SongDetailLike, withDepth linkDepth: Int) async {
-    guard song.refreshingIdentifier != currentSongIdentifier else { return }
+    guard let requestedSongIdentifier = loadTracker.beginLoad(for: song) else {
+      return
+    }
     songs = []
     predicates = []
     loadingState = .loading
-    currentSongIdentifier = song.refreshingIdentifier
 
     loadTask?.cancel()
     let requestedSong = song
-    let requestedSongIdentifier = song.refreshingIdentifier
 
     loadTask = Task { [weak self] in
       let result = await self?.loader.loadDiggingItems(
@@ -132,7 +147,7 @@ final class DiggingViewModel: ObservableObject {
         withDepth: linkDepth
       )
       guard let self, let result, !Task.isCancelled,
-        requestedSongIdentifier == self.currentSongIdentifier
+        self.loadTracker.matchesCurrentLoad(requestedSongIdentifier)
       else { return }
 
       await MainActor.run {

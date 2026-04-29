@@ -480,6 +480,28 @@ class onrakuTests: XCTestCase {
     XCTAssertFalse(SongMetaSearchLink.album(for: song).isEnabled)
   }
 
+  func testSongScopedLoadTrackerSkipsRepeatedSongIdentifiers() throws {
+    var sut = SongScopedLoadTracker()
+    let first = makeDummySong(refreshingIdentifier: "song-1")
+    let repeated = makeDummySong(refreshingIdentifier: "song-1")
+    let next = makeDummySong(refreshingIdentifier: "song-2")
+
+    XCTAssertEqual(sut.beginLoad(for: first), "song-1")
+    XCTAssertNil(sut.beginLoad(for: repeated))
+    XCTAssertEqual(sut.beginLoad(for: next), "song-2")
+  }
+
+  func testSongScopedLoadTrackerMatchesOnlyCurrentLoad() throws {
+    var sut = SongScopedLoadTracker()
+
+    _ = sut.beginLoad(for: makeDummySong(refreshingIdentifier: "song-1"))
+    XCTAssertTrue(sut.matchesCurrentLoad("song-1"))
+
+    _ = sut.beginLoad(for: makeDummySong(refreshingIdentifier: "song-2"))
+    XCTAssertFalse(sut.matchesCurrentLoad("song-1"))
+    XCTAssertTrue(sut.matchesCurrentLoad("song-2"))
+  }
+
   func testSongsCollectionBuildsFilterPredicateFromTypeMetadata() throws {
     let collection = SongsCollection(
       name: "Playlist A",
