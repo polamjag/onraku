@@ -16,15 +16,22 @@ extension Sequence where Iterator.Element: Hashable {
 }
 
 extension String {
+  private static let remixersCreditRegex = try! NSRegularExpression(
+    pattern:
+      #"(?<remixers>[^(\[-]*) (Remix|Refix|Re-fix|Rework|Bootleg|Boot|Flip)\s*[)\]-]"#,
+    options: [.caseInsensitive])
+
+  private static let featuredArtistsCreditRegex = try! NSRegularExpression(
+    pattern:
+      #"(feat\.?|feat|featuring|ft\.?|Prod\.?)\s+(?<featuredArtist>[^()\[\]]*)"#,
+    options: [.caseInsensitive])
+
   public func intelligentlyExtractRemixersCredit() -> [String] {
     var ret: [String] = []
 
-    let regex = try! NSRegularExpression(
-      pattern:
-        #"(?<remixers>[^(\[-]*) (Remix|Refix|Re-fix|Rework|Bootleg|Boot|Flip)\s*[)\]-]"#,
-      options: [.caseInsensitive])
     let nsrange = NSRange(self.startIndex..<self.endIndex, in: self)
-    let matched = regex.matches(in: self, options: [], range: nsrange)
+    let matched = Self.remixersCreditRegex.matches(
+      in: self, options: [], range: nsrange)
     matched.forEach {
       let remixers = (self as NSString).substring(
         with: $0.range(withName: "remixers")
@@ -39,12 +46,9 @@ extension String {
   public func intelligentlyExtractFeaturedArtists() -> [String] {
     var ret: [String] = []
 
-    let regex = try! NSRegularExpression(
-      pattern:
-        #"(feat\.?|feat|featuring|ft\.?|Prod\.?)\s+(?<featuredArtist>[^()\[\]]*)"#,
-      options: [.caseInsensitive])
     let nsrange = NSRange(self.startIndex..<self.endIndex, in: self)
-    let matched = regex.matches(in: self, options: [], range: nsrange)
+    let matched = Self.featuredArtistsCreditRegex.matches(
+      in: self, options: [], range: nsrange)
     matched.forEach {
       let remixers = (self as NSString).substring(
         with: $0.range(withName: "featuredArtist")
