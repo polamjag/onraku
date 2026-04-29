@@ -13,7 +13,7 @@ enum CollectionTypes: String, Equatable, CaseIterable {
   case artist = "Artists"
   case genre = "Genres"
   case userGrouping = "User Groupings"
-  
+
   func getQueryForType() -> MPMediaQuery? {
     switch self {
     case .userGrouping:
@@ -28,7 +28,7 @@ enum CollectionTypes: String, Equatable, CaseIterable {
       return MPMediaQuery.albums()
     }
   }
-  
+
   var systemImageName: String {
     switch self {
     case .playlist:
@@ -43,8 +43,8 @@ enum CollectionTypes: String, Equatable, CaseIterable {
       return "latch.2.case"
     }
   }
-  
-  var queryPredicateType: String? {
+
+  var queryPredicateType: String {
     switch self {
     case .userGrouping:
       return MPMediaItemPropertyUserGrouping
@@ -73,14 +73,19 @@ struct SongsCollection: Identifiable, Hashable {
   let type: CollectionTypes
   let items: [MPMediaItem]?
 
+  var filterPredicate: MyMPMediaPropertyPredicate {
+    MyMPMediaPropertyPredicate(
+      value: name,
+      forProperty: type.queryPredicateType,
+      comparisonType: .equalTo
+    )
+  }
+
   func getFilterPredicate() -> MyMPMediaPropertyPredicate? {
-    if let forProperty = type.queryPredicateType {
-      return MyMPMediaPropertyPredicate(
-        value: name,
-        forProperty: forProperty,
-        comparisonType: .equalTo
-      )
-    }
-    return nil
+    filterPredicate
+  }
+
+  func songsList() -> SongsList {
+    SongsListFromPredicates(predicates: [filterPredicate], customTitle: name)
   }
 }

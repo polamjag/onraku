@@ -31,9 +31,7 @@ struct SongsCollectionsListView: View {
 
       ForEach(viewModel.collections) { collection in
         NavigationLink {
-          QueriedSongsListViewContainer(
-            songsList: SongsListFromPredicates(predicates: [collection.getFilterPredicate()!])
-          )
+          QueriedSongsListViewContainer(songsList: collection.songsList())
         } label: {
           HStack {
             SongsCollectionItemView(

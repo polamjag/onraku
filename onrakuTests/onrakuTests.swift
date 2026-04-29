@@ -495,6 +495,24 @@ class onrakuTests: XCTestCase {
     XCTAssertEqual(predicate.comparisonType, .equalTo)
   }
 
+  func testSongsCollectionBuildsSongsListWithoutOptionalPredicate() throws {
+    let collection = SongsCollection(
+      name: "Genre A",
+      id: "genre-a",
+      type: .genre,
+      items: nil
+    )
+
+    let songsList = collection.songsList()
+
+    XCTAssertEqual(songsList.title, "Genre A")
+    XCTAssertEqual(songsList.searchCriteria.count, 1)
+    XCTAssertEqual(
+      songsList.searchCriteria.first?.forProperty,
+      MPMediaItemPropertyGenre
+    )
+  }
+
   @MainActor
   func testSongsListFixedExposesStaticContract() async throws {
     let sut = SongsListFixed(fixedSongs: [], title: "Fixed")
