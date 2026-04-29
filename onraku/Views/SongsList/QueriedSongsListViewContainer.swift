@@ -8,30 +8,6 @@
 import MediaPlayer
 import SwiftUI
 
-private func getTertiaryInfo(of item: MPMediaItem, withHint: SongsSortKey)
-  -> String?
-{
-  switch withHint {
-  case .none, .title, .artist:
-    return nil
-  case .album:
-    return item.albumTitle ?? "-"
-  case .genre:
-    return item.genre ?? "-"
-  case .userGrouping:
-    return item.userGrouping ?? "-"
-  case .addedAt:
-    return item.dateAdded.formatted(date: .abbreviated, time: .omitted)
-  case .bpm:
-    return item.beatsPerMinute == 0 ? "-" : String(item.beatsPerMinute)
-  case .playCountAsc, .playCountDesc:
-    return "\(item.playCount) plays"
-  case .playCountPerDayDesc, .playCountPerDayAsc:
-    return
-      "\(item.playCount) / \(Int(item.dateAdded.distance(to: Date()) / 60 / 60 / 24))d = \(String(format: "%.4f", Double(item.playCount) / (item.dateAdded.distance(to: Date()) / 60 / 60 / 24)))"
-  }
-}
-
 struct PredicateItemView: View {
   var predicate: MyMPMediaPropertyPredicate
   @State var resultCount: Int?
@@ -66,8 +42,6 @@ struct PredicateItemView: View {
 
 struct QueriedSongsListViewContainer: View {
   @StateObject private var viewModel: QueriedSongsListViewModel
-
-  @State var sortOrder: SongsSortKey = .none
 
   @State var isSearchHintSectionExpanded: Bool = false
 
@@ -127,14 +101,14 @@ struct QueriedSongsListViewContainer: View {
         LoadingCellView()
       } else {
         Section(footer: Text("\(viewModel.songs.count) songs")) {
-          ForEach(viewModel.songs) { song in
+          ForEach(viewModel.displayedSongs) { song in
             NavigationLink {
               SongDetailView(song: song)
             } label: {
               SongItemView(
                 title: song.title,
                 secondaryText: song.artist,
-                tertiaryText: getTertiaryInfo(of: song, withHint: sortOrder),
+                tertiaryText: viewModel.tertiaryInfo(for: song),
                 artwork: song.artwork
               ).contextMenu {
                 PlayableItemsMenuView(item: song)
@@ -157,20 +131,25 @@ struct QueriedSongsListViewContainer: View {
         Menu {
           Divider()
 
-          // todo: sort
           PlayableItemsMenuView(itemsCount: viewModel.songs.count) {
             viewModel.songs
           }
 
           Menu {
-            Picker("sort by", selection: $sortOrder) {
+            Picker(
+              "sort by",
+              selection: Binding(
+                get: { viewModel.sortOrder },
+                set: { viewModel.setSortOrder($0) }
+              )
+            ) {
               ForEach(SongsSortKey.allCases, id: \.self) { value in
                 Text(value.rawValue).tag(value)
               }
             }
           } label: {
             Label(
-              "Sort Order: \(sortOrder.rawValue)",
+              "Sort Order: \(viewModel.sortOrder.rawValue)",
               systemImage: "arrow.up.arrow.down")
           }
         } label: {

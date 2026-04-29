@@ -21,6 +21,29 @@ enum SongsSortKey: String, Equatable, CaseIterable {
   case playCountAsc = "Least Played"
   case playCountPerDayDesc = "Most Frequently Played"
   case playCountPerDayAsc = "Least Frequently Played"
+
+  func tertiaryInfo(for item: SongDetailLike, now: Date = Date()) -> String? {
+    switch self {
+    case .none, .title, .artist:
+      return nil
+    case .album:
+      return item.albumTitle ?? "-"
+    case .genre:
+      return item.genre ?? "-"
+    case .userGrouping:
+      return item.userGrouping ?? "-"
+    case .addedAt:
+      return item.dateAdded.formatted(date: .abbreviated, time: .omitted)
+    case .bpm:
+      return item.beatsPerMinute == 0 ? "-" : String(item.beatsPerMinute)
+    case .playCountAsc, .playCountDesc:
+      return "\(item.playCount) plays"
+    case .playCountPerDayDesc, .playCountPerDayAsc:
+      let days = Int(item.dateAdded.distance(to: now) / 60 / 60 / 24)
+      let playsPerDay = Double(item.playCount) / (item.dateAdded.distance(to: now) / 60 / 60 / 24)
+      return "\(item.playCount) / \(days)d = \(String(format: "%.4f", playsPerDay))"
+    }
+  }
 }
 
 func sortSongs(songs: [MPMediaItem], by key: SongsSortKey) async

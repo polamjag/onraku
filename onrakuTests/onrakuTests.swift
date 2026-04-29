@@ -239,6 +239,43 @@ class onrakuTests: XCTestCase {
     XCTAssertEqual(SongsSortKey.allCases.count, 12)
   }
 
+  func testSongsSortKeyBuildsTertiaryInfoForSongRows() throws {
+    let song = DummySongDetail(
+      albumArtist: nil,
+      albumTitle: "Album A",
+      albumTrackCount: 0,
+      albumTrackNumber: 0,
+      artist: "Artist A",
+      artwork: nil,
+      beatsPerMinute: 124,
+      comments: nil,
+      isCompilation: false,
+      composer: nil,
+      dateAdded: Date(timeIntervalSince1970: 1_700_000_000),
+      discCount: 0,
+      discNumber: 0,
+      genre: "House",
+      lastPlayedDate: nil,
+      lyrics: nil,
+      playCount: 7,
+      rating: 0,
+      releaseDate: nil,
+      releaseYear: nil,
+      skipCount: 0,
+      title: "Song A",
+      userGrouping: "Peak",
+      playbackDuration: 0,
+      refreshingIdentifier: "song-1"
+    )
+
+    XCTAssertNil(SongsSortKey.none.tertiaryInfo(for: song))
+    XCTAssertEqual(SongsSortKey.album.tertiaryInfo(for: song), "Album A")
+    XCTAssertEqual(SongsSortKey.genre.tertiaryInfo(for: song), "House")
+    XCTAssertEqual(SongsSortKey.userGrouping.tertiaryInfo(for: song), "Peak")
+    XCTAssertEqual(SongsSortKey.bpm.tertiaryInfo(for: song), "124")
+    XCTAssertEqual(SongsSortKey.playCountDesc.tertiaryInfo(for: song), "7 plays")
+  }
+
   func testPredicateFriendlyLabelFallsBackInPriorityOrder() throws {
     let custom = MyMPMediaPropertyPredicate(
       value: "Artist A",
@@ -403,7 +440,8 @@ class onrakuTests: XCTestCase {
     XCTAssertEqual(sut.title, "Fixed")
     XCTAssertEqual(sut.searchCriteria, [])
     XCTAssertFalse(sut.shouldShowSearchCriteria)
-    XCTAssertEqual(await sut.loadSongs().count, 0)
+    let loadedSongs = await sut.loadSongs()
+    XCTAssertEqual(loadedSongs.count, 0)
   }
 
   @MainActor
@@ -423,7 +461,8 @@ class onrakuTests: XCTestCase {
     XCTAssertEqual(sut.title, "Loaded")
     XCTAssertEqual(sut.searchCriteria, predicates)
     XCTAssertTrue(sut.shouldShowSearchCriteria)
-    XCTAssertEqual(await sut.loadSongs().count, 0)
+    let loadedSongs = await sut.loadSongs()
+    XCTAssertEqual(loadedSongs.count, 0)
   }
 
   func testSongsListFromPredicatesUsesCustomAndDefaultTitles() throws {
@@ -544,6 +583,19 @@ class onrakuTests: XCTestCase {
     }
 
     XCTAssertFalse(sut.shouldShowSearchCriteria)
+  }
+
+  @MainActor
+  func testQueriedSongsListViewModelStoresSortOrder() async throws {
+    let sut = QueriedSongsListViewModel(title: "Search Result") {
+      []
+    }
+
+    await sut.loadIfNeeded()
+    sut.setSortOrder(.album)
+
+    XCTAssertEqual(sut.sortOrder, .album)
+    XCTAssertTrue(sut.displayedSongs.isEmpty)
   }
 
   @MainActor
