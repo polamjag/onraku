@@ -22,11 +22,11 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
   var forProperty: String
   var comparisonType: MPMediaPredicateComparison = .equalTo
 
-  var friendryLabel: String?
+  var friendlyLabel: String?
 
   var someFriendlyLabel: String {
-    if let friendryLabel = self.friendryLabel {
-      return friendryLabel
+    if let friendlyLabel = self.friendlyLabel {
+      return friendlyLabel
     } else if let str = self.value as? String {
       return "\(forProperty): \(str)"
     }
@@ -45,7 +45,7 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
         + String(comparisonType.hashValue)
     }
   }
-  
+
   var systemImageNameForProperty: String? {
     switch self.forProperty {
     case MPMediaItemPropertyAlbumTitle:
@@ -66,7 +66,7 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
       return nil
     }
   }
-  
+
   var humanReadableForProperty: String {
     switch self.forProperty {
     case MPMediaItemPropertyAlbumTitle:
@@ -149,8 +149,7 @@ private func getNextSearchHintsOfSubArtistsLike(
   requiredMinItemLength: Int = 2
 ) -> [MyMPMediaPropertyPredicate] {
   if let filterVal = filterPredicate.value as? String {
-    let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists().filter
-    {
+    let splittedFilterVal = filterVal.intelligentlySplitIntoSubArtists().filter {
       $0.count >= requiredMinItemLength
     }
     if splittedFilterVal.count > requiredMinItems {

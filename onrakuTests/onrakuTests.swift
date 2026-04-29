@@ -152,7 +152,7 @@ class onrakuTests: XCTestCase {
     let custom = MyMPMediaPropertyPredicate(
       value: "Artist A",
       forProperty: MPMediaItemPropertyArtist,
-      friendryLabel: "Custom Label"
+      friendlyLabel: "Custom Label"
     )
     XCTAssertEqual(custom.someFriendlyLabel, "Custom Label")
 
