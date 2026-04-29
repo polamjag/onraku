@@ -13,41 +13,27 @@ private let formatter = DateComponentsFormatter()
 
 struct SongMetaView: View {
   var song: SongDetailLike
-  
+
   var body: some View {
     KeyValueView(key: "title", value: song.title)
-    
+
     NavigationLink {
-      QueriedSongsListViewContainer(
-        filterPredicate: MyMPMediaPropertyPredicate(
-          value: song.artist, forProperty: MPMediaItemPropertyArtist))
+      searchDestination(for: .artist)
     } label: {
       KeyValueView(key: "artist", value: song.artist)
-    }.disabled(song.artist?.isEmpty ?? true)
-    
+    }.disabled(!searchLink(for: .artist).isEnabled)
+
     NavigationLink {
-      if let song = song as? MPMediaItem {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.albumPersistentID,
-            forProperty: MPMediaItemPropertyAlbumPersistentID),
-          title: song.albumTitle)
-      } else {
-        QueriedSongsListViewContainer(
-          filterPredicate: MyMPMediaPropertyPredicate(
-            value: song.albumTitle, forProperty: MPMediaItemPropertyAlbumTitle
-          ),
-          title: song.albumTitle)
-      }
+      searchDestination(for: .album)
     } label: {
       HStack {
         VStack(alignment: .leading) {
           KeyValueView(key: "album", value: song.albumTitle)
-          
+
           Spacer()
-          
+
           Divider()
-          
+
           VStack(alignment: .leading) {
             Text("Track \(song.albumTrackNumber) of \(song.albumTrackCount)")
               .font(
@@ -57,9 +43,9 @@ struct SongMetaView: View {
                 .footnote)
             }
           }
-          
+
           Spacer()
-          
+
           if let releaseDate = song.releaseDate {
             KeyValueView(
               key: "released at",
@@ -70,7 +56,7 @@ struct SongMetaView: View {
           }
         }
         Spacer()
-        
+
         if let image = song.artwork?.image(
           at: CGSize(width: artworkSize, height: artworkSize))
         {
@@ -81,47 +67,38 @@ struct SongMetaView: View {
             .cornerRadius(4)
         }
       }
-    }.disabled(song.albumTitle?.isEmpty ?? true)
-    
+    }.disabled(!searchLink(for: .album).isEnabled)
+
     NavigationLink {
-      QueriedSongsListViewContainer(
-        filterPredicate: MyMPMediaPropertyPredicate(
-          value: song.albumArtist, forProperty: MPMediaItemPropertyArtist))
+      searchDestination(for: .albumArtist)
     } label: {
       KeyValueView(key: "album artist", value: song.albumArtist)
-    }.disabled(song.albumArtist?.isEmpty ?? true)
-    
+    }.disabled(!searchLink(for: .albumArtist).isEnabled)
+
     NavigationLink {
-      QueriedSongsListViewContainer(
-        filterPredicate: MyMPMediaPropertyPredicate(
-          value: song.composer, forProperty: MPMediaItemPropertyComposer))
+      searchDestination(for: .composer)
     } label: {
       KeyValueView(key: "composer", value: song.composer)
-    }.disabled(song.composer?.isEmpty ?? true)
-    
+    }.disabled(!searchLink(for: .composer).isEnabled)
+
     NavigationLink {
-      QueriedSongsListViewContainer(
-        filterPredicate: MyMPMediaPropertyPredicate(
-          value: song.userGrouping,
-          forProperty: MPMediaItemPropertyUserGrouping))
+      searchDestination(for: .userGrouping)
     } label: {
       KeyValueView(key: "user grouping", value: song.userGrouping)
-    }.disabled(song.userGrouping?.isEmpty ?? true)
-    
+    }.disabled(!searchLink(for: .userGrouping).isEnabled)
+
     NavigationLink {
-      QueriedSongsListViewContainer(
-        filterPredicate: MyMPMediaPropertyPredicate(
-          value: song.genre, forProperty: MPMediaItemPropertyGenre))
+      searchDestination(for: .genre)
     } label: {
       KeyValueView(key: "genre", value: song.genre)
-    }.disabled(song.genre?.isEmpty ?? true)
-    
+    }.disabled(!searchLink(for: .genre).isEnabled)
+
     Group {
       HorizontalKeyValueView(key: "bpm", value: String(song.beatsPerMinute))
       HorizontalKeyValueView(
         key: "playback time",
         value: formatter.string(from: song.playbackDuration))
-      
+
       HStack {
         Text("rating").font(.footnote).foregroundColor(.secondary)
         Spacer()
@@ -131,7 +108,7 @@ struct SongMetaView: View {
           Text("-").foregroundColor(.secondary)
         }
       }.lineLimit(1)
-      
+
       //                HorizontalKeyValueView(key: "skip count", value: String(song.skipCount))
       HorizontalKeyValueView(key: "play count", value: String(song.playCount))
       HorizontalKeyValueView(
@@ -139,17 +116,31 @@ struct SongMetaView: View {
         value: formatter.string(
           from: song.playbackDuration * Double(song.playCount)))
     }
-    
+
     Group {
       HorizontalKeyValueView(
         key: "last played at", value: song.lastPlayedDate?.formatted())
-      
+
       HorizontalKeyValueView(
         key: "added at", value: song.dateAdded.formatted())
-      
+
       HorizontalKeyValueToSheetView(key: "comments", value: song.comments)
       HorizontalKeyValueToSheetView(key: "lyrics", value: song.lyrics)
     }
+  }
+
+  private func searchLink(for kind: SongMetaSearchLink.Kind) -> SongMetaSearchLink {
+    SongMetaSearchLink.link(for: kind, song: song)
+  }
+
+  private func searchDestination(for kind: SongMetaSearchLink.Kind)
+    -> QueriedSongsListViewContainer
+  {
+    let link = searchLink(for: kind)
+    return QueriedSongsListViewContainer(
+      filterPredicate: link.predicate,
+      title: link.title
+    )
   }
 }
 
@@ -157,7 +148,7 @@ private struct KeyValueView: View {
   var key: String
   var value: String?
   var fallbackValue: String = "-"
-  
+
   var body: some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(key).font(.footnote).foregroundColor(.secondary)
@@ -174,7 +165,7 @@ private struct HorizontalKeyValueView: View {
   var key: String
   var value: String?
   var fallbackValue: String = "-"
-  
+
   var body: some View {
     HStack {
       Text(key).font(.footnote).foregroundColor(.secondary)
@@ -192,11 +183,11 @@ private struct HorizontalKeyValueToSheetView: View {
   var key: String
   var value: String?
   @State private var isSheetShowing: Bool = false
-  
+
   var isSheetAvailable: Bool {
     ((value?.isEmpty) == false)
   }
-  
+
   var body: some View {
     HorizontalKeyValueView(key: key, value: value)
       .onTapGesture {
