@@ -55,6 +55,22 @@ struct SongsCollectionsListView: View {
       NavigationLink {
         QueriedSongsListViewContainer(songsList: row.node.songsList())
       } label: {
+        if row.hasChildren {
+          Button {
+            withAnimation {
+              viewModel.toggleExpansion(of: row.id)
+            }
+          } label: {
+            Image(systemName: "chevron.right")
+              .frame(width: 32, height: 32)
+          }
+          .buttonStyle(.borderless)
+          .accessibilityLabel(
+            row.isExpanded
+            ? "Collapse \(row.node.collection.name)"
+            : "Expand \(row.node.collection.name)"
+          ).rotationEffect(.degrees(row.isExpanded ? 90 : 0))
+        }
         SongsCollectionItemView(
           title: row.node.collection.name,
           secondaryText: secondaryText(for: row.node),
@@ -65,25 +81,7 @@ struct SongsCollectionsListView: View {
       .padding(.leading, CGFloat(row.depth) * 16)
       .frame(maxWidth: .infinity, alignment: .leading)
       .lineLimit(1)
-
-      if row.hasChildren {
-        Button {
-          withAnimation(.easeInOut) {
-            viewModel.toggleExpansion(of: row.id)
-          }
-        } label: {
-          Image(systemName: row.isExpanded ? "chevron.down" : "chevron.right")
-            .frame(width: 32, height: 32)
-        }
-        .buttonStyle(.borderless)
-        .accessibilityLabel(
-          row.isExpanded
-            ? "Collapse \(row.node.collection.name)"
-            : "Expand \(row.node.collection.name)"
-        )
-      }
     }
-    .animation(.easeInOut, value: row.isExpanded)
   }
 
   private func secondaryText(for node: SongsCollectionTreeNode) -> String? {
