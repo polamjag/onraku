@@ -347,4 +347,51 @@ final class ViewModelTests: XCTestCase {
     await sut.reload()
     XCTAssertEqual(sut.collections.map(\.name), ["Playlist B"])
   }
+
+  @MainActor
+  func testSongsCollectionsListViewModelShowsCollapsedPlaylistTreeRowsUntilToggled()
+    async throws
+  {
+    let loader = FakeSongsCollectionsLoader()
+    loader.result = [
+      SongsCollection(
+        name: "Folder A",
+        id: "folder-a",
+        type: .playlist,
+        items: nil,
+        isFolder: true
+      ),
+      SongsCollection(
+        name: "Playlist A",
+        id: "playlist-a",
+        type: .playlist,
+        items: nil,
+        parentID: "folder-a"
+      ),
+      SongsCollection(
+        name: "Playlist B",
+        id: "playlist-b",
+        type: .playlist,
+        items: nil
+      ),
+    ]
+    let sut = SongsCollectionsListViewModel(type: .playlist, loader: loader)
+
+    await sut.loadIfNeeded()
+
+    XCTAssertEqual(
+      sut.visibleCollectionRows.map { $0.node.collection.name },
+      ["Folder A", "Playlist B"]
+    )
+    XCTAssertEqual(sut.visibleCollectionRows.map(\.depth), [0, 0])
+    XCTAssertEqual(sut.visibleCollectionRows.map(\.hasChildren), [true, false])
+
+    sut.toggleExpansion(of: "folder-a")
+
+    XCTAssertEqual(
+      sut.visibleCollectionRows.map { $0.node.collection.name },
+      ["Folder A", "Playlist A", "Playlist B"]
+    )
+    XCTAssertEqual(sut.visibleCollectionRows.map(\.depth), [0, 1, 0])
+  }
 }

@@ -29,24 +29,79 @@ struct SongsCollectionsListView: View {
         LoadingCellView()
       }
 
-      ForEach(viewModel.collections) { collection in
-        NavigationLink {
-          QueriedSongsListViewContainer(songsList: collection.songsList())
-        } label: {
-          HStack {
-            SongsCollectionItemView(
-              title: collection.name,
-              showLoading: false
-            )
-          }.lineLimit(1)
+      if viewModel.type == .playlist {
+        ForEach(viewModel.visibleCollectionRows) { row in
+          collectionRow(for: row)
+        }
+      } else {
+        ForEach(viewModel.collections) { collection in
+          collectionRow(for: collection)
         }
       }
-      .navigationTitle(title)
-      .navigationBarTitleDisplayMode(.inline)
-    }.task {
+    }
+    .navigationTitle(title)
+    .navigationBarTitleDisplayMode(.inline)
+    .task {
       await viewModel.loadIfNeeded()
-    }.refreshable {
+    }
+    .refreshable {
       await viewModel.reload()
+    }
+  }
+
+  @ViewBuilder
+  private func collectionRow(for row: SongsCollectionTreeRow) -> some View {
+    HStack(spacing: 8) {
+      NavigationLink {
+        QueriedSongsListViewContainer(songsList: row.node.songsList())
+      } label: {
+        SongsCollectionItemView(
+          title: row.node.collection.name,
+          secondaryText: secondaryText(for: row.node),
+          systemImage: row.node.collection.isFolder ? "folder" : nil,
+          showLoading: false
+        )
+      }
+      .padding(.leading, CGFloat(row.depth) * 16)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .lineLimit(1)
+
+      if row.hasChildren {
+        Button {
+          withAnimation(.easeInOut) {
+            viewModel.toggleExpansion(of: row.id)
+          }
+        } label: {
+          Image(systemName: row.isExpanded ? "chevron.down" : "chevron.right")
+            .frame(width: 32, height: 32)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(
+          row.isExpanded
+            ? "Collapse \(row.node.collection.name)"
+            : "Expand \(row.node.collection.name)"
+        )
+      }
+    }
+    .animation(.easeInOut, value: row.isExpanded)
+  }
+
+  private func secondaryText(for node: SongsCollectionTreeNode) -> String? {
+    guard node.hasChildren else { return nil }
+    let count = node.playableCollections.count
+    return count == 1 ? "1 playlist" : "\(count) playlists"
+  }
+
+  private func collectionRow(for collection: SongsCollection) -> some View {
+    NavigationLink {
+      QueriedSongsListViewContainer(songsList: collection.songsList())
+    } label: {
+      HStack {
+        SongsCollectionItemView(
+          title: collection.name,
+          showLoading: false
+        )
+      }.lineLimit(1)
     }
   }
 }

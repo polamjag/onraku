@@ -22,12 +22,20 @@ func loadSongsCollectionsOf(_ type: CollectionTypes) async -> [SongsCollection] 
 
 func loadAllCollectionsOf(_ type: CollectionTypes) -> [SongsCollection] {
   if let collections = type.getQueryForType()?.collections {
-    return collections.map {
-      SongsCollection(
-        name: $0.getCollectionName(as: type) ?? "",
-        id: String($0.persistentID),
+    return collections.map { collection in
+      let playlist = collection as? MPMediaPlaylist
+      let parentID =
+        playlist?.hasParent == true
+        ? playlist?.parentPersistentID.map(String.init)
+        : nil
+
+      return SongsCollection(
+        name: collection.getCollectionName(as: type) ?? "",
+        id: String(collection.persistentID),
         type: type,
-        items: nil
+        items: nil,
+        parentID: parentID,
+        isFolder: playlist?.isFolder ?? false
       )
     }
   } else {
@@ -58,9 +66,11 @@ func loadAllUserGroupings() -> [SongsCollection] {
 
 func getPlaylistsBySong(_ song: MPMediaItem) async -> [SongsCollection] {
   let playlists = loadAllCollectionsOf(.playlist)
-  
+
   let res = await withTaskGroup(of: Optional<SongsCollection>.self) { group in
     for playlist in playlists {
+      guard !playlist.isFolder else { continue }
+
       group.addTask {
         if let predicate = playlist.getFilterPredicate() {
           let songs = await getSongsByPredicate(predicate: predicate)
@@ -69,23 +79,25 @@ func getPlaylistsBySong(_ song: MPMediaItem) async -> [SongsCollection] {
               name: playlist.name,
               id: playlist.id,
               type: .playlist,
-              items: songs
+              items: songs,
+              parentID: playlist.parentID,
+              isFolder: playlist.isFolder
             )
           }
         }
-        
+
         return nil
       }
     }
-    
+
     var ret: [SongsCollection] = []
-    
+
     for await result in group {
       if let result {
         ret.append(result)
       }
     }
-    
+
     return ret
   }
   return res.sorted { $0.name < $1.name }

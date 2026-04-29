@@ -252,4 +252,122 @@ final class CoreModelTests: XCTestCase {
       MPMediaItemPropertyGenre
     )
   }
+
+  func testMediaEntityPersistentIDConvertsSignedBitPattern() throws {
+    XCTAssertEqual(mediaEntityPersistentID(fromRawValue: Int64(-1)), UInt64.max)
+    XCTAssertEqual(mediaEntityPersistentID(fromRawValue: Int64(42)), 42)
+    XCTAssertEqual(mediaEntityPersistentID(fromRawValue: UInt64.max), UInt64.max)
+    XCTAssertNil(mediaEntityPersistentID(fromRawValue: "not an id"))
+  }
+
+  func testBuildSongsCollectionTreeNestsCollectionsUnderKnownParents() throws {
+    let collections = [
+      SongsCollection(
+        name: "Folder A",
+        id: "folder-a",
+        type: .playlist,
+        items: nil,
+        isFolder: true
+      ),
+      SongsCollection(
+        name: "Playlist A",
+        id: "playlist-a",
+        type: .playlist,
+        items: nil,
+        parentID: "folder-a"
+      ),
+      SongsCollection(
+        name: "Playlist B",
+        id: "playlist-b",
+        type: .playlist,
+        items: nil
+      ),
+    ]
+
+    let tree = buildSongsCollectionTree(from: collections)
+
+    XCTAssertEqual(tree.map(\.collection.name), ["Folder A", "Playlist B"])
+    XCTAssertTrue(tree[0].isFolder)
+    XCTAssertEqual(tree[0].children?.map(\.collection.name), ["Playlist A"])
+    XCTAssertNil(tree[1].children)
+  }
+
+  func testBuildSongsCollectionTreeKeepsCollectionsWithCyclicParentsVisible() throws {
+    let collections = [
+      SongsCollection(
+        name: "Folder A",
+        id: "folder-a",
+        type: .playlist,
+        items: nil,
+        parentID: "folder-b",
+        isFolder: true
+      ),
+      SongsCollection(
+        name: "Folder B",
+        id: "folder-b",
+        type: .playlist,
+        items: nil,
+        parentID: "folder-a",
+        isFolder: true
+      ),
+    ]
+
+    let tree = buildSongsCollectionTree(from: collections)
+
+    XCTAssertEqual(tree.map(\.collection.name), ["Folder A"])
+    XCTAssertEqual(tree.first?.children?.map(\.collection.name), ["Folder B"])
+  }
+
+  func testFolderTreeNodeBuildsSongsListFromDescendantPlaylists() throws {
+    let collections = [
+      SongsCollection(
+        name: "Folder A",
+        id: "folder-a",
+        type: .playlist,
+        items: nil,
+        isFolder: true
+      ),
+      SongsCollection(
+        name: "Playlist A",
+        id: "playlist-a",
+        type: .playlist,
+        items: nil,
+        parentID: "folder-a"
+      ),
+      SongsCollection(
+        name: "Playlist B",
+        id: "playlist-b",
+        type: .playlist,
+        items: nil,
+        parentID: "folder-a"
+      ),
+    ]
+
+    let folderNode = try XCTUnwrap(buildSongsCollectionTree(from: collections).first)
+    let songsList = folderNode.songsList()
+
+    XCTAssertEqual(folderNode.playableCollections.map(\.name), ["Playlist A", "Playlist B"])
+    XCTAssertEqual(songsList.title, "Folder A")
+    XCTAssertEqual(
+      songsList.searchCriteria.compactMap { $0.value as? String },
+      ["Playlist A", "Playlist B"]
+    )
+  }
+
+  func testBuildSongsCollectionTreePromotesCollectionsWithMissingParents() throws {
+    let collections = [
+      SongsCollection(
+        name: "Orphan Playlist",
+        id: "orphan",
+        type: .playlist,
+        items: nil,
+        parentID: "missing-folder"
+      )
+    ]
+
+    let tree = buildSongsCollectionTree(from: collections)
+
+    XCTAssertEqual(tree.map(\.collection.name), ["Orphan Playlist"])
+    XCTAssertNil(tree.first?.children)
+  }
 }

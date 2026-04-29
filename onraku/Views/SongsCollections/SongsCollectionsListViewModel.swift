@@ -17,10 +17,33 @@ struct MediaLibrarySongsCollectionsLoader: SongsCollectionsLoading {
   }
 }
 
+struct SongsCollectionTreeRow: Identifiable, Hashable {
+  let node: SongsCollectionTreeNode
+  let depth: Int
+  let isExpanded: Bool
+
+  var id: String {
+    node.id
+  }
+
+  var hasChildren: Bool {
+    node.hasChildren
+  }
+}
+
 @MainActor
 final class SongsCollectionsListViewModel: ObservableObject {
   @Published private(set) var collections: [SongsCollection] = []
   @Published private(set) var loadState: LoadingState = .initial
+  @Published private(set) var expandedCollectionIDs: Set<String> = []
+
+  var collectionTree: [SongsCollectionTreeNode] {
+    buildSongsCollectionTree(from: collections)
+  }
+
+  var visibleCollectionRows: [SongsCollectionTreeRow] {
+    visibleRows(from: collectionTree, depth: 0)
+  }
 
   let type: CollectionTypes
 
@@ -43,9 +66,38 @@ final class SongsCollectionsListViewModel: ObservableObject {
     await load()
   }
 
+  func toggleExpansion(of nodeID: String) {
+    if expandedCollectionIDs.contains(nodeID) {
+      expandedCollectionIDs.remove(nodeID)
+    } else {
+      expandedCollectionIDs.insert(nodeID)
+    }
+  }
+
   private func load() async {
     loadState = .loading
     collections = await loader.loadCollections(of: type)
+    expandedCollectionIDs = []
     loadState = .loaded
+  }
+
+  private func visibleRows(
+    from nodes: [SongsCollectionTreeNode],
+    depth: Int
+  ) -> [SongsCollectionTreeRow] {
+    nodes.flatMap { node -> [SongsCollectionTreeRow] in
+      let isExpanded = expandedCollectionIDs.contains(node.id)
+      let row = SongsCollectionTreeRow(
+        node: node,
+        depth: depth,
+        isExpanded: isExpanded
+      )
+
+      guard isExpanded, let children = node.children else {
+        return [row]
+      }
+
+      return [row] + visibleRows(from: children, depth: depth + 1)
+    }
   }
 }

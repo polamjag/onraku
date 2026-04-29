@@ -8,6 +8,22 @@
 import Foundation
 import MediaPlayer
 
+func mediaEntityPersistentID(fromRawValue raw: Any?) -> MPMediaEntityPersistentID? {
+  if let val = raw as? UInt64 {
+    return val
+  } else if let val = raw as? Int64 {
+    return UInt64(bitPattern: val)
+  } else if let val = raw as? UInt {
+    return UInt64(val)
+  } else if let val = raw as? Int {
+    return UInt64(bitPattern: Int64(val))
+  } else if let val = raw as? NSNumber {
+    return UInt64(bitPattern: val.int64Value)
+  } else {
+    return nil
+  }
+}
+
 // https://openradar.appspot.com/29521032
 extension MPMediaPlaylist {
   public var isFolder: Bool {
@@ -15,19 +31,9 @@ extension MPMediaPlaylist {
   }
 
   public var parentPersistentID: MPMediaEntityPersistentID? {
-    if let raw = self.value(forProperty: "parentPersistentID") {
-      if let val = raw as? UInt64 {
-        return val
-      } else if let val = raw as? Int64 {
-        return UInt64(Int64.max + val + 1)
-      } else {
-        return nil
-      }
-    } else {
-      return nil
-    }
+    mediaEntityPersistentID(fromRawValue: self.value(forProperty: "parentPersistentID"))
   }
-  
+
   public var hasParent: Bool {
     self.parentPersistentID != nil && self.parentPersistentID != 0
   }
