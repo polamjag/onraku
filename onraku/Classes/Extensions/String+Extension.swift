@@ -68,6 +68,7 @@ extension String {
       .flatMap { $0.components(separatedBy: " X ") }
       .flatMap { $0.components(separatedBy: " from ") }
       .flatMap { $0.components(separatedBy: " feat. ") }
+      .flatMap { $0.components(separatedBy: " ft. ") }
       .flatMap { $0.components(separatedBy: " Feat. ") }
       .flatMap { $0.split { s in s == "(" || s == ")" } }
       .flatMap {
