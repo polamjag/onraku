@@ -253,6 +253,20 @@ final class CoreModelTests: XCTestCase {
     )
   }
 
+  func testPlaylistCollectionBuildsSongsListWithoutVisibleSearchCriteria() throws {
+    let collection = SongsCollection(
+      name: "Playlist A",
+      id: "playlist-a",
+      type: .playlist,
+      items: nil
+    )
+
+    let songsList = collection.songsList()
+
+    XCTAssertEqual(songsList.title, "Playlist A")
+    XCTAssertTrue(songsList.searchCriteria.isEmpty)
+  }
+
   func testMediaEntityPersistentIDConvertsSignedBitPattern() throws {
     XCTAssertEqual(mediaEntityPersistentID(fromRawValue: Int64(-1)), UInt64.max)
     XCTAssertEqual(mediaEntityPersistentID(fromRawValue: Int64(42)), 42)
@@ -318,7 +332,9 @@ final class CoreModelTests: XCTestCase {
     XCTAssertEqual(tree.first?.children?.map(\.collection.name), ["Folder B"])
   }
 
-  func testFolderTreeNodeBuildsSongsListFromDescendantPlaylists() throws {
+  func testFolderTreeNodeBuildsSongsListFromDescendantPlaylistsWithoutSearchCriteria()
+    throws
+  {
     let collections = [
       SongsCollection(
         name: "Folder A",
@@ -348,10 +364,7 @@ final class CoreModelTests: XCTestCase {
 
     XCTAssertEqual(folderNode.playableCollections.map(\.name), ["Playlist A", "Playlist B"])
     XCTAssertEqual(songsList.title, "Folder A")
-    XCTAssertEqual(
-      songsList.searchCriteria.compactMap { $0.value as? String },
-      ["Playlist A", "Playlist B"]
-    )
+    XCTAssertTrue(songsList.searchCriteria.isEmpty)
   }
 
   func testBuildSongsCollectionTreePromotesCollectionsWithMissingParents() throws {

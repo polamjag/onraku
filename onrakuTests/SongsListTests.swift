@@ -141,7 +141,7 @@ final class SongsListTests: XCTestCase {
   }
 
   @MainActor
-  func testQueriedSongsListViewModelDoesNotShowSingleSearchCriterion() async throws {
+  func testQueriedSongsListViewModelShowsSingleSearchCriterionForEditing() async throws {
     let sut = QueriedSongsListViewModel(
       title: "Search Result",
       searchCriteria: [
@@ -154,7 +154,109 @@ final class SongsListTests: XCTestCase {
       []
     }
 
-    XCTAssertFalse(sut.shouldShowSearchCriteria)
+    XCTAssertTrue(sut.shouldShowSearchCriteria)
+  }
+
+  @MainActor
+  func testQueriedSongsListViewModelRemovesSearchCriteriaAndReloads() async throws {
+    let artist = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+    let genre = MyMPMediaPropertyPredicate(
+      value: "Genre A",
+      forProperty: MPMediaItemPropertyGenre
+    )
+    let title = MyMPMediaPropertyPredicate(
+      value: "Title A",
+      forProperty: MPMediaItemPropertyTitle
+    )
+    var initialLoadCount = 0
+    var reloadedCriteria: [[MyMPMediaPropertyPredicate]] = []
+    let sut = QueriedSongsListViewModel(
+      title: "Search Result",
+      searchCriteria: [artist, genre, title],
+      loader: {
+        initialLoadCount += 1
+        return []
+      },
+      searchCriteriaLoader: { criteria in
+        reloadedCriteria.append(criteria)
+        return []
+      }
+    )
+
+    await sut.loadIfNeeded()
+    await sut.removeSearchCriteria(atOffsets: IndexSet(integer: 1))
+
+    XCTAssertEqual(initialLoadCount, 1)
+    XCTAssertEqual(sut.searchCriteria, [artist, title])
+    XCTAssertEqual(reloadedCriteria, [[artist, title]])
+    XCTAssertEqual(sut.loadingState, .loaded)
+  }
+
+  @MainActor
+  func testQueriedSongsListViewModelCanRestoreAllSearchCriteriaAfterRemoval()
+    async throws
+  {
+    let artist = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+    let genre = MyMPMediaPropertyPredicate(
+      value: "Genre A",
+      forProperty: MPMediaItemPropertyGenre
+    )
+    var reloadedCriteria: [[MyMPMediaPropertyPredicate]] = []
+    let sut = QueriedSongsListViewModel(
+      title: "Search Result",
+      searchCriteria: [artist, genre],
+      loader: { [] },
+      searchCriteriaLoader: { criteria in
+        reloadedCriteria.append(criteria)
+        return []
+      }
+    )
+
+    await sut.removeSearchCriteria(atOffsets: IndexSet([0, 1]))
+
+    XCTAssertTrue(sut.searchCriteria.isEmpty)
+    XCTAssertTrue(sut.shouldShowSearchCriteria)
+    XCTAssertTrue(sut.canRestoreSearchCriteria)
+
+    await sut.restoreSearchCriteria()
+
+    XCTAssertEqual(sut.searchCriteria, [artist, genre])
+    XCTAssertFalse(sut.canRestoreSearchCriteria)
+    XCTAssertEqual(reloadedCriteria, [[], [artist, genre]])
+  }
+
+  @MainActor
+  func testQueriedSongsListViewModelUpdatesSearchCriterionAndReloads() async throws {
+    let original = MyMPMediaPropertyPredicate(
+      value: "Artist A",
+      forProperty: MPMediaItemPropertyArtist
+    )
+    let updated = MyMPMediaPropertyPredicate(
+      value: "Artist B",
+      forProperty: MPMediaItemPropertyAlbumArtist,
+      comparisonType: .contains
+    )
+    var reloadedCriteria: [[MyMPMediaPropertyPredicate]] = []
+    let sut = QueriedSongsListViewModel(
+      title: "Search Result",
+      searchCriteria: [original],
+      loader: { [] },
+      searchCriteriaLoader: { criteria in
+        reloadedCriteria.append(criteria)
+        return []
+      }
+    )
+
+    await sut.updateSearchCriterion(original, with: updated)
+
+    XCTAssertEqual(sut.searchCriteria, [updated])
+    XCTAssertEqual(reloadedCriteria, [[updated]])
   }
 
   @MainActor

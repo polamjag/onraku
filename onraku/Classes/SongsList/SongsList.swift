@@ -65,13 +65,20 @@ struct SongsListFromPlaylist: SongsList {
 struct SongsListFromPredicates: SongsList {
   let predicates: [MyMPMediaPropertyPredicate]
   var customTitle: String?
+  let searchCriteria: [MyMPMediaPropertyPredicate]
+
+  init(
+    predicates: [MyMPMediaPropertyPredicate],
+    customTitle: String? = nil,
+    searchCriteria: [MyMPMediaPropertyPredicate]? = nil
+  ) {
+    self.predicates = predicates
+    self.customTitle = customTitle
+    self.searchCriteria = searchCriteria ?? predicates
+  }
 
   var title: String {
     customTitle ?? "Search Result"
-  }
-
-  var searchCriteria: [MyMPMediaPropertyPredicate] {
-    predicates
   }
 
   func loadSongs() async -> [MPMediaItem] {

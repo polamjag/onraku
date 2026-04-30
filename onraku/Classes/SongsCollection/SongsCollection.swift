@@ -104,7 +104,11 @@ struct SongsCollection: Identifiable, Hashable {
   }
 
   func songsList() -> SongsList {
-    SongsListFromPredicates(predicates: [filterPredicate], customTitle: name)
+    SongsListFromPredicates(
+      predicates: [filterPredicate],
+      customTitle: name,
+      searchCriteria: type == .playlist ? [] : nil
+    )
   }
 }
 
@@ -148,7 +152,8 @@ struct SongsCollectionTreeNode: Identifiable, Hashable {
     let collections = playableCollections
     return SongsListFromPredicates(
       predicates: collections.map(\.filterPredicate),
-      customTitle: collection.name
+      customTitle: collection.name,
+      searchCriteria: []
     )
   }
 }
