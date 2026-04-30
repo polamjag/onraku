@@ -63,11 +63,6 @@ struct ContentView: View {
         .task {
           await viewModel.handleNowPlayingItemDidChange()
         }
-        .onReceive(
-          NotificationCenter.default.publisher(for: .musicPlayerNowPlayingItemDidChange)
-        ) { _ in
-          Task { await viewModel.handleNowPlayingItemDidChange() }
-        }
 
         NavigationView {
           NowPlayingViewContainer()
