@@ -77,8 +77,12 @@ final class SongsCollectionsListViewModel: ObservableObject {
   private func load() async {
     loadState = .loading
     collections = await loader.loadCollections(of: type)
-    expandedCollectionIDs = []
+    expandedCollectionIDs.formIntersection(expandableCollectionIDs)
     loadState = .loaded
+  }
+
+  private var expandableCollectionIDs: Set<String> {
+    Set(collectionTree.flatMap(\.expandableIDs))
   }
 
   private func visibleRows(

@@ -27,7 +27,11 @@ struct ContentView: View {
             Section {
               ForEach(CollectionTypes.allCases, id: \.self) { type in
                 NavigationLink {
-                  SongsCollectionsListView(type: type, title: type.rawValue)
+                  SongsCollectionsListView(
+                    type: type,
+                    title: type.rawValue,
+                    viewModel: viewModel.songsCollectionsListViewModel(for: type)
+                  )
                 } label: {
                   Label(type.rawValue, systemImage: type.systemImageName)
                 }

@@ -87,6 +87,7 @@ final class ContentViewModel: ObservableObject {
 
   private let playbackNotificationManager: PlaybackNotificationManaging
   private let quickDigLoader: QuickDigLoading
+  private var songsCollectionsListViewModels: [CollectionTypes: SongsCollectionsListViewModel] = [:]
   private var isGeneratingPlaybackNotifications = false
 
   init(
@@ -118,6 +119,18 @@ final class ContentViewModel: ObservableObject {
     default:
       stopPlaybackNotificationsIfNeeded()
     }
+  }
+
+  func songsCollectionsListViewModel(
+    for type: CollectionTypes
+  ) -> SongsCollectionsListViewModel {
+    if let viewModel = songsCollectionsListViewModels[type] {
+      return viewModel
+    }
+
+    let viewModel = SongsCollectionsListViewModel(type: type)
+    songsCollectionsListViewModels[type] = viewModel
+    return viewModel
   }
 
   private func startPlaybackNotificationsIfNeeded() {

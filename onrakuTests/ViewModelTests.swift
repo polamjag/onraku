@@ -140,6 +140,21 @@ final class ViewModelTests: XCTestCase {
   }
 
   @MainActor
+  func testContentViewModelReusesSongsCollectionsListViewModels() async throws {
+    let sut = ContentViewModel(
+      playbackNotificationManager: FakePlaybackNotificationManager(),
+      quickDigLoader: FakeQuickDigLoader()
+    )
+
+    let firstPlaylistViewModel = sut.songsCollectionsListViewModel(for: .playlist)
+    let secondPlaylistViewModel = sut.songsCollectionsListViewModel(for: .playlist)
+    let albumViewModel = sut.songsCollectionsListViewModel(for: .album)
+
+    XCTAssertTrue(firstPlaylistViewModel === secondPlaylistViewModel)
+    XCTAssertFalse(firstPlaylistViewModel === albumViewModel)
+  }
+
+  @MainActor
   func testNowPlayingViewModelOnlyRefreshesNotificationWhileAppearing() async throws {
     let nowPlayingLoader = FakeNowPlayingLoader()
     let sut = NowPlayingViewModel(nowPlayingLoader: nowPlayingLoader)
@@ -346,6 +361,59 @@ final class ViewModelTests: XCTestCase {
 
     await sut.reload()
     XCTAssertEqual(sut.collections.map(\.name), ["Playlist B"])
+  }
+
+  @MainActor
+  func testSongsCollectionsListViewModelReloadKeepsExpandedFoldersThatStillExist()
+    async throws
+  {
+    let loader = FakeSongsCollectionsLoader()
+    loader.queuedResults = [
+      [
+        SongsCollection(
+          name: "Folder A",
+          id: "folder-a",
+          type: .playlist,
+          items: nil,
+          isFolder: true
+        ),
+        SongsCollection(
+          name: "Playlist A",
+          id: "playlist-a",
+          type: .playlist,
+          items: nil,
+          parentID: "folder-a"
+        ),
+      ],
+      [
+        SongsCollection(
+          name: "Folder A",
+          id: "folder-a",
+          type: .playlist,
+          items: nil,
+          isFolder: true
+        ),
+        SongsCollection(
+          name: "Playlist B",
+          id: "playlist-b",
+          type: .playlist,
+          items: nil,
+          parentID: "folder-a"
+        ),
+      ],
+    ]
+    let sut = SongsCollectionsListViewModel(type: .playlist, loader: loader)
+
+    await sut.loadIfNeeded()
+    sut.toggleExpansion(of: "folder-a")
+
+    await sut.reload()
+
+    XCTAssertEqual(sut.expandedCollectionIDs, ["folder-a"])
+    XCTAssertEqual(
+      sut.visibleCollectionRows.map { $0.node.collection.name },
+      ["Folder A", "Playlist B"]
+    )
   }
 
   @MainActor
