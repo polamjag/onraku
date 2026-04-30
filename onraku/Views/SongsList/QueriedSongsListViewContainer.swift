@@ -326,9 +326,10 @@ struct QueriedSongsListViewContainer: View {
                 secondaryText: song.artist,
                 tertiaryText: viewModel.tertiaryInfo(for: song),
                 artwork: song.artwork
-              ).contextMenu {
-                PlayableItemsMenuView(item: song)
-              }
+              )
+            }
+            .contextMenu {
+              PlayableItemsMenuView(item: song)
             }
           }
         }
