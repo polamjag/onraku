@@ -69,7 +69,7 @@ jobs:
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
 
       - name: Download App Store provisioning profile
-        uses: apple-actions/download-provisioning-profiles@7fa56f793274ba880be33b875dae5fe62519bc11 # v4.0.1
+        uses: apple-actions/download-provisioning-profiles@c62019de00bb4395ed414e4a17c98f4e279636de # v6
         with:
           bundle-id: ${{ env.APP_BUNDLE_ID }}
           profile-type: IOS_APP_STORE
