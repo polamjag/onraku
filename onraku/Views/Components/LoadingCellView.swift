@@ -8,17 +8,20 @@
 import SwiftUI
 
 struct LoadingCellView: View {
-  var body: some View {
-    HStack {
-      Spacer()
-      ProgressView()
-      Spacer()
+    var body: some View {
+        HStack {
+            Spacer()
+            ProgressView()
+            Spacer()
+        }
     }
-  }
 }
 
 struct LoadingCellView_Previews: PreviewProvider {
-  static var previews: some View {
-    LoadingCellView()
-  }
+    static var previews: some View {
+        List {
+            LoadingCellView()
+        }
+        .previewDisplayName("Loading Cell")
+    }
 }

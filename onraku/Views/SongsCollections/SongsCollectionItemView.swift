@@ -8,78 +8,75 @@
 import SwiftUI
 
 struct SongsCollectionItemView: View {
-  var title: String
-  var secondaryText: String?
-  var systemImage: String?
-  var itemsCount: Int?
-  var showLoading: Bool = false
+    var title: String
+    var secondaryText: String?
+    var systemImage: String?
+    var itemsCount: Int?
+    var showLoading: Bool = false
 
-  var body: some View {
-    HStack {
-      Label {
-        VStack(alignment: .leading) {
-          if title.isEmpty {
-            Text("(no value)").foregroundStyle(.secondary)
-          } else {
-            Text(title)
-          }
-          
-          if let secondaryText {
-            Text(secondaryText)
-              .foregroundColor(.secondary)
-              .font(.footnote)
-          }
+    var body: some View {
+        HStack {
+            Label {
+                VStack(alignment: .leading) {
+                    if title.isEmpty {
+                        Text("(no value)").foregroundStyle(.secondary)
+                    } else {
+                        Text(title)
+                    }
+
+                    if let secondaryText {
+                        Text(secondaryText)
+                            .foregroundColor(.secondary)
+                            .font(.footnote)
+                    }
+                }
+            } icon: {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                }
+            }
+
+            Spacer()
+
+            if showLoading {
+                ProgressView()
+            } else if let itemsCount = itemsCount {
+                Text(String(itemsCount))
+                    .monospacedDigit()
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
         }
-      } icon: {
-        if let systemImage {
-          Image(systemName: systemImage)
-        }
-      }
-
-      Spacer()
-
-      if showLoading {
-        ProgressView()
-      } else if let itemsCount = itemsCount {
-        Text(String(itemsCount))
-          .monospacedDigit()
-          .font(.footnote)
-          .foregroundColor(.secondary)
-      }
     }
-  }
 }
 
 struct SongsCollectionItemView_Previews: PreviewProvider {
-  static var previews: some View {
-    List {
-      SongsCollectionItemView(
-        title: "", itemsCount: nil, showLoading: false)
+    static var previews: some View {
+        List {
+            SongsCollectionItemView(
+                title: "", itemsCount: nil)
 
-      SongsCollectionItemView(
-        title: "", secondaryText: "Secondary Text",
-        itemsCount: nil,
-        showLoading: false)
+            SongsCollectionItemView(
+                title: "", secondaryText: "Missing metadata", itemsCount: nil)
 
-      SongsCollectionItemView(
-        title: "Gorgeous Label", itemsCount: nil, showLoading: false)
-      SongsCollectionItemView(
-        title: "Gorgeous Label", itemsCount: 42, showLoading: false)
-      SongsCollectionItemView(
-        title: "Gorgeous Label", secondaryText: "Secondary Text",
-        itemsCount: 42, showLoading: false)
+            SongsCollectionItemView(
+                title: "Night Drive", itemsCount: nil)
+            SongsCollectionItemView(
+                title: "Night Drive", itemsCount: 42)
+            SongsCollectionItemView(
+                title: "Night Drive", secondaryText: "4 playlists", itemsCount: 42)
 
-      SongsCollectionItemView(
-        title: "Gorgeous Label", secondaryText: "Secondary Text",
-        systemImage: "car.side.rear.and.exclamationmark.and.car.side.front.off",
-        itemsCount: 42, showLoading: false)
+            SongsCollectionItemView(
+                title: "DJ Sets", secondaryText: "2 playlists",
+                systemImage: "folder",
+                itemsCount: 42)
 
-      SongsCollectionItemView(
-        title: "Gorgeous Label", systemImage: "checkmark.seal", itemsCount: 42,
-        showLoading: false)
+            SongsCollectionItemView(
+                title: "Favorites", systemImage: "checkmark.seal", itemsCount: 42)
 
-      SongsCollectionItemView(
-        title: "Gorgeous Label", itemsCount: nil, showLoading: true)
+            SongsCollectionItemView(
+                title: "Loading playlist", itemsCount: nil, showLoading: true)
+        }
+        .previewDisplayName("Songs Collection Rows")
     }
-  }
 }
