@@ -34,7 +34,8 @@ struct PredicateItemView: View {
                     secondaryText: predicate.humanReadableForProperty,
 
                     systemImage: predicate.systemImageNameForProperty,
-                    itemsCount: resultCount
+                    itemsCount: resultCount,
+                    itemsCountDisplayMode: .reservingSpace(maxDigits: 5)
                 )
             }.task {
                 resultCount = await resultCountLoader(predicate)
