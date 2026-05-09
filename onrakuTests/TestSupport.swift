@@ -39,6 +39,54 @@ final class FakeNowPlayingLoader: NowPlayingLoading {
   }
 }
 
+final class FakeTrackPreviewPlayer: TrackPreviewPlaying {
+  var playbackState: MPMusicPlaybackState
+  var currentPlaybackTime: TimeInterval = 0
+  var queueSucceeds = true
+  private(set) var queuedItemCounts: [Int] = []
+  private(set) var playCallCount = 0
+  private(set) var pauseCallCount = 0
+  private(set) var stopCallCount = 0
+
+  init(playbackState: MPMusicPlaybackState = .stopped) {
+    self.playbackState = playbackState
+  }
+
+  func setQueue(with items: [MPMediaItem]) -> Bool {
+    queuedItemCounts.append(items.count)
+    return queueSucceeds
+  }
+
+  func play() {
+    playCallCount += 1
+    playbackState = .playing
+  }
+
+  func pause() {
+    pauseCallCount += 1
+    playbackState = .paused
+  }
+
+  func stop() {
+    stopCallCount += 1
+    playbackState = .stopped
+  }
+}
+
+final class FakePreviewAudioSessionConfigurator: PreviewAudioSessionConfiguring {
+  var isOtherAudioPlaying = false
+  private(set) var activationDuckingValues: [Bool] = []
+  private(set) var deactivateCallCount = 0
+
+  func activateForPreview(ducksOtherAudio: Bool) throws {
+    activationDuckingValues.append(ducksOtherAudio)
+  }
+
+  func deactivatePreview() throws {
+    deactivateCallCount += 1
+  }
+}
+
 final class FakeDiggingLoader: DiggingLoading {
   private(set) var requestedIdentifiers: [String] = []
   private(set) var requestedDepths: [Int] = []

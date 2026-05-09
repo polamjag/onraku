@@ -207,6 +207,393 @@ final class ViewModelTests: XCTestCase {
   }
 
   @MainActor
+  func testTrackPreviewControllerIndependentModeRestoresSystemPlaybackWithoutPausing()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .playing)
+    let audioSessionConfigurator = FakePreviewAudioSessionConfigurator()
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: audioSessionConfigurator,
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    sut.stopPreview()
+
+    XCTAssertEqual(previewPlayer.queuedItemCounts, [0])
+    XCTAssertEqual(previewPlayer.playCallCount, 1)
+    XCTAssertEqual(previewPlayer.stopCallCount, 1)
+    XCTAssertEqual(systemPlayer.pauseCallCount, 0)
+    XCTAssertEqual(systemPlayer.playCallCount, 1)
+    XCTAssertEqual(audioSessionConfigurator.activationDuckingValues, [true])
+    XCTAssertEqual(audioSessionConfigurator.deactivateCallCount, 1)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerIndependentModeRestoresInterruptedSystemPlayback()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .playing)
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: FakePreviewAudioSessionConfigurator(),
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    systemPlayer.playbackState = .paused
+    sut.stopPreview()
+
+    XCTAssertEqual(systemPlayer.pauseCallCount, 0)
+    XCTAssertEqual(systemPlayer.playCallCount, 1)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerNotifiesInterruptedNonMusicAudioAfterPreview()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .paused)
+    let audioSessionConfigurator = FakePreviewAudioSessionConfigurator()
+    audioSessionConfigurator.isOtherAudioPlaying = true
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: audioSessionConfigurator,
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    sut.stopPreview()
+
+    XCTAssertEqual(systemPlayer.playCallCount, 0)
+    XCTAssertEqual(audioSessionConfigurator.deactivateCallCount, 1)
+
+    try await Task.sleep(nanoseconds: 350_000_000)
+
+    XCTAssertEqual(systemPlayer.playCallCount, 0)
+    XCTAssertEqual(audioSessionConfigurator.deactivateCallCount, 2)
+  }
+
+  func testFallbackTrackPreviewPlayerUsesFallbackWhenPrimaryCannotQueue() {
+    let primaryPlayer = FakeTrackPreviewPlayer()
+    primaryPlayer.queueSucceeds = false
+    let fallbackPlayer = FakeTrackPreviewPlayer()
+    let sut = FallbackTrackPreviewPlayer(
+      primaryPlayer: primaryPlayer,
+      fallbackPlayer: fallbackPlayer
+    )
+
+    XCTAssertTrue(sut.setQueue(with: []))
+    sut.play()
+    sut.currentPlaybackTime = 42
+    sut.stop()
+
+    XCTAssertEqual(primaryPlayer.queuedItemCounts, [0])
+    XCTAssertEqual(primaryPlayer.playCallCount, 0)
+    XCTAssertEqual(primaryPlayer.stopCallCount, 0)
+    XCTAssertEqual(fallbackPlayer.queuedItemCounts, [0])
+    XCTAssertEqual(fallbackPlayer.playCallCount, 1)
+    XCTAssertEqual(fallbackPlayer.currentPlaybackTime, 42)
+    XCTAssertEqual(fallbackPlayer.stopCallCount, 1)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerPauseSystemModeResumesWhenSystemWasPlaying()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .playing)
+    let audioSessionConfigurator = FakePreviewAudioSessionConfigurator()
+    let sut = TrackPreviewController(
+      mode: .pauseSystem,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: audioSessionConfigurator,
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    sut.stopPreview()
+
+    XCTAssertEqual(systemPlayer.pauseCallCount, 1)
+    XCTAssertEqual(systemPlayer.playCallCount, 1)
+    XCTAssertEqual(previewPlayer.playCallCount, 1)
+    XCTAssertEqual(previewPlayer.stopCallCount, 1)
+    XCTAssertEqual(audioSessionConfigurator.activationDuckingValues, [false])
+  }
+
+  @MainActor
+  func testTrackPreviewControllerPauseSystemModeDoesNotResumeStoppedSystem()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .paused)
+    let sut = TrackPreviewController(
+      mode: .pauseSystem,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: FakePreviewAudioSessionConfigurator(),
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    sut.stopPreview()
+
+    XCTAssertEqual(systemPlayer.pauseCallCount, 0)
+    XCTAssertEqual(systemPlayer.playCallCount, 0)
+    XCTAssertEqual(previewPlayer.stopCallCount, 1)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerDefersHeavyStopCleanupAfterClearingPreviewState()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .playing)
+    let audioSessionConfigurator = FakePreviewAudioSessionConfigurator()
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: audioSessionConfigurator,
+      stopCleanupDelayNanoseconds: 1_000_000_000
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    sut.stopPreview()
+
+    XCTAssertNil(sut.previewingItemID)
+    XCTAssertEqual(previewPlayer.pauseCallCount, 0)
+    XCTAssertEqual(previewPlayer.stopCallCount, 0)
+    XCTAssertEqual(audioSessionConfigurator.deactivateCallCount, 0)
+    XCTAssertEqual(systemPlayer.playCallCount, 0)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerSwitchesPreviewItemsWithoutResumingBetweenThem()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let systemPlayer = FakeTrackPreviewPlayer(playbackState: .playing)
+    let sut = TrackPreviewController(
+      mode: .pauseSystem,
+      previewPlayer: previewPlayer,
+      systemPlayer: systemPlayer,
+      audioSessionConfigurator: FakePreviewAudioSessionConfigurator(),
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [])
+    sut.startPreview(itemID: 2, items: [])
+
+    XCTAssertEqual(sut.previewingItemID, 2)
+    XCTAssertEqual(previewPlayer.queuedItemCounts, [0, 0])
+    XCTAssertEqual(previewPlayer.stopCallCount, 1)
+    XCTAssertEqual(systemPlayer.pauseCallCount, 1)
+    XCTAssertEqual(systemPlayer.playCallCount, 0)
+
+    sut.stopPreview()
+
+    XCTAssertNil(sut.previewingItemID)
+    XCTAssertEqual(systemPlayer.playCallCount, 1)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerSeeksAndClampsPreviewPosition() async throws {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: FakeTrackPreviewPlayer(),
+      audioSessionConfigurator: FakePreviewAudioSessionConfigurator(),
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [], duration: 95)
+    sut.seekPreview(to: 120)
+
+    XCTAssertEqual(previewPlayer.currentPlaybackTime, 95)
+    XCTAssertEqual(sut.previewElapsedTime, 95)
+
+    sut.seekPreview(to: -10)
+
+    XCTAssertEqual(previewPlayer.currentPlaybackTime, 0)
+    XCTAssertEqual(sut.previewElapsedTime, 0)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerSeeksByScreenFraction() async throws {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: FakeTrackPreviewPlayer(),
+      audioSessionConfigurator: FakePreviewAudioSessionConfigurator(),
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [], duration: 200)
+    sut.seekPreview(toFraction: 0.75)
+
+    XCTAssertEqual(previewPlayer.currentPlaybackTime, 150)
+    XCTAssertEqual(sut.previewElapsedTime, 150)
+  }
+
+  @MainActor
+  func testTrackPreviewControllerResumesPreviewPlaybackAfterSeekingBackFromEnd()
+    async throws
+  {
+    let previewPlayer = FakeTrackPreviewPlayer()
+    let sut = TrackPreviewController(
+      mode: .independent,
+      previewPlayer: previewPlayer,
+      systemPlayer: FakeTrackPreviewPlayer(),
+      audioSessionConfigurator: FakePreviewAudioSessionConfigurator(),
+      stopCleanupDelayNanoseconds: 0
+    )
+
+    sut.startPreview(itemID: 1, items: [], duration: 200)
+    previewPlayer.playbackState = .stopped
+
+    sut.seekPreview(toFraction: 0.5)
+
+    XCTAssertEqual(previewPlayer.currentPlaybackTime, 100)
+    XCTAssertEqual(previewPlayer.playCallCount, 2)
+  }
+
+  func testTrackPreviewScreenSeekMapperTreatsScreenEdgesAsMargins() throws {
+    let screenWidth: CGFloat = 400
+    let edgeMargin: CGFloat = 84
+
+    XCTAssertEqual(
+      TrackPreviewScreenSeekMapper.fraction(
+        forX: 0,
+        screenWidth: screenWidth,
+        edgeMargin: edgeMargin
+      ),
+      0
+    )
+    XCTAssertEqual(
+      TrackPreviewScreenSeekMapper.fraction(
+        forX: edgeMargin,
+        screenWidth: screenWidth,
+        edgeMargin: edgeMargin
+      ),
+      0
+    )
+    XCTAssertEqual(
+      TrackPreviewScreenSeekMapper.fraction(
+        forX: screenWidth - edgeMargin,
+        screenWidth: screenWidth,
+        edgeMargin: edgeMargin
+      ),
+      1
+    )
+    XCTAssertEqual(
+      TrackPreviewScreenSeekMapper.fraction(
+        forX: screenWidth,
+        screenWidth: screenWidth,
+        edgeMargin: edgeMargin
+      ),
+      1
+    )
+    XCTAssertEqual(
+      TrackPreviewScreenSeekMapper.fraction(
+        forX: screenWidth / 2,
+        screenWidth: screenWidth,
+        edgeMargin: edgeMargin
+      ),
+      0.5
+    )
+  }
+
+  func testTrackPreviewHUDLayoutCentersHUDOnXAxis() throws {
+    let size = CGSize(width: 390, height: 700)
+    let frame = CGRect(x: 20, y: 40, width: 390, height: 700)
+
+    let leftTouchPosition = TrackPreviewHUDLayout.hudPosition(
+      containerSize: size,
+      containerGlobalFrame: frame,
+      touchLocation: CGPoint(x: frame.minX + 24, y: frame.minY + 260)
+    )
+    let rightTouchPosition = TrackPreviewHUDLayout.hudPosition(
+      containerSize: size,
+      containerGlobalFrame: frame,
+      touchLocation: CGPoint(x: frame.maxX - 24, y: frame.minY + 260)
+    )
+
+    XCTAssertEqual(leftTouchPosition.x, size.width / 2)
+    XCTAssertEqual(rightTouchPosition.x, size.width / 2)
+  }
+
+  func testTrackPreviewHUDLayoutPlacesHUDAboveOrBelowTouch() throws {
+    let size = CGSize(width: 390, height: 700)
+    let frame = CGRect(x: 20, y: 40, width: 390, height: 700)
+
+    let upperTouchPosition = TrackPreviewHUDLayout.hudPosition(
+      containerSize: size,
+      containerGlobalFrame: frame,
+      touchLocation: CGPoint(x: frame.midX, y: frame.minY + 120)
+    )
+    let lowerTouchPosition = TrackPreviewHUDLayout.hudPosition(
+      containerSize: size,
+      containerGlobalFrame: frame,
+      touchLocation: CGPoint(x: frame.midX, y: frame.minY + 260)
+    )
+
+    XCTAssertEqual(upperTouchPosition.y, 225)
+    XCTAssertEqual(lowerTouchPosition.y, 155)
+  }
+
+  func testTrackPreviewHUDLayoutClampsSeekGuideToEffectiveMargins() throws {
+    let size = CGSize(width: 400, height: 600)
+    let frame = CGRect(x: 10, y: 20, width: 400, height: 600)
+
+    XCTAssertEqual(TrackPreviewHUDLayout.seekGuideWidth(containerWidth: size.width), 232)
+    XCTAssertEqual(
+      TrackPreviewHUDLayout.seekGuideX(
+        containerSize: size,
+        containerGlobalFrame: frame,
+        touchLocation: CGPoint(x: frame.minX, y: frame.midY)
+      ),
+      84
+    )
+    XCTAssertEqual(
+      TrackPreviewHUDLayout.seekGuideX(
+        containerSize: size,
+        containerGlobalFrame: frame,
+        touchLocation: CGPoint(x: frame.maxX, y: frame.midY)
+      ),
+      316
+    )
+  }
+
+  func testTrackPreviewModeLoadsStoredSettingWithIndependentDefault() throws {
+    let suiteName = UUID().uuidString
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+    defer {
+      defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    XCTAssertEqual(TrackPreviewMode.stored(in: defaults), .independent)
+
+    defaults.set(TrackPreviewMode.pauseSystem.rawValue, forKey: TrackPreviewMode.storageKey)
+    XCTAssertEqual(TrackPreviewMode.stored(in: defaults), .pauseSystem)
+
+    defaults.set("unknown", forKey: TrackPreviewMode.storageKey)
+    XCTAssertEqual(TrackPreviewMode.stored(in: defaults), .independent)
+  }
+
+  @MainActor
   func testDiggingViewModelLoadsOncePerSongIdentifier() async throws {
     let loader = FakeDiggingLoader()
     let sut = DiggingViewModel(loader: loader)

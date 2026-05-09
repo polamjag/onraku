@@ -16,12 +16,22 @@ struct ContentView: View {
     }
 
     @State private var selectedTab: Tab = .Library
+    @State private var isSettingsPresented = false
+    @AppStorage(TrackPreviewMode.storageKey) private var trackPreviewModeRawValue =
+        TrackPreviewMode.defaultMode.rawValue
 
     @StateObject private var viewModel: ContentViewModel
+    @StateObject private var trackPreviewController: TrackPreviewController
 
     @MainActor
-    init(viewModel: ContentViewModel? = nil) {
+    init(
+        viewModel: ContentViewModel? = nil,
+        trackPreviewController: TrackPreviewController? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel ?? ContentViewModel())
+        _trackPreviewController = StateObject(
+            wrappedValue: trackPreviewController ?? TrackPreviewController()
+        )
     }
 
     var body: some View {
@@ -59,6 +69,16 @@ struct ContentView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         .listStyle(.insetGrouped)
                         .navigationViewStyle(StackNavigationViewStyle())
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button {
+                                    isSettingsPresented = true
+                                } label: {
+                                    Image(systemName: "gearshape")
+                                }
+                                .accessibilityLabel("Settings")
+                            }
+                        }
                 }.tabItem {
                     Image(systemName: "books.vertical")
                         .environment(
@@ -83,14 +103,67 @@ struct ContentView: View {
             }
             ToastView()
         }
+        .environmentObject(trackPreviewController)
+        .sheet(isPresented: $isSettingsPresented) {
+            SettingsView()
+        }
         .onAppear {
             viewModel.onAppear()
+            syncTrackPreviewMode()
         }
         .onDisappear {
             viewModel.onDisappear()
         }
         .onChange(of: scenePhase) { _, newPhase in
             Task { await viewModel.handleScenePhaseChange(newPhase) }
+        }
+        .onChange(of: trackPreviewModeRawValue) { _, _ in
+            syncTrackPreviewMode()
+        }
+    }
+
+    private func syncTrackPreviewMode() {
+        trackPreviewController.mode =
+            TrackPreviewMode(rawValue: trackPreviewModeRawValue) ?? .defaultMode
+    }
+}
+
+private struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage(TrackPreviewMode.storageKey) private var trackPreviewModeRawValue =
+        TrackPreviewMode.defaultMode.rawValue
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("Track Preview") {
+                    Picker("Playback", selection: selectedMode) {
+                        ForEach(TrackPreviewMode.allCases) { mode in
+                            Text(mode.title).tag(mode)
+                        }
+                    }
+                    Text(selectedMode.wrappedValue.description)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private var selectedMode: Binding<TrackPreviewMode> {
+        Binding {
+            TrackPreviewMode(rawValue: trackPreviewModeRawValue) ?? .defaultMode
+        } set: { mode in
+            trackPreviewModeRawValue = mode.rawValue
         }
     }
 }
