@@ -26,6 +26,10 @@ struct PredicateItemView: View {
         }
     }
 
+    private var searchQuery: String? {
+        predicate.value as? String
+    }
+
     var body: some View {
         if !shouldBeDisabled {
             NavigationLink {
@@ -60,6 +64,8 @@ struct PredicateItemView: View {
                         Label("Edit", systemImage: "pencil")
                     }
                 }
+
+                GoogleSearchButton(query: searchQuery)
 
                 if let onDelete {
                     Button(role: .destructive, action: onDelete) {

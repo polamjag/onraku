@@ -5,6 +5,18 @@ import XCTest
 
 final class SongMetaSearchLinkTests: XCTestCase {
 
+  func testGoogleSearchURLBuildsSearchURLWithEncodedQuery() throws {
+    XCTAssertEqual(
+      GoogleSearch.url(for: "Mika River feat. Duskline")?.absoluteString,
+      "https://www.google.com/search?q=Mika%20River%20feat.%20Duskline"
+    )
+  }
+
+  func testGoogleSearchURLRequiresNonBlankQuery() throws {
+    XCTAssertNil(GoogleSearch.url(for: nil))
+    XCTAssertNil(GoogleSearch.url(for: " \n\t "))
+  }
+
   func testSongMetaSearchLinksBuildExpectedPredicates() throws {
     let song = DummySongDetail(
       albumArtist: "Album Artist A",

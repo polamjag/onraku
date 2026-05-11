@@ -158,6 +158,7 @@ private struct KeyValueView: View {
                 Text(fallbackValue).foregroundColor(.secondary)
             }
         }
+        .googleSearchContextMenu(query: value)
     }
 }
 
@@ -175,7 +176,9 @@ private struct HorizontalKeyValueView: View {
             } else {
                 Text(fallbackValue).foregroundColor(.secondary)
             }
-        }.lineLimit(1)
+        }
+        .lineLimit(1)
+        .googleSearchContextMenu(query: value)
     }
 }
 
