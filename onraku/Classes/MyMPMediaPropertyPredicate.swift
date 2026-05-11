@@ -33,6 +33,11 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
     return "<unknown>"
   }
 
+  var hasSearchableStringValue: Bool {
+    guard let value = value as? String else { return false }
+    return !value.isBlank
+  }
+
   var id: String {
     if let value = value as? String {
       return value + String(forProperty.hashValue)

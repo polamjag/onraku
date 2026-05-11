@@ -16,6 +16,10 @@ extension Sequence where Iterator.Element: Hashable {
 }
 
 extension String {
+  public var isBlank: Bool {
+    trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
+
   private static let remixersCreditRegex = try! NSRegularExpression(
     pattern:
       #"(?<remixers>[^(\[-]*) (Remix|Refix|Re-fix|Rework|Bootleg|Boot|Flip)\s*[)\]-]"#,

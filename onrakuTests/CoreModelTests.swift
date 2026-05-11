@@ -104,6 +104,27 @@ final class CoreModelTests: XCTestCase {
     XCTAssertFalse(numeric.id.isEmpty)
   }
 
+  func testPredicateSearchableStringValueRequiresNonWhitespaceContent() throws {
+    XCTAssertTrue(
+      MyMPMediaPropertyPredicate(
+        value: "Artist A",
+        forProperty: MPMediaItemPropertyArtist
+      ).hasSearchableStringValue
+    )
+    XCTAssertFalse(
+      MyMPMediaPropertyPredicate(
+        value: " \n\t ",
+        forProperty: MPMediaItemPropertyArtist
+      ).hasSearchableStringValue
+    )
+    XCTAssertFalse(
+      MyMPMediaPropertyPredicate(
+        value: nil,
+        forProperty: MPMediaItemPropertyArtist
+      ).hasSearchableStringValue
+    )
+  }
+
   func testPredicatePropertyMetadataMatchesExpectedLabels() throws {
     XCTAssertEqual(
       MyMPMediaPropertyPredicate(

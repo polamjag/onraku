@@ -27,7 +27,7 @@ struct SongMetaSearchLink: Identifiable, Equatable {
   }
 
   var isEnabled: Bool {
-    !(value?.isEmpty ?? true)
+    !(value?.isBlank ?? true)
   }
 
   static func links(for song: SongDetailLike) -> [SongMetaSearchLink] {

@@ -66,4 +66,37 @@ final class SongMetaSearchLinkTests: XCTestCase {
     XCTAssertFalse(SongMetaSearchLink.artist(for: song).isEnabled)
     XCTAssertFalse(SongMetaSearchLink.album(for: song).isEnabled)
   }
+
+  func testSongMetaSearchLinkDisablesWhitespaceOnlyValues() throws {
+    let song = DummySongDetail(
+      albumArtist: nil,
+      albumTitle: " \n\t ",
+      albumTrackCount: 0,
+      albumTrackNumber: 0,
+      artist: "   ",
+      artwork: nil,
+      beatsPerMinute: 0,
+      comments: nil,
+      isCompilation: false,
+      composer: nil,
+      dateAdded: .now,
+      discCount: 0,
+      discNumber: 0,
+      genre: nil,
+      lastPlayedDate: nil,
+      lyrics: nil,
+      playCount: 0,
+      rating: 0,
+      releaseDate: nil,
+      releaseYear: nil,
+      skipCount: 0,
+      title: "Song A",
+      userGrouping: nil,
+      playbackDuration: 0,
+      refreshingIdentifier: "song-1"
+    )
+
+    XCTAssertFalse(SongMetaSearchLink.artist(for: song).isEnabled)
+    XCTAssertFalse(SongMetaSearchLink.album(for: song).isEnabled)
+  }
 }
