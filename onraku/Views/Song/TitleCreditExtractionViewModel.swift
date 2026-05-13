@@ -20,6 +20,11 @@ struct TitleCreditExtractionResult {
   }
 }
 
+struct TitleCreditExtractionContext {
+  var beatsPerMinute: Int?
+  var genre: String?
+}
+
 enum TitleCreditExtractionState {
   case idle
   case loading
@@ -29,7 +34,8 @@ enum TitleCreditExtractionState {
 }
 
 protocol TitleCreditExtracting {
-  func extract(from title: String) async throws -> TitleCreditExtractionResult
+  func extract(from title: String, context: TitleCreditExtractionContext) async throws
+    -> TitleCreditExtractionResult
 }
 
 #if canImport(FoundationModels)
@@ -53,8 +59,10 @@ private struct GeneratedTitleCredits {
 struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
   private let maximumAttemptCount = 3
 
-  func extract(from title: String) async throws -> TitleCreditExtractionResult {
-    let model = SystemLanguageModel.default
+  func extract(from title: String, context: TitleCreditExtractionContext) async throws
+    -> TitleCreditExtractionResult
+  {
+    let model = SystemLanguageModel(useCase: .contentTagging)
 
     switch model.availability {
     case .available:
@@ -75,13 +83,15 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
 
     let attempts = makeAttempts()
     var bestResult = TitleCreditExtractionResult(remixers: [], featuredArtists: [])
-    var lastError: Error?
 
     for attempt in attempts {
       do {
         try Task.checkCancellation()
-        let result = try await extractOnce(from: title, attempt: attempt)
+        let result = try await extractOnce(
+          from: title, context: context, model: model, attempt: attempt)
+          .removingMetadataValues(context)
           .keepingOnlyNames(in: title)
+          .addingAmpersandNameVariants()
 
         if result.isAcceptable(for: title) {
           return result
@@ -93,23 +103,31 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
       } catch is CancellationError {
         throw CancellationError()
       } catch {
-        lastError = error
+        continue
       }
     }
 
-    if !bestResult.isEmpty || !title.mightContainExplicitCredit {
+    if !bestResult.isEmpty {
       return bestResult
     }
 
-    if let lastError {
-      throw lastError
+    let fallbackResult = TitleCreditExtractionResult(
+      remixers: title.intelligentlyExtractRemixersCredit(),
+      featuredArtists: title.intelligentlyExtractFeaturedArtists()
+    )
+    .removingMetadataValues(context)
+    .addingAmpersandNameVariants()
+    if !fallbackResult.isEmpty || title.mightContainExplicitCredit {
+      return fallbackResult
     }
 
-    return bestResult
+    return fallbackResult
   }
 
   private func extractOnce(
     from title: String,
+    context: TitleCreditExtractionContext,
+    model: SystemLanguageModel,
     attempt: TitleCreditExtractionAttempt
   ) async throws -> TitleCreditExtractionResult {
     let instructions = """
@@ -120,69 +138,123 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
       A remixer credit is the artist name immediately before Remix, Refix, Re-fix, Rework, Bootleg, Boot, or Flip.
       A featured artist credit is the artist name immediately after feat, feat., featuring, ft, ft., or Prod.
       Stop a featured artist credit before a following parenthesized or bracketed remix credit.
+      Use BPM and genre only as metadata to disambiguate the title.
+      Never return BPM values or genre names as artist names.
+      If a remixer credit contains the BPM value, remove the BPM value and return only the artist name.
+      If a credited artist name is written as two proper names joined by &, return the full name and each side as candidates.
       Return empty arrays when there is no explicit credit.
 
       Examples:
 
-      Track title: hoge
+      Track title: Song Title
       remixers: []
       featuredArtists: []
 
-      Track title: hoge -ababa Remix-
-      remixers: ["ababa"]
-      featuredArtists: []
-
-      Track title: hoge - obobo Remix -
-      remixers: ["obobo"]
-      featuredArtists: []
-
-      Track title: hoge (fuga Remix)
-      remixers: ["fuga"]
-      featuredArtists: []
-
-      Track title: hoge [foo Remix]
-      remixers: ["foo"]
-      featuredArtists: []
-
-      Track title: hoge (DJ Nantoka Remix)
-      remixers: ["DJ Nantoka"]
-      featuredArtists: []
-
-      Track title: hoge (DJ Untara Bootleg)
-      remixers: ["DJ Untara"]
-      featuredArtists: []
-
-      Track title: hoge (bar Flip)
-      remixers: ["bar"]
-      featuredArtists: []
-
-      Track title: hoge feat. pi yo
+      Track title: Artist Name - Song Title
       remixers: []
-      featuredArtists: ["pi yo"]
+      featuredArtists: []
 
-      Track title: hoge ft. bar
+      Track title: Song Title _Alex Remix_
       remixers: []
-      featuredArtists: ["bar"]
+      featuredArtists: []
 
-      Track title: hoge featuring ababa
+      Track title: Song Title (Original Mix)
       remixers: []
-      featuredArtists: ["ababa"]
+      featuredArtists: []
 
-      Track title: hoge feat. fuga (piyo remix)
-      remixers: ["piyo"]
-      featuredArtists: ["fuga"]
+      Track title: Foobar (Artist 170 Remix)
+      BPM: 170
+      Genre: Drum & Bass
+      remixers: ["Artist"]
+      featuredArtists: []
 
-      Track title: hoge feat. fuga2 [piyo remix]
-      remixers: ["piyo"]
-      featuredArtists: ["fuga2"]
+      Track title: Foobar (170 Remix)
+      BPM: 170
+      Genre: Jungle
+      remixers: []
+      featuredArtists: []
 
-      Track title: hoge Prod. foo [piyo remix]
-      remixers: ["piyo"]
-      featuredArtists: ["foo"]
+      Track title: Song Title -Alex Remix-
+      remixers: ["Alex"]
+      featuredArtists: []
+
+      Track title: Song Title - Blake Remix -
+      remixers: ["Blake"]
+      featuredArtists: []
+
+      Track title: Song Title (Casey Remix)
+      remixers: ["Casey"]
+      featuredArtists: []
+
+      Track title: Song Title (Dana remix)
+      remixers: ["Dana"]
+      featuredArtists: []
+
+      Track title: Song Title [Elliot Remix]
+      remixers: ["Elliot"]
+      featuredArtists: []
+
+      Track title: Song Title [Elliot Re-fix]
+      remixers: ["Elliot"]
+      featuredArtists: []
+
+      Track title: Song Title (Riley Rework)
+      remixers: ["Riley"]
+      featuredArtists: []
+
+      Track title: Song Title (DJ Nova Remix)
+      remixers: ["DJ Nova"]
+      featuredArtists: []
+
+      Track title: Song Title (DJ Echo Bootleg)
+      remixers: ["DJ Echo"]
+      featuredArtists: []
+
+      Track title: Song Title (Riley Flip)
+      remixers: ["Riley"]
+      featuredArtists: []
+
+      Track title: Song Title (Alex & Blake Remix)
+      BPM: 124
+      Genre: House
+      remixers: ["Alex & Blake", "Alex", "Blake"]
+      featuredArtists: []
+
+      Track title: Song Title feat. Mia Lee
+      remixers: []
+      featuredArtists: ["Mia Lee"]
+
+      Track title: Song Title ft. Riley
+      remixers: []
+      featuredArtists: ["Riley"]
+
+      Track title: Song Title feat.  Blake
+      remixers: []
+      featuredArtists: ["Blake"]
+
+      Track title: Song Title featuring Alex
+      remixers: []
+      featuredArtists: ["Alex"]
+
+      Track title: Song Title feat. Casey (Dana remix)
+      remixers: ["Dana"]
+      featuredArtists: ["Casey"]
+
+      Track title: Song Title feat. Casey [Dana remix]
+      remixers: ["Dana"]
+      featuredArtists: ["Casey"]
+
+      Track title: Song Title Prod. Elliot [Dana remix]
+      remixers: ["Dana"]
+      featuredArtists: ["Elliot"]
       """
 
-    let session = LanguageModelSession(instructions: instructions)
-    let prompt = "Track title: \(title)"
+    let session = LanguageModelSession(model: model, instructions: instructions)
+    let prompt = """
+      Track title: \(title)
+      BPM: \(context.beatsPerMinute.map(String.init) ?? "unknown")
+      Genre: \(context.genre ?? "unknown")
+      """
     let response = try await session.respond(
       to: Prompt(prompt),
       generating: GeneratedTitleCredits.self,
@@ -201,8 +273,7 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
       return TitleCreditExtractionAttempt(
         options: GenerationOptions(
           sampling: .random(probabilityThreshold: 0.92, seed: seed),
-          temperature: index == 0 ? 0.2 : 0.35,
-          maximumResponseTokens: 80
+          temperature: index == 0 ? 0.2 : 0.35
         )
       )
     }
@@ -227,7 +298,9 @@ enum TitleCreditExtractorError: LocalizedError {
 }
 
 struct UnavailableTitleCreditExtractor: TitleCreditExtracting {
-  func extract(from title: String) async throws -> TitleCreditExtractionResult {
+  func extract(from title: String, context: TitleCreditExtractionContext) async throws
+    -> TitleCreditExtractionResult
+  {
     throw TitleCreditExtractorError.unavailable(
       "This build cannot use Foundation Models.")
   }
@@ -257,6 +330,53 @@ private extension TitleCreditExtractionResult {
       featuredArtists: featuredArtists.filter { title.containsCreditName($0) }
     )
   }
+
+  func removingMetadataValues(_ context: TitleCreditExtractionContext) -> TitleCreditExtractionResult {
+    TitleCreditExtractionResult(
+      remixers: remixers.removingMetadataValues(context),
+      featuredArtists: featuredArtists.removingMetadataValues(context)
+    )
+  }
+
+  func addingAmpersandNameVariants() -> TitleCreditExtractionResult {
+    TitleCreditExtractionResult(
+      remixers: remixers.addingAmpersandNameVariants(),
+      featuredArtists: featuredArtists.addingAmpersandNameVariants()
+    )
+  }
+}
+
+private extension Array where Element == String {
+  func removingMetadataValues(_ context: TitleCreditExtractionContext) -> [String] {
+    let genreNames = context.genre?.intelligentlySplitIntoSubGenres() ?? []
+
+    return map { name in
+      if let beatsPerMinute = context.beatsPerMinute {
+        return name.removingStandaloneNumber(beatsPerMinute)
+      }
+      return name
+    }
+    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+    .filter { !$0.isEmpty }
+    .filter { name in
+      !genreNames.contains { genreName in
+        name.compare(genreName, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+      }
+    }
+    .unique()
+  }
+
+  func addingAmpersandNameVariants() -> [String] {
+    flatMap { name -> [String] in
+      guard name.contains(" & ") else { return [name] }
+
+      let splitNames = name.intelligentlySplitIntoSubArtists()
+      guard splitNames.count > 1 else { return [name] }
+
+      return [name] + splitNames
+    }
+    .unique()
+  }
 }
 
 private extension String {
@@ -272,6 +392,14 @@ private extension String {
       of: name.trimmingCharacters(in: .whitespacesAndNewlines),
       options: [.caseInsensitive, .diacriticInsensitive]
     ) != nil
+  }
+
+  func removingStandaloneNumber(_ number: Int) -> String {
+    replacingOccurrences(
+      of: #"(?<!\d)\#(number)(?!\d)"#,
+      with: "",
+      options: .regularExpression
+    )
   }
 }
 
@@ -318,12 +446,17 @@ final class TitleCreditExtractionViewModel: ObservableObject {
     state = .loading
     extractionTask?.cancel()
     let requestedIdentifier = song.refreshingIdentifier
+    let genre = song.genre?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let extractionContext = TitleCreditExtractionContext(
+      beatsPerMinute: song.beatsPerMinute > 0 ? song.beatsPerMinute : nil,
+      genre: genre?.isEmpty == false ? genre : nil
+    )
 
     extractionTask = Task { [weak self] in
       guard let self else { return }
 
       do {
-        let result = try await extractor.extract(from: title)
+        let result = try await extractor.extract(from: title, context: extractionContext)
         guard !Task.isCancelled,
           requestedIdentifier == song.refreshingIdentifier
         else { return }
