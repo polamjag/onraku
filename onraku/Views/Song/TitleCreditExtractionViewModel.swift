@@ -51,6 +51,8 @@ private struct GeneratedTitleCredits {
 
 @available(iOS 26.0, *)
 struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
+  private let maximumAttemptCount = 3
+
   func extract(from title: String) async throws -> TitleCreditExtractionResult {
     let model = SystemLanguageModel.default
 
@@ -71,6 +73,45 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
         "The on-device language model is unavailable.")
     }
 
+    let attempts = makeAttempts()
+    var bestResult = TitleCreditExtractionResult(remixers: [], featuredArtists: [])
+    var lastError: Error?
+
+    for attempt in attempts {
+      do {
+        try Task.checkCancellation()
+        let result = try await extractOnce(from: title, attempt: attempt)
+          .keepingOnlyNames(in: title)
+
+        if result.isAcceptable(for: title) {
+          return result
+        }
+
+        if result.score > bestResult.score {
+          bestResult = result
+        }
+      } catch is CancellationError {
+        throw CancellationError()
+      } catch {
+        lastError = error
+      }
+    }
+
+    if !bestResult.isEmpty || !title.mightContainExplicitCredit {
+      return bestResult
+    }
+
+    if let lastError {
+      throw lastError
+    }
+
+    return bestResult
+  }
+
+  private func extractOnce(
+    from title: String,
+    attempt: TitleCreditExtractionAttempt
+  ) async throws -> TitleCreditExtractionResult {
     let instructions = """
       Extract explicit music credits from a track title.
       Only use names that appear in the given title.
@@ -139,11 +180,13 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
       remixers: ["piyo"]
       featuredArtists: ["foo"]
       """
+
     let session = LanguageModelSession(instructions: instructions)
     let prompt = "Track title: \(title)"
     let response = try await session.respond(
       to: Prompt(prompt),
-      generating: GeneratedTitleCredits.self
+      generating: GeneratedTitleCredits.self,
+      options: attempt.options
     )
 
     return TitleCreditExtractionResult(
@@ -151,6 +194,24 @@ struct FoundationModelTitleCreditExtractor: TitleCreditExtracting {
       featuredArtists: response.content.featuredArtists.cleanedCreditNames()
     )
   }
+
+  private func makeAttempts() -> [TitleCreditExtractionAttempt] {
+    (0..<maximumAttemptCount).map { index in
+      let seed = UInt64.random(in: UInt64.min...UInt64.max)
+      return TitleCreditExtractionAttempt(
+        options: GenerationOptions(
+          sampling: .random(probabilityThreshold: 0.92, seed: seed),
+          temperature: index == 0 ? 0.2 : 0.35,
+          maximumResponseTokens: 80
+        )
+      )
+    }
+  }
+}
+
+@available(iOS 26.0, *)
+private struct TitleCreditExtractionAttempt {
+  var options: GenerationOptions
 }
 #endif
 
@@ -178,6 +239,39 @@ private extension Array where Element == String {
       .filter { !$0.isEmpty }
       .filter { $0.count <= 80 }
       .unique()
+  }
+}
+
+private extension TitleCreditExtractionResult {
+  var score: Int {
+    remixers.count + featuredArtists.count
+  }
+
+  func isAcceptable(for title: String) -> Bool {
+    !title.mightContainExplicitCredit || !isEmpty
+  }
+
+  func keepingOnlyNames(in title: String) -> TitleCreditExtractionResult {
+    TitleCreditExtractionResult(
+      remixers: remixers.filter { title.containsCreditName($0) },
+      featuredArtists: featuredArtists.filter { title.containsCreditName($0) }
+    )
+  }
+}
+
+private extension String {
+  var mightContainExplicitCredit: Bool {
+    range(
+      of: #"(remix|refix|re-fix|rework|bootleg|boot|flip|feat\.?|featuring|ft\.?|prod\.?)"#,
+      options: [.regularExpression, .caseInsensitive]
+    ) != nil
+  }
+
+  func containsCreditName(_ name: String) -> Bool {
+    range(
+      of: name.trimmingCharacters(in: .whitespacesAndNewlines),
+      options: [.caseInsensitive, .diacriticInsensitive]
+    ) != nil
   }
 }
 
