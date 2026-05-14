@@ -113,29 +113,57 @@ struct SongDetailView: View {
                 await titleCredits.extractCredits(for: song)
             }
         } label: {
-            Label("Analyze Credits with AI", systemImage: "sparkles")
+            HStack {
+                Label(aiCreditAnalysisButtonTitle, systemImage: aiCreditAnalysisButtonSystemImage)
+                if isAnalyzingCredits {
+                    Spacer()
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+            .animation(.easeInOut(duration: 0.2), value: isAnalyzingCredits)
         }
+        .buttonStyle(.borderless)
         .disabled(isAnalyzingCredits)
 
         switch titleCredits.state {
         case .idle:
             EmptyView()
-        case .loading:
-            HStack {
-                Spacer()
-                ProgressView()
-                Spacer()
+        case .loading(let previousResult):
+            if let previousResult {
+                creditAnalysisResultView(previousResult)
+            } else {
+                creditAnalysisSkeletonView()
             }
         case .loaded(let result):
-            if result.isEmpty {
-                Text("No explicit credits found.").foregroundStyle(.secondary)
-            } else {
-                creditLinks(title: "remixer", artists: result.remixers)
-                creditLinks(title: "featured", artists: result.featuredArtists)
-            }
+            creditAnalysisResultView(result)
         case .unavailable(let reason), .failed(let reason):
             Text(reason).foregroundStyle(.secondary)
         }
+    }
+
+    @ViewBuilder
+    private func creditAnalysisResultView(_ result: TitleCreditExtractionResult) -> some View {
+        if result.isEmpty {
+            Text("No explicit credits found.").foregroundStyle(.secondary)
+        } else {
+            creditLinks(title: "remixer", artists: result.remixers)
+            creditLinks(title: "featured", artists: result.featuredArtists)
+        }
+    }
+
+    private func creditAnalysisSkeletonView() -> some View {
+        HStack {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(.secondary.opacity(0.22))
+                .frame(width: 72, height: 12)
+            Spacer()
+            RoundedRectangle(cornerRadius: 4)
+                .fill(.secondary.opacity(0.16))
+                .frame(width: 128, height: 12)
+        }
+        .frame(minHeight: 24)
+        .redacted(reason: .placeholder)
     }
 
     private var isAnalyzingCredits: Bool {
@@ -143,6 +171,36 @@ struct SongDetailView: View {
             return true
         }
         return false
+    }
+
+    private var aiCreditAnalysisButtonTitle: String {
+        switch titleCredits.state {
+        case .idle:
+            return "Analyze Credits with AI"
+        case .loading(let previousResult):
+            return previousResult == nil
+                ? "Analyzing Credits with AI"
+                : "Retaking Credits with AI"
+        case .loaded:
+            return "Retake Credits with AI"
+        case .unavailable, .failed:
+            return "Retry Credits with AI"
+        }
+    }
+
+    private var aiCreditAnalysisButtonSystemImage: String {
+        switch titleCredits.state {
+        case .idle:
+            return "sparkles"
+        case .loading(let previousResult):
+            return previousResult == nil
+                ? "sparkles"
+                : "arrow.triangle.2.circlepath"
+        case .loaded:
+            return "arrow.triangle.2.circlepath"
+        case .unavailable, .failed:
+            return "arrow.clockwise"
+        }
     }
 
     @ViewBuilder

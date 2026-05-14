@@ -27,7 +27,7 @@ struct TitleCreditExtractionContext {
 
 enum TitleCreditExtractionState {
   case idle
-  case loading
+  case loading(previousResult: TitleCreditExtractionResult?)
   case loaded(TitleCreditExtractionResult)
   case unavailable(String)
   case failed(String)
@@ -443,7 +443,14 @@ final class TitleCreditExtractionViewModel: ObservableObject {
       return
     }
 
-    state = .loading
+    let previousResult: TitleCreditExtractionResult?
+    if case .loaded(let result) = state {
+      previousResult = result
+    } else {
+      previousResult = nil
+    }
+
+    state = .loading(previousResult: previousResult)
     extractionTask?.cancel()
     let requestedIdentifier = song.refreshingIdentifier
     let genre = song.genre?.trimmingCharacters(in: .whitespacesAndNewlines)
