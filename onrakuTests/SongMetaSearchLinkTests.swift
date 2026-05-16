@@ -17,6 +17,32 @@ final class SongMetaSearchLinkTests: XCTestCase {
     XCTAssertNil(GoogleSearch.url(for: " \n\t "))
   }
 
+  func testCommentLinkifierDetectsURLs() throws {
+    let links = MultiLineTextLinkifier.detectLinks(
+      in: "source https://example.com/path?q=1 end")
+
+    XCTAssertEqual(links.map(\.url.absoluteString), ["https://example.com/path?q=1"])
+  }
+
+  func testCommentLinkifierSearchesBracketedTokens() throws {
+    let links = MultiLineTextLinkifier.detectLinks(
+      in: "memo [anime:foobar] and [ artist name ]")
+
+    XCTAssertEqual(
+      links.map(\.url.absoluteString),
+      [
+        "https://www.google.com/search?q=anime:foobar",
+        "https://www.google.com/search?q=artist%20name",
+      ])
+  }
+
+  func testCommentLinkifierDoesNotSearchBracketsInsideURLs() throws {
+    let links = MultiLineTextLinkifier.detectLinks(
+      in: "source https://example.com/[anime:foobar] end")
+
+    XCTAssertEqual(links.map(\.url.host), ["example.com"])
+  }
+
   func testSongMetaSearchLinksBuildExpectedPredicates() throws {
     let song = DummySongDetail(
       albumArtist: "Album Artist A",

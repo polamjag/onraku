@@ -201,7 +201,10 @@ private struct HorizontalKeyValueToSheetView: View {
             .sheet(
                 isPresented: $isSheetShowing, onDismiss: { isSheetShowing = false },
                 content: {
-                    MultiLineTextView(text: value ?? "")
+                    MultiLineTextView(
+                        text: value ?? "",
+                        linkMode: key == "comments" ? .comments : .plain
+                    )
                 }
             ).disabled(!isSheetAvailable)
     }
