@@ -5,6 +5,7 @@
 //  Created by Satoru Abe on 2022/02/12.
 //
 
+import MediaPlayer
 import SwiftUI
 
 struct MultiLineTextView: View {
@@ -15,14 +16,30 @@ struct MultiLineTextView: View {
 
     var text: String
     var linkMode: LinkMode = .plain
+    @State private var selectedCommentSearch: CommentSearchLink?
 
     var body: some View {
-        ScrollView {
-            Text(displayText)
-                .padding()
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                .multilineTextAlignment(.leading)
+        NavigationStack {
+            ScrollView {
+                Text(displayText)
+                    .padding()
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                    .multilineTextAlignment(.leading)
+            }
+            .environment(\.openURL, OpenURLAction { url in
+                guard let commentSearch = CommentSearchLink(url: url) else {
+                    return .systemAction
+                }
+
+                selectedCommentSearch = commentSearch
+                return .handled
+            })
+            .navigationDestination(item: $selectedCommentSearch) { commentSearch in
+                QueriedSongsListViewContainer(
+                    songsList: commentSearch.songsList
+                )
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -40,6 +57,55 @@ struct MultiLineTextView: View {
 struct MultiLineTextLink: Equatable {
     let range: NSRange
     let url: URL
+}
+
+struct CommentSearchLink: Hashable, Identifiable {
+    static let scheme = "onraku-comment-search"
+
+    let query: String
+
+    var id: String { query }
+
+    var title: String {
+        "Comments: \(query)"
+    }
+
+    var predicate: MyMPMediaPropertyPredicate {
+        songsList.predicate
+    }
+
+    var songsList: SongsListFromCommentsSearch {
+        SongsListFromCommentsSearch(query: query, title: title)
+    }
+
+    init?(query: String?) {
+        guard let query = query?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !query.isEmpty
+        else {
+            return nil
+        }
+        self.query = query
+    }
+
+    init?(url: URL) {
+        guard url.scheme == Self.scheme,
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+            let query = components.queryItems?.first(where: { $0.name == "query" })?.value
+        else {
+            return nil
+        }
+        self.init(query: query)
+    }
+
+    var url: URL? {
+        var components = URLComponents()
+        components.scheme = Self.scheme
+        components.host = "search"
+        components.queryItems = [
+            URLQueryItem(name: "query", value: query)
+        ]
+        return components.url
+    }
 }
 
 enum MultiLineTextLinkifier {
@@ -94,7 +160,7 @@ enum MultiLineTextLinkifier {
         bracketRegex.matches(in: text, options: [], range: fullRange).compactMap { match in
             guard match.numberOfRanges > 1,
                 let queryRange = Range(match.range(at: 1), in: text),
-                let url = GoogleSearch.url(for: String(text[queryRange]))
+                let url = CommentSearchLink(query: String(text[queryRange]))?.url
             else {
                 return nil
             }

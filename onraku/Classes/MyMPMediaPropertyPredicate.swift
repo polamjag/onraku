@@ -67,6 +67,8 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
       return "music.quarternote.3"
     case MPMediaItemPropertyUserGrouping:
       return "latch.2.case"
+    case MPMediaItemPropertyComments:
+      return "text.bubble"
     default:
       return nil
     }
@@ -88,6 +90,8 @@ struct MyMPMediaPropertyPredicate: Identifiable, Hashable {
       return "Composer"
     case MPMediaItemPropertyUserGrouping:
       return "User Grouping"
+    case MPMediaItemPropertyComments:
+      return "Comments"
     default:
       return self.forProperty
     }

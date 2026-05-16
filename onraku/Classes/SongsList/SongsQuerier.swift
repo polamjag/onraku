@@ -10,7 +10,10 @@ import MediaPlayer
 import RegexBuilder
 
 func getSongsByPredicateNow(predicate: MyMPMediaPropertyPredicate) -> [MPMediaItem] {
-  if predicate.forProperty == MPMediaItemPropertyUserGrouping {
+  if predicate.forProperty == MPMediaItemPropertyComments {
+    guard let query = predicate.value as? String else { return [] }
+    return getSongsByComments(query: query, comparisonType: predicate.comparisonType)
+  } else if predicate.forProperty == MPMediaItemPropertyUserGrouping {
     if let s = predicate.value as? String {
       return getSongsByUserGrouping(
         userGrouping: s,
@@ -64,6 +67,23 @@ func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async
   }
 
   return await task.result.get().filter { $0.mediaType == MPMediaType.music }
+}
+
+private func getSongsByComments(
+  query: String, comparisonType: MPMediaPredicateComparison
+)
+  -> [MPMediaItem]
+{
+  let songs = MPMediaQuery.songs().items ?? []
+
+  switch comparisonType {
+  case .equalTo:
+    return songs.filter { ($0.comments ?? "") == query }
+  case .contains:
+    return songs.filter { $0.comments?.contains(query) ?? false }
+  @unknown default:
+    return songs.filter { $0.comments?.contains(query) ?? false }
+  }
 }
 
 private func getSongsByUserGrouping(

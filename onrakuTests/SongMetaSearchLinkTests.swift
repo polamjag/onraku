@@ -24,16 +24,28 @@ final class SongMetaSearchLinkTests: XCTestCase {
     XCTAssertEqual(links.map(\.url.absoluteString), ["https://example.com/path?q=1"])
   }
 
-  func testCommentLinkifierSearchesBracketedTokens() throws {
+  func testCommentLinkifierNavigatesBracketedTokensToCommentSearches() throws {
     let links = MultiLineTextLinkifier.detectLinks(
       in: "memo [anime:foobar] and [ artist name ]")
 
     XCTAssertEqual(
       links.map(\.url.absoluteString),
       [
-        "https://www.google.com/search?q=anime:foobar",
-        "https://www.google.com/search?q=artist%20name",
+        "onraku-comment-search://search?query=anime:foobar",
+        "onraku-comment-search://search?query=artist%20name",
       ])
+  }
+
+  func testCommentSearchLinkBuildsCommentsPredicate() throws {
+    let link = try XCTUnwrap(CommentSearchLink(query: " anime:foobar "))
+
+    XCTAssertEqual(link.query, "anime:foobar")
+    XCTAssertEqual(link.title, "Comments: anime:foobar")
+    XCTAssertEqual(link.predicate.value as? String, "anime:foobar")
+    XCTAssertEqual(link.predicate.forProperty, MPMediaItemPropertyComments)
+    XCTAssertEqual(link.predicate.comparisonType, .contains)
+    XCTAssertEqual(link.songsList.title, "Comments: anime:foobar")
+    XCTAssertEqual(link.songsList.searchCriteria, [link.predicate])
   }
 
   func testCommentLinkifierDoesNotSearchBracketsInsideURLs() throws {

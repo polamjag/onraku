@@ -86,8 +86,39 @@ struct SongsListFromPredicates: SongsList {
   }
 }
 
+struct SongsListFromCommentsSearch: SongsList {
+  let query: String
+  let title: String
+
+  var searchCriteria: [MyMPMediaPropertyPredicate] {
+    [predicate]
+  }
+
+  var predicate: MyMPMediaPropertyPredicate {
+    MyMPMediaPropertyPredicate(
+      value: query,
+      forProperty: MPMediaItemPropertyComments,
+      comparisonType: .contains,
+      friendlyLabel: title
+    )
+  }
+
+  func loadSongs() async -> [MPMediaItem] {
+    await getSongsByPredicate(predicate: predicate)
+  }
+}
+
 func predicateToSongsList(_ predicate: MyMPMediaPropertyPredicate) -> SongsList {
-  SongsListFromPredicates(
+  if predicate.forProperty == MPMediaItemPropertyComments,
+    let query = predicate.value as? String
+  {
+    return SongsListFromCommentsSearch(
+      query: query,
+      title: predicate.friendlyLabel ?? "Comments: \(query)"
+    )
+  }
+
+  return SongsListFromPredicates(
     predicates: [predicate],
     customTitle: predicate.value as? String
   )

@@ -55,6 +55,20 @@ final class SongsListTests: XCTestCase {
     XCTAssertTrue(customTitle.shouldShowSearchCriteria)
   }
 
+  func testPredicateToSongsListUsesCommentsSearchForCommentsPredicate() throws {
+    let predicate = MyMPMediaPropertyPredicate(
+      value: "anime:foobar",
+      forProperty: MPMediaItemPropertyComments,
+      comparisonType: .contains,
+      friendlyLabel: "Comments: anime:foobar"
+    )
+
+    let sut = predicateToSongsList(predicate)
+
+    XCTAssertEqual(sut.title, "Comments: anime:foobar")
+    XCTAssertEqual(sut.searchCriteria, [predicate])
+  }
+
   @MainActor
   func testGetSongsByPredicatesReturnsEmptyForNoPredicates() async throws {
     let songs = await getSongsByPredicates([])
