@@ -5,6 +5,8 @@
 
 import SwiftUI
 
+/// Shared geometry constants and positioning helpers for the preview HUD and
+/// touch-position seek guide.
 enum TrackPreviewHUDLayout {
     // Main HUD width. Keep this in sync with the center clamping expectation in previews.
     static let hudWidth: CGFloat = 320

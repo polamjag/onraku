@@ -6,6 +6,8 @@
 import SwiftUI
 import UIKit
 
+/// UIKit-backed long-press recognizer attached to the enclosing list cell so a
+/// SwiftUI row can start previewing, seek horizontally, and cleanly end preview.
 struct TrackPreviewTouchRecognizer: UIViewRepresentable {
     let onBegan: (CGPoint, CGFloat) -> Void
     let onChanged: (CGPoint, CGFloat) -> Void
@@ -256,6 +258,8 @@ struct TrackPreviewTouchRecognizer: UIViewRepresentable {
     }
 }
 
+/// View traversal helpers used by the long-press recognizer to attach to the
+/// list cell and temporarily suspend competing scroll/back gestures.
 extension UIView {
     fileprivate var previewGestureAttachmentTarget: UIView? {
         var currentView = superview

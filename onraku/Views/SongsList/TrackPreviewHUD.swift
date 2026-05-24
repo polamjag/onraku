@@ -6,6 +6,8 @@
 import SwiftUI
 import UIKit
 
+/// Centered informational HUD shown while a track preview is active, including
+/// artwork, title/artist, elapsed time, duration, and progress.
 struct TrackPreviewHUD: View {
     @ObservedObject var progress: TrackPreviewProgress
 
@@ -116,4 +118,58 @@ struct TrackPreviewHUD: View {
         let totalSeconds = Int(time)
         return "\(totalSeconds / 60):\(String(format: "%02d", totalSeconds % 60))"
     }
+}
+
+/// SwiftUI Preview fixture for tuning the preview HUD and seek guide without
+/// needing a live song row or MediaPlayer state.
+private struct TrackPreviewHUDDesignPreview: View {
+    @StateObject private var progress = TrackPreviewProgress()
+
+    let touchPoint: CGPoint
+
+    var body: some View {
+        GeometryReader { proxy in
+            let frame = proxy.frame(in: .global)
+            let touchLocation = CGPoint(
+                x: frame.minX + touchPoint.x,
+                y: frame.minY + touchPoint.y
+            )
+
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+
+                TrackPreviewSeekGuide(
+                    touchLocation: touchLocation,
+                    containerSize: proxy.size,
+                    containerGlobalFrame: frame
+                )
+
+                TrackPreviewHUD(
+                    title: "Supernova Drive (Kohei Remix)",
+                    artist: "Mika River feat. Duskline",
+                    artworkImage: nil,
+                    progress: progress,
+                    location: TrackPreviewHUDLayout.hudPosition(
+                        containerSize: proxy.size,
+                        containerGlobalFrame: frame,
+                        touchLocation: touchLocation
+                    )
+                )
+            }
+        }
+        .onAppear {
+            progress.update(elapsedTime: 74, duration: 246)
+        }
+    }
+}
+
+#Preview("Track Preview HUD + Seek Guide") {
+    TrackPreviewHUDDesignPreview(touchPoint: CGPoint(x: 286, y: 128))
+        .frame(width: 390, height: 260)
+}
+
+#Preview("Track Preview HUD Lower Touch") {
+    TrackPreviewHUDDesignPreview(touchPoint: CGPoint(x: 92, y: 210))
+        .frame(width: 390, height: 320)
 }

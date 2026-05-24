@@ -6,52 +6,46 @@
 import MediaPlayer
 import SwiftUI
 
+/// Song list row that wires normal navigation and playback menu actions to
+/// long-press track preview start, seek, and stop behavior.
 struct PreviewableSongRow: View {
     @EnvironmentObject private var trackPreviewController: TrackPreviewController
 
-    let song: MPMediaItem
+    private let song: MPMediaItem?
+    private let previewIsPreviewing: Bool?
     let tertiaryText: String?
+    private let title: String?
+    private let artist: String?
+    private let artwork: MPMediaItemArtwork?
+
+    init(song: MPMediaItem, tertiaryText: String?) {
+        self.song = song
+        self.previewIsPreviewing = nil
+        self.tertiaryText = tertiaryText
+        self.title = song.title
+        self.artist = song.artist
+        self.artwork = song.artwork
+    }
+
+    fileprivate init(
+        title: String?,
+        artist: String?,
+        tertiaryText: String?,
+        isPreviewing: Bool
+    ) {
+        self.song = nil
+        self.previewIsPreviewing = isPreviewing
+        self.tertiaryText = tertiaryText
+        self.title = title
+        self.artist = artist
+        self.artwork = nil
+    }
 
     var body: some View {
         HStack(spacing: 8) {
-            NavigationLink {
-                SongDetailView(song: song)
-            } label: {
-                SongItemView(
-                    title: song.title,
-                    secondaryText: song.artist,
-                    tertiaryText: tertiaryText,
-                    artwork: song.artwork
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .background(
-                    TrackPreviewTouchRecognizer(
-                        onBegan: { location, screenWidth in
-                            updatePreviewLocation(location)
-                            startPreviewIfNeeded()
-                            seekPreview(at: location, screenWidth: screenWidth)
-                        },
-                        onChanged: { location, screenWidth in
-                            seekPreview(at: location, screenWidth: screenWidth)
-                        },
-                        onEnded: {
-                            stopPreviewIfNeeded()
-                        }
-                    )
-                )
-            }
+            rowContent
 
-            Menu {
-                PlayableItemsMenuView(item: song)
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .imageScale(.large)
-                    .foregroundColor(.secondary)
-                    .frame(width: 36, height: 36)
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel("Playback Options")
+            playbackOptionsButton
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
@@ -62,11 +56,81 @@ struct PreviewableSongRow: View {
     }
 
     private var isPreviewing: Bool {
-        trackPreviewController.previewingItemID == song.persistentID
+        if let previewIsPreviewing {
+            return previewIsPreviewing
+        }
+
+        guard let song else { return false }
+        return trackPreviewController.previewingItemID == song.persistentID
+    }
+
+    @ViewBuilder
+    private var rowContent: some View {
+        if let song {
+            NavigationLink {
+                SongDetailView(song: song)
+            } label: {
+                rowLabel
+                    .background(previewTouchRecognizer)
+            }
+        } else {
+            rowLabel
+        }
+    }
+
+    private var rowLabel: some View {
+        SongItemView(
+            title: title,
+            secondaryText: artist,
+            tertiaryText: tertiaryText,
+            artwork: artwork
+        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private var previewTouchRecognizer: some View {
+        TrackPreviewTouchRecognizer(
+            onBegan: { location, screenWidth in
+                updatePreviewLocation(location)
+                startPreviewIfNeeded()
+                seekPreview(at: location, screenWidth: screenWidth)
+            },
+            onChanged: { location, screenWidth in
+                seekPreview(at: location, screenWidth: screenWidth)
+            },
+            onEnded: {
+                stopPreviewIfNeeded()
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var playbackOptionsButton: some View {
+        if let song {
+            Menu {
+                PlayableItemsMenuView(item: song)
+            } label: {
+                playbackOptionsIcon
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Playback Options")
+        } else {
+            playbackOptionsIcon
+                .accessibilityLabel("Playback Options")
+        }
+    }
+
+    private var playbackOptionsIcon: some View {
+        Image(systemName: "ellipsis.circle")
+            .imageScale(.large)
+            .foregroundColor(.secondary)
+            .frame(width: 36, height: 36)
     }
 
     private func startPreviewIfNeeded() {
-        guard !isPreviewing else { return }
+        guard let song, !isPreviewing else { return }
         trackPreviewController.startPreview(item: song)
     }
 
@@ -80,7 +144,7 @@ struct PreviewableSongRow: View {
     }
 
     private func seekPreview(at location: CGPoint, screenWidth: CGFloat) {
-        guard isPreviewing, screenWidth > 0 else { return }
+        guard song != nil, isPreviewing, screenWidth > 0 else { return }
         trackPreviewController.seekPreview(
             toFraction: TrackPreviewScreenSeekMapper.fraction(
                 forX: location.x,
@@ -88,4 +152,23 @@ struct PreviewableSongRow: View {
             )
         )
     }
+}
+
+#Preview("Previewable Song Row") {
+    List {
+        PreviewableSongRow(
+            title: "Supernova Drive (Kohei Remix)",
+            artist: "Mika River feat. Duskline",
+            tertiaryText: "City Lights After Midnight",
+            isPreviewing: false
+        )
+
+        PreviewableSongRow(
+            title: "Midnight Transfer",
+            artist: "Night Transit Orchestra",
+            tertiaryText: "Previewing",
+            isPreviewing: true
+        )
+    }
+    .environmentObject(TrackPreviewController())
 }

@@ -5,6 +5,8 @@
 
 import SwiftUI
 
+/// Maps a horizontal screen touch position into a normalized preview seek
+/// fraction, with forgiving edge margins at the start and end.
 enum TrackPreviewScreenSeekMapper {
     // UI tuning: positions inside this distance from either edge map to
     // the beginning/end of the preview, so the finger does not need to

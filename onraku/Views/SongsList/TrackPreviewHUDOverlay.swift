@@ -6,6 +6,8 @@
 import SwiftUI
 import UIKit
 
+/// Overlay host that snapshots active preview metadata, keeps the HUD alive
+/// during dismissal animation, and layers the HUD with the seek guide.
 struct TrackPreviewHUDOverlay: View {
     @EnvironmentObject private var trackPreviewController: TrackPreviewController
 
@@ -87,6 +89,8 @@ struct TrackPreviewHUDOverlay: View {
     }
 }
 
+/// Immutable display data captured when preview playback starts so the overlay
+/// can animate out even after the controller clears live preview state.
 private struct TrackPreviewHUDSnapshot {
     let title: String?
     let artist: String?

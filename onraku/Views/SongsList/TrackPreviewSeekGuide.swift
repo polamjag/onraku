@@ -5,6 +5,8 @@
 
 import SwiftUI
 
+/// Touch-position indicator shown independently from the centered HUD while
+/// the user seeks during a long-press preview.
 struct TrackPreviewSeekGuide: View {
     let touchLocation: CGPoint?
     let containerSize: CGSize

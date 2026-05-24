@@ -448,14 +448,6 @@ struct QueriedSongsListViewContainer_Previews: PreviewProvider {
         }
         .environmentObject(TrackPreviewController())
         .previewDisplayName("Search Criteria")
-
-        TrackPreviewHUDDesignPreview(touchPoint: CGPoint(x: 286, y: 128))
-            .frame(width: 390, height: 260)
-            .previewDisplayName("Track Preview HUD + Seek Guide")
-
-        TrackPreviewHUDDesignPreview(touchPoint: CGPoint(x: 92, y: 210))
-            .frame(width: 390, height: 320)
-            .previewDisplayName("Track Preview HUD Lower Touch")
     }
 
     private static let previewPredicates = [
@@ -465,10 +457,4 @@ struct QueriedSongsListViewContainer_Previews: PreviewProvider {
             value: "Mika River", forProperty: MPMediaItemPropertyArtist,
             comparisonType: .contains),
     ]
-}
-
-#Preview("Track Preview HUD + Seek Guide") {
-    TrackPreviewHUDDesignPreview(touchPoint: CGPoint(x: 286, y: 128))
-        .frame(width: 390, height: 260)
-        .environmentObject(TrackPreviewController())
 }
