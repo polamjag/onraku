@@ -42,16 +42,19 @@ struct PreviewableSongRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        let row = HStack(spacing: 8) {
             rowContent
 
             playbackOptionsButton
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            Color.accentColor
-                .opacity(isPreviewing ? 0.13 : 0)
-                .animation(.easeInOut(duration: 0.15), value: isPreviewing)
+
+        if isPreviewing {
+            row.listRowBackground(
+                Color.accentColor.opacity(0.1)
+            )
+        } else {
+            row
         }
     }
 
