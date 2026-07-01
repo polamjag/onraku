@@ -24,6 +24,27 @@ enum GoogleSearch {
     }
 }
 
+enum SpotifySearch {
+    static func url(for query: String?) -> URL? {
+        guard let query = query?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !query.isEmpty
+        else {
+            return nil
+        }
+
+        var allowedCharacters = CharacterSet.urlPathAllowed
+        allowedCharacters.remove(charactersIn: "/?")
+
+        guard
+            let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
+        else {
+            return nil
+        }
+
+        return URL(string: "https://open.spotify.com/search/\(encodedQuery)")
+    }
+}
+
 struct GoogleSearchButton: View {
     @Environment(\.openURL) private var openURL
 
@@ -40,14 +61,31 @@ struct GoogleSearchButton: View {
     }
 }
 
+struct SpotifySearchButton: View {
+    @Environment(\.openURL) private var openURL
+
+    let query: String?
+
+    var body: some View {
+        if let url = SpotifySearch.url(for: query) {
+            Button {
+                openURL(url)
+            } label: {
+                Label("Search on Spotify", systemImage: "music.note")
+            }
+        }
+    }
+}
+
 struct GoogleSearchContextMenu: ViewModifier {
     let query: String?
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if GoogleSearch.url(for: query) != nil {
+        if GoogleSearch.url(for: query) != nil || SpotifySearch.url(for: query) != nil {
             content.contextMenu {
                 GoogleSearchButton(query: query)
+                SpotifySearchButton(query: query)
             }
         } else {
             content

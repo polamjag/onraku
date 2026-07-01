@@ -17,6 +17,25 @@ final class SongMetaSearchLinkTests: XCTestCase {
     XCTAssertNil(GoogleSearch.url(for: " \n\t "))
   }
 
+  func testSpotifySearchURLBuildsSearchURLWithEncodedQuery() throws {
+    XCTAssertEqual(
+      SpotifySearch.url(for: "Mika River feat. Duskline")?.absoluteString,
+      "https://open.spotify.com/search/Mika%20River%20feat.%20Duskline"
+    )
+  }
+
+  func testSpotifySearchURLEncodesPathSeparators() throws {
+    XCTAssertEqual(
+      SpotifySearch.url(for: "A/B? C")?.absoluteString,
+      "https://open.spotify.com/search/A%2FB%3F%20C"
+    )
+  }
+
+  func testSpotifySearchURLRequiresNonBlankQuery() throws {
+    XCTAssertNil(SpotifySearch.url(for: nil))
+    XCTAssertNil(SpotifySearch.url(for: " \n\t "))
+  }
+
   func testCommentLinkifierDetectsURLs() throws {
     let links = MultiLineTextLinkifier.detectLinks(
       in: "source https://example.com/path?q=1 end")

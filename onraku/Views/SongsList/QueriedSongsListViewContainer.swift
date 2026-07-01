@@ -65,6 +65,7 @@ struct PredicateItemView: View {
                 }
 
                 GoogleSearchButton(query: searchQuery)
+                SpotifySearchButton(query: searchQuery)
 
                 if let onDelete {
                     Button(role: .destructive, action: onDelete) {
