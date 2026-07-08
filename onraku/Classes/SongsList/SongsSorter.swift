@@ -17,6 +17,8 @@ enum SongsSortKey: String, Equatable, CaseIterable {
   case userGrouping = "User Grouping"
   case addedAt = "Date Added"
   case bpm = "BPM"
+  case lastPlayedDesc = "Most Recently Played"
+  case lastPlayedAsc = "Least Recently Played"
   case playCountDesc = "Most Played"
   case playCountAsc = "Least Played"
   case playCountPerDayDesc = "Most Frequently Played"
@@ -36,6 +38,9 @@ enum SongsSortKey: String, Equatable, CaseIterable {
       return item.dateAdded.formatted(date: .abbreviated, time: .omitted)
     case .bpm:
       return item.beatsPerMinute == 0 ? "-" : String(item.beatsPerMinute)
+    case .lastPlayedAsc, .lastPlayedDesc:
+      return item.lastPlayedDate?.formatted(date: .abbreviated, time: .omitted)
+        ?? "-"
     case .playCountAsc, .playCountDesc:
       return "\(item.playCount) plays"
     case .playCountPerDayDesc, .playCountPerDayAsc:
@@ -67,6 +72,18 @@ func sortSongs(songs: [MPMediaItem], by key: SongsSortKey) async
       return songs.sorted {
         $0.beatsPerMinuteForSorting
           < $1.beatsPerMinuteForSorting
+      }
+    case .lastPlayedAsc:
+      return songs.sorted {
+        guard let lhs = $0.lastPlayedDate else { return false }
+        guard let rhs = $1.lastPlayedDate else { return true }
+        return lhs < rhs
+      }
+    case .lastPlayedDesc:
+      return songs.sorted {
+        guard let lhs = $0.lastPlayedDate else { return false }
+        guard let rhs = $1.lastPlayedDate else { return true }
+        return lhs > rhs
       }
     case .playCountAsc:
       return songs.sorted { $0.playCount < $1.playCount }

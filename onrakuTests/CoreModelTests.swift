@@ -14,9 +14,30 @@ final class CoreModelTests: XCTestCase {
 
   func testSongsSortKeyRawValuesRemainStable() throws {
     XCTAssertEqual(SongsSortKey.none.rawValue, "Default")
+    XCTAssertEqual(SongsSortKey.lastPlayedAsc.rawValue, "Least Recently Played")
+    XCTAssertEqual(SongsSortKey.lastPlayedDesc.rawValue, "Most Recently Played")
     XCTAssertEqual(SongsSortKey.playCountDesc.rawValue, "Most Played")
     XCTAssertEqual(SongsSortKey.playCountPerDayAsc.rawValue, "Least Frequently Played")
-    XCTAssertEqual(SongsSortKey.allCases.count, 12)
+    XCTAssertEqual(SongsSortKey.allCases.count, 14)
+    XCTAssertEqual(
+      SongsSortKey.allCases.map(\.rawValue),
+      [
+        "Default",
+        "Title",
+        "Album",
+        "Artist",
+        "Genre",
+        "User Grouping",
+        "Date Added",
+        "BPM",
+        "Most Recently Played",
+        "Least Recently Played",
+        "Most Played",
+        "Least Played",
+        "Most Frequently Played",
+        "Least Frequently Played",
+      ]
+    )
   }
 
   func testSongsSortKeyBuildsTertiaryInfoForSongRows() throws {
@@ -35,7 +56,7 @@ final class CoreModelTests: XCTestCase {
       discCount: 0,
       discNumber: 0,
       genre: "House",
-      lastPlayedDate: nil,
+      lastPlayedDate: Date(timeIntervalSince1970: 1_710_000_000),
       lyrics: nil,
       playCount: 7,
       rating: 0,
@@ -53,7 +74,45 @@ final class CoreModelTests: XCTestCase {
     XCTAssertEqual(SongsSortKey.genre.tertiaryInfo(for: song), "House")
     XCTAssertEqual(SongsSortKey.userGrouping.tertiaryInfo(for: song), "Peak")
     XCTAssertEqual(SongsSortKey.bpm.tertiaryInfo(for: song), "124")
+    XCTAssertEqual(
+      SongsSortKey.lastPlayedAsc.tertiaryInfo(for: song),
+      Date(timeIntervalSince1970: 1_710_000_000)
+        .formatted(date: .abbreviated, time: .omitted)
+    )
     XCTAssertEqual(SongsSortKey.playCountDesc.tertiaryInfo(for: song), "7 plays")
+  }
+
+  func testSongsSortKeyShowsDashForNeverPlayedSongRows() throws {
+    let song = DummySongDetail(
+      albumArtist: nil,
+      albumTitle: nil,
+      albumTrackCount: 0,
+      albumTrackNumber: 0,
+      artist: nil,
+      artwork: nil,
+      beatsPerMinute: 0,
+      comments: nil,
+      isCompilation: false,
+      composer: nil,
+      dateAdded: Date(timeIntervalSince1970: 1_700_000_000),
+      discCount: 0,
+      discNumber: 0,
+      genre: nil,
+      lastPlayedDate: nil,
+      lyrics: nil,
+      playCount: 0,
+      rating: 0,
+      releaseDate: nil,
+      releaseYear: nil,
+      skipCount: 0,
+      title: "Song A",
+      userGrouping: nil,
+      playbackDuration: 0,
+      refreshingIdentifier: "song-1"
+    )
+
+    XCTAssertEqual(SongsSortKey.lastPlayedAsc.tertiaryInfo(for: song), "-")
+    XCTAssertEqual(SongsSortKey.lastPlayedDesc.tertiaryInfo(for: song), "-")
   }
 
   func testPredicateFriendlyLabelFallsBackInPriorityOrder() throws {
