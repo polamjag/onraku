@@ -88,10 +88,10 @@ jobs:
             DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
             clean archive
         env:
-          PROFILE_NAME: ${{ fromJson(steps.provisioning-profile.outputs.profiles)[0].name }}
+          PROFILE_UUID: ${{ fromJson(steps.provisioning-profile.outputs.profiles)[0].udid }}
           TEAM_ID: ${{ env.TEAM_ID }}
 
       - name: Create export options
@@ -113,7 +113,7 @@ jobs:
             <key>provisioningProfiles</key>
             <dict>
               <key>${APP_BUNDLE_ID}</key>
-              <string>${PROFILE_NAME}</string>
+              <string>${PROFILE_UUID}</string>
             </dict>
           PLIST
 
@@ -133,7 +133,7 @@ jobs:
           } > "$RUNNER_TEMP/ExportOptions.plist"
         env:
           APP_BUNDLE_ID: ${{ env.APP_BUNDLE_ID }}
-          PROFILE_NAME: ${{ fromJson(steps.provisioning-profile.outputs.profiles)[0].name }}
+          PROFILE_UUID: ${{ fromJson(steps.provisioning-profile.outputs.profiles)[0].udid }}
           TEAM_ID: ${{ env.TEAM_ID }}
           INTERNAL_ONLY: ${{ github.event.inputs.internal_only }}
 
