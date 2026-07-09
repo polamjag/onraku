@@ -396,8 +396,8 @@ struct QueriedSongsListViewContainer: View {
                 Menu {
                     Divider()
 
-                    PlayableItemsMenuView(itemsCount: viewModel.songs.count) {
-                        viewModel.songs
+                    PlayableItemsMenuView(itemsCount: viewModel.displayedSongs.count) {
+                        viewModel.displayedSongs
                     }
 
                     Menu {
