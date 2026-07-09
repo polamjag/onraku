@@ -73,8 +73,8 @@ jobs:
         with:
           bundle-id: ${{ env.APP_BUNDLE_ID }}
           profile-type: IOS_APP_STORE
-          issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Archive app
@@ -156,8 +156,8 @@ jobs:
         uses: apple-actions/upload-testflight-build@9af5bd758aaff3f82a372079a38f029d60a7163b # v5
         with:
           app-path: ${{ steps.exported-ipa.outputs.path }}
-          issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
           release-notes: ${{ github.event.inputs.release_notes }}
           uses-non-exempt-encryption: "false"
