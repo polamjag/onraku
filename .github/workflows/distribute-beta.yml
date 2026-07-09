@@ -197,4 +197,3 @@ jobs:
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
           release-notes: ${{ github.event.inputs.release_notes }}
-          uses-non-exempt-encryption: "false"
