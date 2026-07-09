@@ -79,6 +79,17 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Prepare App Store Connect API key
+        run: |
+          AUTH_KEY_PATH="$RUNNER_TEMP/AuthKey_${APPSTORE_API_KEY_ID}.p8"
+          printf '%s' "$APPSTORE_API_PRIVATE_KEY" | perl -pe 's/\\n/\n/g' > "$AUTH_KEY_PATH"
+          chmod 600 "$AUTH_KEY_PATH"
+          echo "path=$AUTH_KEY_PATH" >> "$GITHUB_OUTPUT"
+        id: appstore-api-key
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+
       - name: Archive app
         run: |
           xcodebuild \
@@ -87,11 +98,18 @@ jobs:
             -configuration "$CONFIGURATION" \
             -destination "generic/platform=iOS" \
             -archivePath "$RUNNER_TEMP/$SCHEME.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$APPSTORE_API_KEY_PATH" \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             CURRENT_PROJECT_VERSION="${{ steps.build-number.outputs.value }}" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
             clean archive
         env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_KEY_PATH: ${{ steps.appstore-api-key.outputs.path }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           TEAM_ID: ${{ env.TEAM_ID }}
 
       - name: Create export options
@@ -136,7 +154,15 @@ jobs:
             -exportArchive \
             -archivePath "$RUNNER_TEMP/$SCHEME.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$APPSTORE_API_KEY_PATH" \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
             -exportPath "$RUNNER_TEMP/export"
+        env:
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_KEY_PATH: ${{ steps.appstore-api-key.outputs.path }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
 
       - name: Resolve ipa path
         id: exported-ipa
