@@ -3,11 +3,9 @@ name: Distribute Beta
 # Required repository secrets:
 # - APPSTORE_CERTIFICATES_FILE_BASE64
 # - APPSTORE_CERTIFICATES_PASSWORD
-# - APPSTORE_API_PRIVATE_KEY
-#
-# Required repository variables:
 # - APPSTORE_ISSUER_ID
 # - APPSTORE_API_KEY_ID
+# - APPSTORE_API_PRIVATE_KEY
 
 on:
   workflow_dispatch:
@@ -69,6 +67,7 @@ jobs:
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
 
       - name: Download App Store provisioning profile
+        id: provisioning-profile
         uses: apple-actions/download-provisioning-profiles@c62019de00bb4395ed414e4a17c98f4e279636de # v6
         with:
           bundle-id: ${{ env.APP_BUNDLE_ID }}
@@ -86,7 +85,14 @@ jobs:
             -destination "generic/platform=iOS" \
             -archivePath "$RUNNER_TEMP/$SCHEME.xcarchive" \
             CURRENT_PROJECT_VERSION="${{ steps.build-number.outputs.value }}" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
             clean archive
+        env:
+          PROFILE_NAME: ${{ fromJson(steps.provisioning-profile.outputs.profiles)[0].name }}
+          TEAM_ID: ${{ env.TEAM_ID }}
 
       - name: Create export options
         run: |
@@ -101,9 +107,14 @@ jobs:
             <key>method</key>
             <string>app-store-connect</string>
             <key>signingStyle</key>
-            <string>automatic</string>
+            <string>manual</string>
             <key>teamID</key>
             <string>${TEAM_ID}</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${APP_BUNDLE_ID}</key>
+              <string>${PROFILE_NAME}</string>
+            </dict>
           PLIST
 
             if [ "$INTERNAL_ONLY" = "true" ]; then
@@ -121,6 +132,8 @@ jobs:
           PLIST
           } > "$RUNNER_TEMP/ExportOptions.plist"
         env:
+          APP_BUNDLE_ID: ${{ env.APP_BUNDLE_ID }}
+          PROFILE_NAME: ${{ fromJson(steps.provisioning-profile.outputs.profiles)[0].name }}
           TEAM_ID: ${{ env.TEAM_ID }}
           INTERNAL_ONLY: ${{ github.event.inputs.internal_only }}
 
