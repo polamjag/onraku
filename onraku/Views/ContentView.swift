@@ -10,12 +10,21 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private enum Tab {
-        case Library, NowPlaying
+        case library, nowPlaying
     }
 
-    @State private var selectedTab: Tab = .Library
+    private enum SidebarDestination: Hashable {
+        case collection(String)
+        case quickDig
+        case nowPlaying
+    }
+
+    @State private var selectedTab: Tab = .library
+    @State private var selectedSidebarDestination: SidebarDestination? =
+        .collection(CollectionTypes.playlist.rawValue)
     @State private var isSettingsPresented = false
     @AppStorage(TrackPreviewMode.storageKey) private var trackPreviewModeRawValue =
         TrackPreviewMode.defaultMode.rawValue
@@ -36,70 +45,10 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            TabView(selection: $selectedTab) {
-                NavigationView {
-                    List {
-                        Section {
-                            ForEach(CollectionTypes.allCases, id: \.self) { type in
-                                NavigationLink {
-                                    SongsCollectionsListView(
-                                        type: type,
-                                        title: type.rawValue,
-                                        viewModel: viewModel.songsCollectionsListViewModel(
-                                            for: type)
-                                    )
-                                } label: {
-                                    Label(type.rawValue, systemImage: type.systemImageName)
-                                }
-                            }
-                        }
-
-                        Section("I'm Feeling Lucky") {
-                            NavigationLink {
-                                QueriedSongsListViewContainer(
-                                    title: "Quick Dig",
-                                    songs: viewModel.quickDigSongs,
-                                    predicates: viewModel.quickDigPredicates
-                                )
-                            } label: {
-                                Label("Quick Dig", systemImage: "square.2.layers.3d")
-                            }
-                        }
-                    }.navigationTitle("Library")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .listStyle(.insetGrouped)
-                        .navigationViewStyle(StackNavigationViewStyle())
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarTrailing) {
-                                Button {
-                                    isSettingsPresented = true
-                                } label: {
-                                    Image(systemName: "gearshape")
-                                }
-                                .accessibilityLabel("Settings")
-                            }
-                        }
-                }.tabItem {
-                    Image(systemName: "books.vertical")
-                        .environment(
-                            \.symbolVariants, selectedTab == .Library ? .fill : .none)
-                    Text("Library")
-                }
-                .tag(Tab.Library)
-                .task {
-                    await viewModel.handleNowPlayingItemDidChange()
-                }
-
-                NavigationView {
-                    NowPlayingViewContainer()
-                        .navigationBarTitleDisplayMode(.inline)
-                        .listStyle(.insetGrouped)
-                }.tabItem {
-                    Image(systemName: "play")
-                        .environment(
-                            \.symbolVariants, selectedTab == .NowPlaying ? .fill : .none)
-                    Text("Now Playing")
-                }.tag(Tab.NowPlaying)
+            if horizontalSizeClass == .regular {
+                iPadLayout
+            } else {
+                compactLayout
             }
             ToastView()
         }
@@ -119,6 +68,166 @@ struct ContentView: View {
         }
         .onChange(of: trackPreviewModeRawValue) { _, _ in
             syncTrackPreviewMode()
+        }
+    }
+
+    private var compactLayout: some View {
+        TabView(selection: $selectedTab) {
+            NavigationView {
+                compactLibraryList
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+            .tabItem {
+                Image(systemName: "books.vertical")
+                    .environment(
+                        \.symbolVariants, selectedTab == .library ? .fill : .none)
+                Text("Library")
+            }
+            .tag(Tab.library)
+            .task {
+                await viewModel.handleNowPlayingItemDidChange()
+            }
+
+            NavigationView {
+                NowPlayingViewContainer()
+                    .navigationBarTitleDisplayMode(.inline)
+                    .listStyle(.insetGrouped)
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+            .tabItem {
+                Image(systemName: "play")
+                    .environment(
+                        \.symbolVariants, selectedTab == .nowPlaying ? .fill : .none)
+                Text("Now Playing")
+            }
+            .tag(Tab.nowPlaying)
+        }
+    }
+
+    private var compactLibraryList: some View {
+        List {
+            Section {
+                ForEach(CollectionTypes.allCases, id: \.self) { type in
+                    NavigationLink {
+                        collectionList(for: type)
+                    } label: {
+                        Label(type.rawValue, systemImage: type.systemImageName)
+                    }
+                }
+            }
+
+            Section("I'm Feeling Lucky") {
+                NavigationLink {
+                    quickDigView
+                } label: {
+                    Label("Quick Dig", systemImage: "square.2.layers.3d")
+                }
+            }
+        }
+        .navigationTitle("Library")
+        .navigationBarTitleDisplayMode(.inline)
+        .listStyle(.insetGrouped)
+        .toolbar {
+            settingsToolbarItem
+        }
+    }
+
+    private var iPadLayout: some View {
+        NavigationSplitView {
+            List(selection: $selectedSidebarDestination) {
+                Section("Library") {
+                    ForEach(CollectionTypes.allCases, id: \.self) { type in
+                        NavigationLink(value: SidebarDestination.collection(type.rawValue)) {
+                            Label(type.rawValue, systemImage: type.systemImageName)
+                        }
+                    }
+                }
+
+                Section("I'm Feeling Lucky") {
+                    NavigationLink(value: SidebarDestination.quickDig) {
+                        Label("Quick Dig", systemImage: "square.2.layers.3d")
+                    }
+                }
+
+                Section("Playback") {
+                    NavigationLink(value: SidebarDestination.nowPlaying) {
+                        Label("Now Playing", systemImage: "play")
+                    }
+                }
+
+                Section("App") {
+                    Button {
+                        isSettingsPresented = true
+                    } label: {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+                    .foregroundStyle(.primary)
+                    .accessibilityLabel("Settings")
+                }
+            }
+            .listStyle(.sidebar)
+            .contentMargins(.horizontal, 16, for: .scrollContent)
+            .contentMargins(.top, 8, for: .scrollContent)
+            .listSectionSpacing(.compact)
+            .navigationTitle("onraku")
+            .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 340)
+        } detail: {
+            NavigationStack {
+                iPadDetail
+            }
+        }
+        .navigationSplitViewStyle(.balanced)
+        .task {
+            await viewModel.handleNowPlayingItemDidChange()
+        }
+    }
+
+    @ViewBuilder
+    private var iPadDetail: some View {
+        switch selectedSidebarDestination {
+        case .collection(let rawValue):
+            if let type = CollectionTypes(rawValue: rawValue) {
+                collectionList(for: type)
+            }
+        case .quickDig:
+            quickDigView
+        case .nowPlaying:
+            NowPlayingViewContainer()
+                .navigationBarTitleDisplayMode(.inline)
+                .listStyle(.insetGrouped)
+        case nil:
+            ContentUnavailableView(
+                "Select a Library",
+                systemImage: "books.vertical",
+                description: Text("Choose an item from the sidebar.")
+            )
+        }
+    }
+
+    private func collectionList(for type: CollectionTypes) -> some View {
+        SongsCollectionsListView(
+            type: type,
+            title: type.rawValue,
+            viewModel: viewModel.songsCollectionsListViewModel(for: type)
+        )
+    }
+
+    private var quickDigView: some View {
+        QueriedSongsListViewContainer(
+            title: "Quick Dig",
+            songs: viewModel.quickDigSongs,
+            predicates: viewModel.quickDigPredicates
+        )
+    }
+
+    private var settingsToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+                isSettingsPresented = true
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .accessibilityLabel("Settings")
         }
     }
 
