@@ -8,6 +8,22 @@
 import MediaPlayer
 import SwiftUI
 
+enum ContentViewSidebarDestination: Hashable {
+    case collection(String)
+    case quickDig
+    case nowPlaying
+}
+
+struct ContentViewNavigationState {
+    var selectedSidebarDestination: ContentViewSidebarDestination?
+    var iPadDetailPath = NavigationPath()
+
+    mutating func selectSidebarDestination(_ destination: ContentViewSidebarDestination?) {
+        selectedSidebarDestination = destination
+        iPadDetailPath = NavigationPath()
+    }
+}
+
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -16,15 +32,10 @@ struct ContentView: View {
         case library, nowPlaying
     }
 
-    private enum SidebarDestination: Hashable {
-        case collection(String)
-        case quickDig
-        case nowPlaying
-    }
-
     @State private var selectedTab: Tab = .library
-    @State private var selectedSidebarDestination: SidebarDestination? =
-        .collection(CollectionTypes.playlist.rawValue)
+    @State private var navigationState = ContentViewNavigationState(
+        selectedSidebarDestination: .collection(CollectionTypes.playlist.rawValue)
+    )
     @State private var isSettingsPresented = false
     @AppStorage(TrackPreviewMode.storageKey) private var trackPreviewModeRawValue =
         TrackPreviewMode.defaultMode.rawValue
@@ -134,23 +145,25 @@ struct ContentView: View {
 
     private var iPadLayout: some View {
         NavigationSplitView {
-            List(selection: $selectedSidebarDestination) {
+            List(selection: selectedSidebarDestination) {
                 Section("Library") {
                     ForEach(CollectionTypes.allCases, id: \.self) { type in
-                        NavigationLink(value: SidebarDestination.collection(type.rawValue)) {
+                        NavigationLink(
+                            value: ContentViewSidebarDestination.collection(type.rawValue)
+                        ) {
                             Label(type.rawValue, systemImage: type.systemImageName)
                         }
                     }
                 }
 
                 Section("I'm Feeling Lucky") {
-                    NavigationLink(value: SidebarDestination.quickDig) {
+                    NavigationLink(value: ContentViewSidebarDestination.quickDig) {
                         Label("Quick Dig", systemImage: "square.2.layers.3d")
                     }
                 }
 
                 Section("Playback") {
-                    NavigationLink(value: SidebarDestination.nowPlaying) {
+                    NavigationLink(value: ContentViewSidebarDestination.nowPlaying) {
                         Label("Now Playing", systemImage: "play")
                     }
                 }
@@ -172,7 +185,7 @@ struct ContentView: View {
             .navigationTitle("onraku")
             .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 340)
         } detail: {
-            NavigationStack {
+            NavigationStack(path: $navigationState.iPadDetailPath) {
                 iPadDetail
             }
         }
@@ -182,9 +195,16 @@ struct ContentView: View {
         }
     }
 
+    private var selectedSidebarDestination: Binding<ContentViewSidebarDestination?> {
+        Binding(
+            get: { navigationState.selectedSidebarDestination },
+            set: { navigationState.selectSidebarDestination($0) }
+        )
+    }
+
     @ViewBuilder
     private var iPadDetail: some View {
-        switch selectedSidebarDestination {
+        switch navigationState.selectedSidebarDestination {
         case .collection(let rawValue):
             if let type = CollectionTypes(rawValue: rawValue) {
                 collectionList(for: type)

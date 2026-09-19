@@ -6,6 +6,18 @@ import XCTest
 
 final class ViewModelTests: XCTestCase {
 
+  func testContentViewNavigationStateResetsDetailPathWhenSidebarDestinationChanges() {
+    var sut = ContentViewNavigationState(
+      selectedSidebarDestination: .collection(CollectionTypes.playlist.rawValue)
+    )
+    sut.iPadDetailPath.append("nested-detail")
+
+    sut.selectSidebarDestination(.quickDig)
+
+    XCTAssertEqual(sut.selectedSidebarDestination, .quickDig)
+    XCTAssertTrue(sut.iPadDetailPath.isEmpty)
+  }
+
   @MainActor
   func testContentViewModelStartsAndStopsPlaybackNotificationsOnlyOnce() async throws {
     let playbackNotificationManager = FakePlaybackNotificationManager()
