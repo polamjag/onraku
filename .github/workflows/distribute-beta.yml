@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Resolve build number
         id: build-number
@@ -73,7 +73,7 @@ jobs:
 
       - name: Download App Store provisioning profile
         id: provisioning-profile
-        uses: apple-actions/download-provisioning-profiles@c62019de00bb4395ed414e4a17c98f4e279636de # v6
+        uses: apple-actions/download-provisioning-profiles@2126b5f86a0e2863cbf4d2d312112b22b943a594 # v6
         with:
           bundle-id: ${{ env.APP_BUNDLE_ID }}
           profile-type: IOS_APP_STORE
@@ -190,7 +190,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@1ad58030672057aa084b4e96beb6f7a8c627f9e6 # v5
+        uses: apple-actions/upload-testflight-build@1fc69ca369a60b813eaaa2d936eda22794b52e17 # v5
         with:
           app-path: ${{ steps.exported-ipa.outputs.path }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
