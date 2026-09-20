@@ -31,6 +31,7 @@ private struct SongWithMatchedPredicates {
   }
 }
 
+@MainActor
 private func sortByItemRelevance(src: [SongWithPredicate]) -> [MPMediaItem] {
   var dic: [MPMediaEntityPersistentID: SongWithMatchedPredicates] = [:]
   for x in src {
@@ -48,6 +49,7 @@ private func sortByItemRelevance(src: [SongWithPredicate]) -> [MPMediaItem] {
   }
 }
 
+@MainActor
 private func getDiggingQuery(for item: MPMediaItem, includeGenre: Bool)
   -> [MyMPMediaPropertyPredicate]
 {
@@ -97,31 +99,23 @@ private func getDiggingQuery(for item: MPMediaItem, includeGenre: Bool)
   return allFilters
 }
 
+@MainActor
 private func queryMultiPredicates(predicates: [MyMPMediaPropertyPredicate])
   async
   -> [SongWithPredicate]
 {
   var songsWithPreds: [SongWithPredicate] = []
-
-  do {
-    try await withThrowingTaskGroup(of: [SongWithPredicate].self) { group in
-      for pred in predicates {
-        group.addTask(priority: .high) {
-          return await getSongsByPredicate(predicate: pred).map {
-            SongWithPredicate(song: $0, predicate: pred)
-          }
-        }
-      }
-      for try await (gotItems) in group {
-        songsWithPreds += gotItems
-      }
+  for pred in predicates {
+    guard !Task.isCancelled else { return [] }
+    songsWithPreds += await getSongsByPredicate(predicate: pred).map {
+      SongWithPredicate(song: $0, predicate: pred)
     }
-  } catch {
   }
 
   return songsWithPreds
 }
 
+@MainActor
 func getDiggedItems(
   of item: MPMediaItem, includeGenre: Bool, withDepth depth: Int = 1
 ) async
@@ -133,12 +127,15 @@ func getDiggedItems(
 
   if depth > 1 {
     for _ in 2...depth {
+      guard !Task.isCancelled else { return ([], []) }
       let relevantItemsQuery = firstResult.flatMap { sp in
         getDiggingQuery(for: sp.song, includeGenre: includeGenre)
       }.unique()
       firstResult += await queryMultiPredicates(predicates: relevantItemsQuery)
     }
   }
+
+  guard !Task.isCancelled else { return ([], []) }
 
   let sorted = sortByItemRelevance(src: firstResult).unique().filter {
     $0 != item

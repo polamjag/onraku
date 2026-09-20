@@ -7,19 +7,18 @@
 
 import MediaPlayer
 
+@MainActor
 func loadSongsCollectionsOf(_ type: CollectionTypes) async -> [SongsCollection] {
-  let task = Task.detached(priority: .high) { () -> [SongsCollection] in
-    switch type {
-    case .playlist, .genre, .artist, .album:
-      return loadAllCollectionsOf(type)
-    case .userGrouping:
-      return loadAllUserGroupings()
-    }
+  guard !Task.isCancelled else { return [] }
+  switch type {
+  case .playlist, .genre, .artist, .album:
+    return loadAllCollectionsOf(type)
+  case .userGrouping:
+    return loadAllUserGroupings()
   }
-
-  return await task.result.get()
 }
 
+@MainActor
 func loadAllCollectionsOf(_ type: CollectionTypes) -> [SongsCollection] {
   if let collections = type.getQueryForType()?.collections {
     return collections.map { collection in
@@ -43,6 +42,7 @@ func loadAllCollectionsOf(_ type: CollectionTypes) -> [SongsCollection] {
   }
 }
 
+@MainActor
 func loadAllUserGroupings() -> [SongsCollection] {
   let songs = MPMediaQuery.songs().items
   let songsByGrouping = songs?.reduce(
@@ -64,41 +64,30 @@ func loadAllUserGroupings() -> [SongsCollection] {
   }
 }
 
+@MainActor
 func getPlaylistsBySong(_ song: MPMediaItem) async -> [SongsCollection] {
   let playlists = loadAllCollectionsOf(.playlist)
 
-  let res = await withTaskGroup(of: Optional<SongsCollection>.self) { group in
-    for playlist in playlists {
-      guard !playlist.isFolder else { continue }
+  var result: [SongsCollection] = []
+  for playlist in playlists {
+    guard !Task.isCancelled, !playlist.isFolder else { continue }
 
-      group.addTask {
-        if let predicate = playlist.getFilterPredicate() {
-          let songs = await getSongsByPredicate(predicate: predicate)
-          if songs.contains(song) {
-            return SongsCollection(
-              name: playlist.name,
-              id: playlist.id,
-              type: .playlist,
-              items: songs,
-              parentID: playlist.parentID,
-              isFolder: playlist.isFolder
-            )
-          }
-        }
-
-        return nil
+    if let predicate = playlist.getFilterPredicate() {
+      let songs = await getSongsByPredicate(predicate: predicate)
+      if songs.contains(song) {
+        result.append(
+          SongsCollection(
+            name: playlist.name,
+            id: playlist.id,
+            type: .playlist,
+            items: songs,
+            parentID: playlist.parentID,
+            isFolder: playlist.isFolder
+          )
+        )
       }
     }
-
-    var ret: [SongsCollection] = []
-
-    for await result in group {
-      if let result {
-        ret.append(result)
-      }
-    }
-
-    return ret
   }
-  return res.sorted { $0.name < $1.name }
+
+  return result.sorted { $0.name < $1.name }
 }

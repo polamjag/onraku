@@ -37,11 +37,15 @@ struct NowPlayingViewContainer: View {
         .onReceive(
             NotificationCenter.default.publisher(for: .musicPlayerNowPlayingItemDidChange),
             perform: { _ in
-                Task { await viewModel.handleNowPlayingItemDidChange() }
+                Task { @MainActor in
+                    await viewModel.handleNowPlayingItemDidChange()
+                }
             }
         )
         .onChange(of: scenePhase) { _, newPhase in
-            Task { await viewModel.handleScenePhaseChange(newPhase) }
+            Task { @MainActor in
+                await viewModel.handleScenePhaseChange(newPhase)
+            }
         }
         .onAppear {
             viewModel.onAppear()

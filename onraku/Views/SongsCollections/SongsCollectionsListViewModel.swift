@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 protocol SongsCollectionsLoading {
   func loadCollections(of type: CollectionTypes) async -> [SongsCollection]
 }
@@ -48,17 +49,25 @@ final class SongsCollectionsListViewModel: ObservableObject {
   let type: CollectionTypes
 
   private let loader: SongsCollectionsLoading
+  private var loadGeneration = 0
+  private var loadTask: Task<[SongsCollection], Never>?
 
-  init(
-    type: CollectionTypes,
-    loader: SongsCollectionsLoading = MediaLibrarySongsCollectionsLoader()
-  ) {
+  init(type: CollectionTypes) {
+    self.type = type
+    self.loader = MediaLibrarySongsCollectionsLoader()
+  }
+
+  init(type: CollectionTypes, loader: SongsCollectionsLoading) {
     self.type = type
     self.loader = loader
   }
 
+  deinit {
+    loadTask?.cancel()
+  }
+
   func loadIfNeeded() async {
-    guard collections.isEmpty else { return }
+    guard loadState == .initial else { return }
     await load()
   }
 
@@ -75,8 +84,17 @@ final class SongsCollectionsListViewModel: ObservableObject {
   }
 
   private func load() async {
+    loadGeneration += 1
+    let generation = loadGeneration
     loadState = .loading
-    collections = await loader.loadCollections(of: type)
+    loadTask?.cancel()
+    let loader = loader
+    let type = type
+    let task = Task { await loader.loadCollections(of: type) }
+    loadTask = task
+    let loadedCollections = await task.value
+    guard !Task.isCancelled, generation == loadGeneration else { return }
+    collections = loadedCollections
     expandedCollectionIDs.formIntersection(expandableCollectionIDs)
     loadState = .loaded
   }

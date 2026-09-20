@@ -30,23 +30,17 @@ struct PlayableItemsMenuView: View {
     var body: some View {
         Button(action: {
             let items = itemsProvider()
-            Task.detached {
-                playMediaItems(items: items)
-                await showToastWithMessage(
-                    "Playing \(items.count) Songs", systemImage: "play.fill")
-            }
+            playMediaItems(items: items)
+            showToastWithMessage("Playing \(items.count) Songs", systemImage: "play.fill")
         }) {
             Label(itemsCount > 1 ? "Play All Now" : "Play Now", systemImage: "play")
             Color.clear
         }
         if itemsCount > 1 {
-            Button(action: {
-                let items = itemsProvider().shuffled()
-                Task.detached {
-                    playMediaItems(items: items)
-                    await showToastWithMessage(
-                        "Shuffing \(items.count) Songs", systemImage: "shuffle")
-                }
+        Button(action: {
+            let items = itemsProvider().shuffled()
+            playMediaItems(items: items)
+            showToastWithMessage("Shuffing \(items.count) Songs", systemImage: "shuffle")
             }) {
                 Label("Shuffle All Now", systemImage: "shuffle")
             }
@@ -54,12 +48,8 @@ struct PlayableItemsMenuView: View {
         Divider()
         Button(action: {
             let items = itemsProvider()
-            Task.detached {
-                prependMediaItems(items: items)
-                await showToastWithMessage(
-                    "Playing \(items.count) Songs Next", systemImage: "text.insert")
-
-            }
+            prependMediaItems(items: items)
+            showToastWithMessage("Playing \(items.count) Songs Next", systemImage: "text.insert")
         }) {
             Label(
                 itemsCount > 1 ? "Play All Next" : "Play Next",
@@ -67,11 +57,8 @@ struct PlayableItemsMenuView: View {
         }
         Button(action: {
             let items = itemsProvider()
-            Task.detached {
-                appendMediaItems(items: items)
-                await showToastWithMessage(
-                    "Playing \(items.count) Songs Last", systemImage: "text.append")
-            }
+            appendMediaItems(items: items)
+            showToastWithMessage("Playing \(items.count) Songs Last", systemImage: "text.append")
         }) {
             Label(
                 itemsCount > 1 ? "Play All Last" : "Play Last",

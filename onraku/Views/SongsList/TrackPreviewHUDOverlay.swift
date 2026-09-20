@@ -70,7 +70,11 @@ struct TrackPreviewHUDOverlay: View {
         isHUDVisible = false
         hideTask?.cancel()
         hideTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 180_000_000)
+            do {
+                try await Task.sleep(nanoseconds: 180_000_000)
+            } catch {
+                return
+            }
             guard !Task.isCancelled else { return }
             displayedHUD = nil
             hideTask = nil

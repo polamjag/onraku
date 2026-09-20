@@ -16,6 +16,7 @@ extension Notification.Name {
         "MPMusicPlayerControllerNowPlayingItemDidChangeNotification")
 }
 
+@MainActor
 func playMediaItems(items: [MPMediaItem]) {
     let collection = MPMediaItemCollection.init(items: items)
     let currentRepeatMode = MPMusicPlayerController.systemMusicPlayer.repeatMode
@@ -24,18 +25,21 @@ func playMediaItems(items: [MPMediaItem]) {
     MPMusicPlayerController.systemMusicPlayer.repeatMode = currentRepeatMode
 }
 
+@MainActor
 func appendMediaItems(items: [MPMediaItem]) {
     let collection = MPMediaItemCollection.init(items: items)
     let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
     MPMusicPlayerController.systemMusicPlayer.append(qd)
 }
 
+@MainActor
 func prependMediaItems(items: [MPMediaItem]) {
     let collection = MPMediaItemCollection.init(items: items)
     let qd = MPMusicPlayerMediaItemQueueDescriptor(itemCollection: collection)
     MPMusicPlayerController.systemMusicPlayer.prepend(qd)
 }
 
+@MainActor
 func getNowPlayingSong() -> MPMediaItem? {
     return MPMusicPlayerController.systemMusicPlayer.nowPlayingItem
 }
@@ -473,7 +477,11 @@ final class TrackPreviewController: ObservableObject {
         stopCleanupTask?.cancel()
         let delayNanoseconds = stopCleanupDelayNanoseconds
         stopCleanupTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: delayNanoseconds)
+            do {
+                try await Task.sleep(nanoseconds: delayNanoseconds)
+            } catch {
+                return
+            }
             guard !Task.isCancelled else { return }
             guard let self else { return }
             self.finishStopCleanup(
@@ -525,8 +533,12 @@ final class TrackPreviewController: ObservableObject {
 
         delayedResumeTask?.cancel()
         delayedResumeTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: 300_000_000)
-            guard let self else { return }
+            do {
+                try await Task.sleep(nanoseconds: 300_000_000)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled, let self else { return }
             if shouldRetryOtherAudioNotification {
                 try? self.audioSessionConfigurator.deactivatePreview()
             }
@@ -544,7 +556,11 @@ final class TrackPreviewController: ObservableObject {
                 guard let self, self.previewingItemID != nil else { return }
                 self.previewElapsedTime = self.previewPlayer.currentPlaybackTime
                 self.previewProgress.updateElapsedTime(self.previewElapsedTime)
-                try? await Task.sleep(nanoseconds: 500_000_000)
+                do {
+                    try await Task.sleep(nanoseconds: 500_000_000)
+                } catch {
+                    return
+                }
             }
         }
     }
@@ -580,7 +596,7 @@ struct SystemPlaybackNotificationManager: PlaybackNotificationManaging {
 
 struct SystemQuickDigLoader: QuickDigLoading {
     func loadQuickDig() async -> QuickDigData? {
-        guard let now = getNowPlayingSong() else { return nil }
+        guard let now = await getNowPlayingSong() else { return nil }
         let result = await getDiggedItems(of: now, includeGenre: false, withDepth: 1)
         return QuickDigData(songs: result.items, predicates: result.predicates)
     }
@@ -588,7 +604,7 @@ struct SystemQuickDigLoader: QuickDigLoading {
 
 struct SystemNowPlayingLoader: NowPlayingLoading {
     func loadNowPlayingSong() async -> MPMediaItem? {
-        getNowPlayingSong()
+        await getNowPlayingSong()
     }
 }
 
@@ -603,12 +619,22 @@ final class ContentViewModel: ObservableObject {
     private var songsCollectionsListViewModels: [CollectionTypes: SongsCollectionsListViewModel] =
         [:]
     private var isGeneratingPlaybackNotifications = false
+    private var quickDigRefreshGeneration = 0
 
     init(
         playbackNotificationManager: PlaybackNotificationManaging =
             SystemPlaybackNotificationManager(),
-        quickDigLoader: QuickDigLoading = SystemQuickDigLoader(),
-        songsCollectionsLoader: SongsCollectionsLoading = MediaLibrarySongsCollectionsLoader()
+        quickDigLoader: QuickDigLoading = SystemQuickDigLoader()
+    ) {
+        self.playbackNotificationManager = playbackNotificationManager
+        self.quickDigLoader = quickDigLoader
+        self.songsCollectionsLoader = MediaLibrarySongsCollectionsLoader()
+    }
+
+    init(
+        playbackNotificationManager: PlaybackNotificationManaging,
+        quickDigLoader: QuickDigLoading,
+        songsCollectionsLoader: SongsCollectionsLoading
     ) {
         self.playbackNotificationManager = playbackNotificationManager
         self.quickDigLoader = quickDigLoader
@@ -620,6 +646,7 @@ final class ContentViewModel: ObservableObject {
     }
 
     func onDisappear() {
+        quickDigRefreshGeneration += 1
         stopPlaybackNotificationsIfNeeded()
     }
 
@@ -633,6 +660,7 @@ final class ContentViewModel: ObservableObject {
             startPlaybackNotificationsIfNeeded()
             await refreshQuickDig()
         default:
+            quickDigRefreshGeneration += 1
             stopPlaybackNotificationsIfNeeded()
         }
     }
@@ -665,7 +693,10 @@ final class ContentViewModel: ObservableObject {
     }
 
     private func refreshQuickDig() async {
+        quickDigRefreshGeneration += 1
+        let generation = quickDigRefreshGeneration
         guard let quickDig = await quickDigLoader.loadQuickDig() else { return }
+        guard !Task.isCancelled, generation == quickDigRefreshGeneration else { return }
         quickDigSongs = quickDig.songs
         quickDigPredicates = quickDig.predicates
     }
@@ -678,6 +709,7 @@ final class NowPlayingViewModel: ObservableObject {
 
     private let nowPlayingLoader: NowPlayingLoading
     private var isAppearing = false
+    private var refreshGeneration = 0
 
     init(nowPlayingLoader: NowPlayingLoading = SystemNowPlayingLoader()) {
         self.nowPlayingLoader = nowPlayingLoader
@@ -689,6 +721,7 @@ final class NowPlayingViewModel: ObservableObject {
 
     func onDisappear() {
         isAppearing = false
+        refreshGeneration += 1
     }
 
     func handleNowPlayingItemDidChange() async {
@@ -697,15 +730,22 @@ final class NowPlayingViewModel: ObservableObject {
     }
 
     func handleScenePhaseChange(_ newPhase: ScenePhase) async {
-        guard newPhase == .active else { return }
+        guard newPhase == .active else {
+            refreshGeneration += 1
+            return
+        }
         await refreshNowPlayingSong(showLoading: nowPlayingItem == nil)
     }
 
     func refreshNowPlayingSong(showLoading: Bool = true) async {
+        refreshGeneration += 1
+        let generation = refreshGeneration
         if showLoading || nowPlayingItem == nil {
             loadingState = .loading
         }
-        nowPlayingItem = await nowPlayingLoader.loadNowPlayingSong()
+        let loadedItem = await nowPlayingLoader.loadNowPlayingSong()
+        guard !Task.isCancelled, generation == refreshGeneration else { return }
+        nowPlayingItem = loadedItem
         loadingState = .loaded
     }
 }

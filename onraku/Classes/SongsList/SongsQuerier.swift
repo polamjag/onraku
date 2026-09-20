@@ -9,6 +9,7 @@ import Foundation
 import MediaPlayer
 import RegexBuilder
 
+@MainActor
 func getSongsByPredicateNow(predicate: MyMPMediaPropertyPredicate) -> [MPMediaItem] {
   if predicate.forProperty == MPMediaItemPropertyComments {
     guard let query = predicate.value as? String else { return [] }
@@ -59,16 +60,17 @@ func getSongsByPredicateNow(predicate: MyMPMediaPropertyPredicate) -> [MPMediaIt
   }
 }
 
+@MainActor
 func getSongsByPredicate(predicate: MyMPMediaPropertyPredicate) async
   -> [MPMediaItem]
 {
-  let task = Task.detached(priority: .high) { () -> [MPMediaItem] in
-    getSongsByPredicateNow(predicate: predicate)
+  guard !Task.isCancelled else { return [] }
+  return getSongsByPredicateNow(predicate: predicate).filter {
+    $0.mediaType == MPMediaType.music
   }
-
-  return await task.result.get().filter { $0.mediaType == MPMediaType.music }
 }
 
+@MainActor
 private func getSongsByComments(
   query: String, comparisonType: MPMediaPredicateComparison
 )
@@ -86,6 +88,7 @@ private func getSongsByComments(
   }
 }
 
+@MainActor
 private func getSongsByUserGrouping(
   userGrouping: String, comparisonType: MPMediaPredicateComparison
 )

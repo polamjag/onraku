@@ -23,6 +23,8 @@ final class QueriedSongsListViewModel: ObservableObject {
   private let originalSearchCriteria: [MyMPMediaPropertyPredicate]
   private var usesEditedSearchCriteria = false
   private var sortTask: Task<Void, Never>?
+  private var loadGeneration = 0
+  private var sortGeneration = 0
 
   init(songsList: SongsList) {
     self.title = songsList.title
@@ -69,13 +71,21 @@ final class QueriedSongsListViewModel: ObservableObject {
   }
 
   private func load(as loadingState: LoadingState) async {
+    loadGeneration += 1
+    let generation = loadGeneration
     self.loadingState = loadingState
+    let loadedSongs: [MPMediaItem]
     if usesEditedSearchCriteria {
-      songs = await searchCriteriaLoader(searchCriteria)
+      loadedSongs = await searchCriteriaLoader(searchCriteria)
     } else {
-      songs = await loader()
+      loadedSongs = await loader()
     }
+
+    guard !Task.isCancelled, generation == loadGeneration else { return }
+    songs = loadedSongs
     await applySortOrder()
+
+    guard !Task.isCancelled, generation == loadGeneration else { return }
     self.loadingState = .loaded
   }
 
@@ -117,9 +127,13 @@ final class QueriedSongsListViewModel: ObservableObject {
     sortOrder = newSortOrder
 
     sortTask?.cancel()
-    sortTask = Task { [weak self] in
+    sortGeneration += 1
+    let generation = sortGeneration
+    sortTask = Task { @MainActor [weak self] in
       guard let self else { return }
-      await self.applySortOrder()
+      let sortedSongs = await sortSongs(songs: self.songs, by: self.sortOrder)
+      guard !Task.isCancelled, generation == self.sortGeneration else { return }
+      self.displayedSongs = sortedSongs
     }
   }
 
@@ -128,6 +142,10 @@ final class QueriedSongsListViewModel: ObservableObject {
   }
 
   private func applySortOrder() async {
-    displayedSongs = await sortSongs(songs: songs, by: sortOrder)
+    sortGeneration += 1
+    let generation = sortGeneration
+    let sortedSongs = await sortSongs(songs: songs, by: sortOrder)
+    guard !Task.isCancelled, generation == sortGeneration else { return }
+    displayedSongs = sortedSongs
   }
 }

@@ -75,7 +75,9 @@ struct ContentView: View {
             viewModel.onDisappear()
         }
         .onChange(of: scenePhase) { _, newPhase in
-            Task { await viewModel.handleScenePhaseChange(newPhase) }
+            Task { @MainActor in
+                await viewModel.handleScenePhaseChange(newPhase)
+            }
         }
         .onChange(of: trackPreviewModeRawValue) { _, _ in
             syncTrackPreviewMode()

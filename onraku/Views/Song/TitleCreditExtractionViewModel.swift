@@ -409,6 +409,8 @@ final class TitleCreditExtractionViewModel: ObservableObject {
 
   private let extractor: TitleCreditExtracting
   private var extractionTask: Task<Void, Never>?
+  private var extractionGeneration = 0
+  private var currentSongIdentifier: String?
 
   init(extractor: TitleCreditExtracting? = nil) {
     if let extractor {
@@ -432,10 +434,18 @@ final class TitleCreditExtractionViewModel: ObservableObject {
 
   func reset() {
     extractionTask?.cancel()
+    extractionGeneration += 1
+    currentSongIdentifier = nil
     state = .idle
   }
 
   func extractCredits(for song: SongDetailLike) async {
+    extractionTask?.cancel()
+    extractionGeneration += 1
+    let generation = extractionGeneration
+    let requestedIdentifier = song.refreshingIdentifier
+    currentSongIdentifier = requestedIdentifier
+
     guard let title = song.title?.trimmingCharacters(in: .whitespacesAndNewlines),
       !title.isEmpty
     else {
@@ -451,36 +461,30 @@ final class TitleCreditExtractionViewModel: ObservableObject {
     }
 
     state = .loading(previousResult: previousResult)
-    extractionTask?.cancel()
-    let requestedIdentifier = song.refreshingIdentifier
     let genre = song.genre?.trimmingCharacters(in: .whitespacesAndNewlines)
     let extractionContext = TitleCreditExtractionContext(
       beatsPerMinute: song.beatsPerMinute > 0 ? song.beatsPerMinute : nil,
       genre: genre?.isEmpty == false ? genre : nil
     )
 
-    extractionTask = Task { [weak self] in
+    let extractor = extractor
+    extractionTask = Task { @MainActor [weak self] in
       guard let self else { return }
 
       do {
         let result = try await extractor.extract(from: title, context: extractionContext)
         guard !Task.isCancelled,
-          requestedIdentifier == song.refreshingIdentifier
+          generation == self.extractionGeneration,
+          requestedIdentifier == self.currentSongIdentifier
         else { return }
 
-        await MainActor.run {
-          self.state = .loaded(result)
-        }
+        self.state = .loaded(result)
       } catch let error as TitleCreditExtractorError {
-        guard !Task.isCancelled else { return }
-        await MainActor.run {
-          self.state = .unavailable(error.localizedDescription)
-        }
+        guard !Task.isCancelled, generation == self.extractionGeneration else { return }
+        self.state = .unavailable(error.localizedDescription)
       } catch {
-        guard !Task.isCancelled else { return }
-        await MainActor.run {
-          self.state = .failed(error.localizedDescription)
-        }
+        guard !Task.isCancelled, generation == self.extractionGeneration else { return }
+        self.state = .failed(error.localizedDescription)
       }
     }
 

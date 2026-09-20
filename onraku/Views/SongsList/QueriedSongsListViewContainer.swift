@@ -307,7 +307,7 @@ struct QueriedSongsListViewContainer: View {
                         if isSearchHintSectionExpanded {
                             if isEditingSearchCriteria {
                                 Button {
-                                    Task {
+                                    Task { @MainActor in
                                         await viewModel.restoreSearchCriteria()
                                     }
                                 } label: {
@@ -325,7 +325,7 @@ struct QueriedSongsListViewContainer: View {
                                         editingPredicate = predicate
                                     },
                                     onDelete: {
-                                        Task {
+                                        Task { @MainActor in
                                             await viewModel.removeSearchCriterion(predicate)
                                         }
                                     },
@@ -333,7 +333,7 @@ struct QueriedSongsListViewContainer: View {
                                 )
                             }
                             .onDelete { offsets in
-                                Task {
+                                Task { @MainActor in
                                     await viewModel.removeSearchCriteria(atOffsets: offsets)
                                 }
                             }
@@ -377,7 +377,7 @@ struct QueriedSongsListViewContainer: View {
         }
         .sheet(item: $editingPredicate) { predicate in
             PredicateEditorView(predicate: predicate) { updated in
-                Task {
+                Task { @MainActor in
                     await viewModel.updateSearchCriterion(predicate, with: updated)
                 }
             }

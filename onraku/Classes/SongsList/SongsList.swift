@@ -10,6 +10,7 @@ import MediaPlayer
 protocol SongsList {
   var title: String { get }
   var searchCriteria: [MyMPMediaPropertyPredicate] { get }
+  @MainActor
   func loadSongs() async -> [MPMediaItem]
 }
 
@@ -124,21 +125,14 @@ func predicateToSongsList(_ predicate: MyMPMediaPropertyPredicate) -> SongsList 
   )
 }
 
+@MainActor
 func getSongsByPredicates(_ predicates: [MyMPMediaPropertyPredicate]) async
   -> [MPMediaItem]
 {
-  let songs = await withTaskGroup(of: [MPMediaItem].self) { group in
-    for predicate in predicates {
-      group.addTask {
-        await getSongsByPredicate(predicate: predicate)
-      }
-    }
-
-    var loadedSongs: [MPMediaItem] = []
-    for await result in group {
-      loadedSongs += result
-    }
-    return loadedSongs
+  var songs: [MPMediaItem] = []
+  for predicate in predicates {
+    guard !Task.isCancelled else { return [] }
+    songs += await getSongsByPredicate(predicate: predicate)
   }
 
   return songs.unique()

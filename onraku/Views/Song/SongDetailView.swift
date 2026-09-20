@@ -109,7 +109,7 @@ struct SongDetailView: View {
     @ViewBuilder
     private func aiCreditAnalysisView() -> some View {
         Button {
-            Task {
+            Task { @MainActor in
                 await titleCredits.extractCredits(for: song)
             }
         } label: {

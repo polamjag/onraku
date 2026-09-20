@@ -8,6 +8,19 @@
 import Foundation
 import MediaPlayer
 
+private struct SongSortSnapshot: Sendable {
+  let index: Int
+  let title: String
+  let album: String
+  let artist: String
+  let genre: String
+  let userGrouping: String
+  let dateAdded: Date
+  let bpm: Int
+  let lastPlayedDate: Date?
+  let playCount: Int
+}
+
 enum SongsSortKey: String, Equatable, CaseIterable {
   case none = "Default"
   case title = "Title"
@@ -51,60 +64,90 @@ enum SongsSortKey: String, Equatable, CaseIterable {
   }
 }
 
+@MainActor
 func sortSongs(songs: [MPMediaItem], by key: SongsSortKey) async
   -> [MPMediaItem]
 {
-  let task = Task.detached(priority: .high) { () -> [MPMediaItem] in
+  let snapshots = songs.enumerated().map { index, song in
+    SongSortSnapshot(
+      index: index,
+      title: song.title ?? "",
+      album: song.albumTitle ?? "",
+      artist: song.artist ?? "",
+      genre: song.genre ?? "",
+      userGrouping: song.userGrouping ?? "",
+      dateAdded: song.dateAdded,
+      bpm: song.beatsPerMinuteForSorting,
+      lastPlayedDate: song.lastPlayedDate,
+      playCount: song.playCount
+    )
+  }
+
+  let task = Task.detached(priority: .high) { () -> [Int] in
+    guard !Task.isCancelled else { return [] }
+    let sorted: [SongSortSnapshot]
     switch key {
     case .addedAt:
-      return songs.sorted { $0.dateAdded < $1.dateAdded }
+      sorted = snapshots.sorted { $0.dateAdded < $1.dateAdded }
     case .title:
-      return songs.sorted { $0.title ?? "" < $1.title ?? "" }
+      sorted = snapshots.sorted { $0.title < $1.title }
     case .album:
-      return songs.sorted { $0.albumTitle ?? "" < $1.albumTitle ?? "" }
+      sorted = snapshots.sorted { $0.album < $1.album }
     case .artist:
-      return songs.sorted { $0.artist ?? "" < $1.artist ?? "" }
+      sorted = snapshots.sorted { $0.artist < $1.artist }
     case .genre:
-      return songs.sorted { $0.genre ?? "" < $1.genre ?? "" }
+      sorted = snapshots.sorted { $0.genre < $1.genre }
     case .userGrouping:
-      return songs.sorted { $0.userGrouping ?? "" < $1.userGrouping ?? "" }
+      sorted = snapshots.sorted { $0.userGrouping < $1.userGrouping }
     case .bpm:
-      return songs.sorted {
-        $0.beatsPerMinuteForSorting
-          < $1.beatsPerMinuteForSorting
-      }
+      sorted = snapshots.sorted { $0.bpm < $1.bpm }
     case .lastPlayedAsc:
-      return songs.sorted {
-        guard let lhs = $0.lastPlayedDate else { return false }
-        guard let rhs = $1.lastPlayedDate else { return true }
-        return lhs < rhs
+      sorted = snapshots.sorted {
+        switch ($0.lastPlayedDate, $1.lastPlayedDate) {
+        case let (lhs?, rhs?): return lhs < rhs
+        case (nil, nil): return false
+        case (nil, _): return false
+        case (_, nil): return true
+        }
       }
     case .lastPlayedDesc:
-      return songs.sorted {
-        guard let lhs = $0.lastPlayedDate else { return false }
-        guard let rhs = $1.lastPlayedDate else { return true }
-        return lhs > rhs
+      sorted = snapshots.sorted {
+        switch ($0.lastPlayedDate, $1.lastPlayedDate) {
+        case let (lhs?, rhs?): return lhs > rhs
+        case (nil, nil): return false
+        case (nil, _): return false
+        case (_, nil): return true
+        }
       }
     case .playCountAsc:
-      return songs.sorted { $0.playCount < $1.playCount }
+      sorted = snapshots.sorted { $0.playCount < $1.playCount }
     case .playCountDesc:
-      return songs.sorted { $0.playCount > $1.playCount }
+      sorted = snapshots.sorted { $0.playCount > $1.playCount }
     case .playCountPerDayDesc:
       let now = Date()
-      return songs.sorted {
-        return (Double($0.playCount) / $0.dateAdded.distance(to: now))
+      sorted = snapshots.sorted {
+        (Double($0.playCount) / $0.dateAdded.distance(to: now))
           > (Double($1.playCount) / $1.dateAdded.distance(to: now))
       }
     case .playCountPerDayAsc:
       let now = Date()
-      return songs.sorted {
-        return (Double($0.playCount) / $0.dateAdded.distance(to: now))
+      sorted = snapshots.sorted {
+        (Double($0.playCount) / $0.dateAdded.distance(to: now))
           < (Double($1.playCount) / $1.dateAdded.distance(to: now))
       }
     default:
-      return songs
+      sorted = snapshots
     }
+
+    return sorted.map(\.index)
   }
 
-  return await task.result.get()
+  let sortedIndexes = await withTaskCancellationHandler {
+    await task.value
+  } onCancel: {
+    task.cancel()
+  }
+
+  guard !Task.isCancelled else { return [] }
+  return sortedIndexes.map { songs[$0] }
 }
