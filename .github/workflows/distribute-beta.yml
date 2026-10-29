@@ -190,7 +190,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@1fc69ca369a60b813eaaa2d936eda22794b52e17 # v5
+        uses: apple-actions/upload-testflight-build@665328adbecbc3ad929d3da710696d928b8a7ba9 # v5
         with:
           app-path: ${{ steps.exported-ipa.outputs.path }}
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
